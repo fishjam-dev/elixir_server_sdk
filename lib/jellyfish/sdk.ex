@@ -13,8 +13,8 @@ defmodule Jellyfish.SDK do
       Tesla.Middleware.JSON
     ]
 
-    adapter = Tesla.Adapter.Hackney
+    # adapter = Tesla.Adapter.Hackney
 
-    Tesla.client(middleware, adapter)
+    Tesla.client(middleware)
   end
 end

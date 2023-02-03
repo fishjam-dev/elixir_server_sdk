@@ -23,4 +23,24 @@ defmodule Jellyfish.SDK.Component do
   def delete_component(client, room_id, component_id) do
     # TODO
   end
+
+  @spec component_from_json(map()) :: {:ok, t()} | {:error, atom()}
+  def component_from_json(response_body) do
+    case response_body do
+      %{
+        "data" => %{
+          "id" => id,
+          "type" => type
+        }
+      } ->
+        {:ok,
+         %__MODULE__{
+           id: id,
+           type: type
+         }}
+
+      _other ->
+        {:error, :invalid_body_structure}
+    end
+  end
 end
