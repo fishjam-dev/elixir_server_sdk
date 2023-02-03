@@ -37,7 +37,11 @@ defmodule Membrane.Template.Mixfile do
 
   defp deps do
     [
-      {:membrane_core, "~> 0.10.0"},
+      {:tesla, "~> 1.5"},
+      {:hackney, "~> 1.18"},
+      {:jason, "~> 1.4"},
+
+      # Docs, credo and dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false}
