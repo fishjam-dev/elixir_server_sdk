@@ -9,6 +9,11 @@ defmodule Jellyfish.SDK.Utils do
   end
 
   @doc false
+  def translate_error_response({:ok, %Env{body: body}}) do
+    {:error, "Received unexpected response: #{inspect({body})}"}
+  end
+
+  @doc false
   def translate_error_response({:error, reason}) do
     {:error, "Internal error: #{inspect(reason)}"}
   end

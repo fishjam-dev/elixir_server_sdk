@@ -2,7 +2,7 @@ defmodule Jellyfish.SDK.Room do
   @moduledoc false
 
   alias Tesla.{Client, Env}
-  alias Jellyfish.SDK.{Component, Utils, Peer}
+  alias Jellyfish.SDK.{Component, Peer, Utils}
 
   @enforce_keys [
     :id,
@@ -19,13 +19,13 @@ defmodule Jellyfish.SDK.Room do
           peers: [Peer.t()]
         }
 
-  @spec create_room(Client.t(), non_neg_integer()) :: {:ok, t()} | {:error, String.t()}
+  @spec create_room(Client.t(), non_neg_integer() | nil) :: {:ok, t()} | {:error, String.t()}
   def create_room(client, max_peers) do
-    case Tesla.post(client, "/room", %{"maxPeers" => max_peers}) do
+    case Tesla.post(client, "/room", %{"maxPeers" => max_peers},
+           headers: [{"content-type", "application/json"}]
+         ) do
       {:ok, %Env{status: 201, body: body}} ->
-        body
-        |> Map.get("data")
-        |> room_from_json()
+        {:ok, room_from_json(Map.fetch!(body, "data"))}
 
       error ->
         Utils.translate_error_response(error)
@@ -44,9 +44,12 @@ defmodule Jellyfish.SDK.Room do
   def get_rooms(client) do
     case Tesla.get(client, "/room") do
       {:ok, %Env{status: 200, body: body}} ->
-        body
-        |> Map.get("data")
-        |> Enum.map(&room_from_json/1)
+        result =
+          body
+          |> Map.fetch!("data")
+          |> Enum.map(&room_from_json/1)
+
+        {:ok, result}
 
       error ->
         Utils.translate_error_response(error)
@@ -57,9 +60,7 @@ defmodule Jellyfish.SDK.Room do
   def get_room_by_id(client, room_id) do
     case Tesla.get(client, "/room/" <> room_id) do
       {:ok, %Env{status: 200, body: body}} ->
-        body
-        |> Map.get("data")
-        |> room_from_json()
+        {:ok, room_from_json(Map.fetch!(body, "data"))}
 
       error ->
         Utils.translate_error_response(error)

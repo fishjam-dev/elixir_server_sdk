@@ -9,7 +9,6 @@ defmodule Jellyfish.SDK do
   def new(url) do
     middleware = [
       {Tesla.Middleware.BaseUrl, url},
-      {Tesla.Middleware.Headers, [{"content-type", "application/json"}]},
       Tesla.Middleware.JSON
     ]
 

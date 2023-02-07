@@ -1,8 +1,8 @@
 defmodule Jellyfish.SDK.Component do
   @moduledoc false
 
-  alias Tesla.{Client, Env}
   alias Jellyfish.SDK.Utils
+  alias Tesla.{Client, Env}
 
   @enforce_keys [
     :id,
@@ -18,11 +18,16 @@ defmodule Jellyfish.SDK.Component do
   @spec create_component(Client.t(), String.t(), String.t(), map()) ::
           {:ok, t()} | {:error, String.t()}
   def create_component(client, room_id, type, options) do
-    case Tesla.post(client, "/room/" <> room_id <> "/component", %{
-           "type" => type,
-           "options" => options
-         }) do
-      {:ok, %Env{status: 201, body: body}} -> component_from_json(Map.get(body, "data"))
+    case Tesla.post(
+           client,
+           "/room/" <> room_id <> "/component",
+           %{
+             "type" => type,
+             "options" => options
+           },
+           headers: [{"content-type", "application/json"}]
+         ) do
+      {:ok, %Env{status: 201, body: body}} -> {:ok, component_from_json(Map.get(body, "data"))}
       error -> Utils.translate_error_response(error)
     end
   end
