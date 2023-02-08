@@ -6,6 +6,7 @@ defmodule Jellyfish.SDK.RoomTest do
   alias Jellyfish.SDK.{Client, Component, Peer, Room}
 
   @url "http://mockurl.com"
+  @invalid_url "http://invalid-url.com"
 
   @component_id "mock_component_id"
   @component_type "hls"
@@ -99,12 +100,31 @@ defmodule Jellyfish.SDK.RoomTest do
           url: @url <> "/room"
         } ->
           json(%{"data" => [build_room_json(false)]}, status: 200)
+
+        %{
+          method: :get,
+          url: @invalid_url <> "/room"
+        } ->
+          %Tesla.Env{status: 404, body: nil}
       end)
     end
 
     test "when request is valid", %{client: client} do
       assert {:ok, rooms} = Room.get_rooms(client)
       assert rooms == [build_room(false)]
+    end
+
+    test "when request is invalid" do
+      middleware = [
+        {Tesla.Middleware.BaseUrl, @invalid_url},
+        Tesla.Middleware.JSON
+      ]
+
+      adapter = Tesla.Mock
+      http_client = Tesla.client(middleware, adapter)
+      invalid_client = %Client{http_client: http_client}
+
+      assert {:error, "Received unexpected response: {nil}"} = Room.get_rooms(invalid_client)
     end
   end
 
