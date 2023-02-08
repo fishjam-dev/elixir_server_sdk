@@ -16,7 +16,7 @@ defmodule Membrane.Template.Mixfile do
       dialyzer: dialyzer(),
 
       # hex
-      description: "Elixir server SDK for Jellyfish",
+      description: "Jellyfish Server SDK",
       package: package(),
 
       # docs
