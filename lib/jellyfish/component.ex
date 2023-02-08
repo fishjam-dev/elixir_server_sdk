@@ -34,7 +34,10 @@ defmodule Jellyfish.SDK.Component do
 
   @spec delete_component(Client.t(), String.t(), String.t()) :: :ok | {:error, String.t()}
   def delete_component(client, room_id, component_id) do
-    case Tesla.delete(client, "/room/" <> room_id <> "/component/" <> component_id) do
+    case Tesla.delete(
+           client,
+           "/room/" <> room_id <> "/component/" <> component_id
+         ) do
       {:ok, %Env{status: 204}} -> :ok
       error -> Utils.translate_error_response(error)
     end
@@ -42,7 +45,7 @@ defmodule Jellyfish.SDK.Component do
 
   @spec component_from_json(map()) :: t()
   def component_from_json(response) do
-    # raises when response structure is invalid
+    # fails when response structure is invalid
     %{
       "id" => id,
       "type" => type

@@ -21,7 +21,10 @@ defmodule Jellyfish.SDK.Room do
 
   @spec create_room(Client.t(), non_neg_integer() | nil) :: {:ok, t()} | {:error, String.t()}
   def create_room(client, max_peers) do
-    case Tesla.post(client, "/room", %{"maxPeers" => max_peers},
+    case Tesla.post(
+           client,
+           "/room",
+           %{"maxPeers" => max_peers},
            headers: [{"content-type", "application/json"}]
          ) do
       {:ok, %Env{status: 201, body: body}} ->
@@ -69,7 +72,7 @@ defmodule Jellyfish.SDK.Room do
 
   @spec room_from_json(map()) :: t()
   def room_from_json(response) do
-    # raises when response structure is invalid
+    # fails when response structure is invalid
     %{
       "id" => id,
       "config" => %{"maxPeers" => max_peers},
