@@ -3,7 +3,7 @@ defmodule Jellyfish.SDK.RoomTest do
 
   import Tesla.Mock
 
-  alias Jellyfish.SDK.{Component, Peer, Room}
+  alias Jellyfish.SDK.{Client, Component, Peer, Room}
 
   @url "http://mockurl.com"
 
@@ -29,8 +29,9 @@ defmodule Jellyfish.SDK.RoomTest do
     ]
 
     adapter = Tesla.Mock
+    http_client = Tesla.client(middleware, adapter)
 
-    %{client: Tesla.client(middleware, adapter)}
+    %{client: %Client{http_client: http_client}}
   end
 
   describe "Room.create_room/2" do

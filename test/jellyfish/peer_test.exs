@@ -3,7 +3,7 @@ defmodule Jellyfish.SDK.PeerTest do
 
   import Tesla.Mock
 
-  alias Jellyfish.SDK.Peer
+  alias Jellyfish.SDK.{Client, Peer}
 
   @url "http://mockurl.com"
 
@@ -24,8 +24,9 @@ defmodule Jellyfish.SDK.PeerTest do
     ]
 
     adapter = Tesla.Mock
+    http_client = Tesla.client(middleware, adapter)
 
-    %{client: Tesla.client(middleware, adapter)}
+    %{client: %Client{http_client: http_client}}
   end
 
   describe "Peer.add_peer/3" do

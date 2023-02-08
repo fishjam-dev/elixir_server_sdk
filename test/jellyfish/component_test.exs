@@ -3,7 +3,7 @@ defmodule Jellyfish.SDK.ComponentTest do
 
   import Tesla.Mock
 
-  alias Jellyfish.SDK.Component
+  alias Jellyfish.SDK.{Client, Component}
 
   @url "http://mockurl.com"
 
@@ -24,8 +24,9 @@ defmodule Jellyfish.SDK.ComponentTest do
     ]
 
     adapter = Tesla.Mock
+    http_client = Tesla.client(middleware, adapter)
 
-    %{client: Tesla.client(middleware, adapter)}
+    %{client: %Client{http_client: http_client}}
   end
 
   describe "Component.create_component/4" do
