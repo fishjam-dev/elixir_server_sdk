@@ -54,8 +54,8 @@ defmodule Jellyfish.SDK.Component do
           {:ok, t()} | {:error, String.t()}
   def create_component(client, room_id, type, options) do
     case Tesla.post(
-           client.http_client,
-           "/room/" <> room_id <> "/component",
+           client.http_request,
+           "/room/#{room_id}/component",
            %{
              "type" => type,
              "options" => options
@@ -79,8 +79,8 @@ defmodule Jellyfish.SDK.Component do
   @spec delete_component(Client.t(), String.t(), String.t()) :: :ok | {:error, String.t()}
   def delete_component(client, room_id, component_id) do
     case Tesla.delete(
-           client.http_client,
-           "/room/" <> room_id <> "/component/" <> component_id
+           client.http_request,
+           "/room/#{room_id}/component/#{component_id}"
          ) do
       {:ok, %Env{status: 204}} -> :ok
       error -> Utils.translate_error_response(error)

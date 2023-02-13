@@ -67,7 +67,7 @@ defmodule Jellyfish.SDK.Room do
   @spec create_room(Client.t(), non_neg_integer() | nil) :: {:ok, t()} | {:error, String.t()}
   def create_room(client, max_peers) do
     case Tesla.post(
-           client.http_client,
+           client.http_request,
            "/room",
            %{"maxPeers" => max_peers},
            headers: [{"content-type", "application/json"}]
@@ -90,7 +90,7 @@ defmodule Jellyfish.SDK.Room do
   """
   @spec delete_room(Client.t(), String.t()) :: :ok | {:error, String.t()}
   def delete_room(client, room_id) do
-    case Tesla.delete(client.http_client, "/room/" <> room_id) do
+    case Tesla.delete(client.http_request, "/room/#{room_id}") do
       {:ok, %Env{status: 204}} -> :ok
       error -> Utils.translate_error_response(error)
     end
@@ -105,7 +105,7 @@ defmodule Jellyfish.SDK.Room do
   """
   @spec get_rooms(Client.t()) :: {:ok, [t()]} | {:error, String.t()}
   def get_rooms(client) do
-    case Tesla.get(client.http_client, "/room") do
+    case Tesla.get(client.http_request, "/room") do
       {:ok, %Env{status: 200, body: body}} ->
         result =
           body
@@ -129,7 +129,7 @@ defmodule Jellyfish.SDK.Room do
   """
   @spec get_room_by_id(Client.t(), String.t()) :: {:ok, t()} | {:error, String.t()}
   def get_room_by_id(client, room_id) do
-    case Tesla.get(client.http_client, "/room/" <> room_id) do
+    case Tesla.get(client.http_request, "/room/#{room_id}") do
       {:ok, %Env{status: 200, body: body}} ->
         {:ok, room_from_json(Map.fetch!(body, "data"))}
 

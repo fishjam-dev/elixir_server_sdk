@@ -30,9 +30,9 @@ defmodule Jellyfish.SDK.RoomTest do
     ]
 
     adapter = Tesla.Mock
-    http_client = Tesla.client(middleware, adapter)
+    http_request = Tesla.client(middleware, adapter)
 
-    %{client: %Client{http_client: http_client}}
+    %{client: %Client{http_request: http_request}}
   end
 
   describe "Room.create_room/2" do
@@ -40,15 +40,15 @@ defmodule Jellyfish.SDK.RoomTest do
       mock(fn
         %{
           method: :post,
-          url: @url <> "/room",
-          body: "{\"maxPeers\":" <> @max_peers_string <> "}"
+          url: "#{@url}/room",
+          body: "{\"maxPeers\":#{@max_peers_string}}"
         } ->
           json(%{"data" => build_room_json(true)}, status: 201)
 
         %{
           method: :post,
-          url: @url <> "/room",
-          body: "{\"maxPeers\":\"" <> @invalid_max_peers <> "\"}"
+          url: "#{@url}/room",
+          body: "{\"maxPeers\":\"#{@invalid_max_peers}\"}"
         } ->
           json(%{"errors" => @error_message}, status: 422)
       end)
@@ -70,13 +70,13 @@ defmodule Jellyfish.SDK.RoomTest do
       mock(fn
         %{
           method: :delete,
-          url: @url <> "/room/" <> @room_id
+          url: "#{@url}/room/#{@room_id}"
         } ->
           text("", status: 204)
 
         %{
           method: :delete,
-          url: @url <> "/room/" <> @invalid_room_id
+          url: "#{@url}/room/#{@invalid_room_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)
@@ -97,13 +97,13 @@ defmodule Jellyfish.SDK.RoomTest do
       mock(fn
         %{
           method: :get,
-          url: @url <> "/room"
+          url: "#{@url}/room"
         } ->
           json(%{"data" => [build_room_json(false)]}, status: 200)
 
         %{
           method: :get,
-          url: @invalid_url <> "/room"
+          url: "#{@invalid_url}/room"
         } ->
           %Tesla.Env{status: 404, body: nil}
       end)
@@ -121,8 +121,8 @@ defmodule Jellyfish.SDK.RoomTest do
       ]
 
       adapter = Tesla.Mock
-      http_client = Tesla.client(middleware, adapter)
-      invalid_client = %Client{http_client: http_client}
+      http_request = Tesla.client(middleware, adapter)
+      invalid_client = %Client{http_request: http_request}
 
       assert {:error, "Received unexpected response: {nil}"} = Room.get_rooms(invalid_client)
     end
@@ -133,13 +133,13 @@ defmodule Jellyfish.SDK.RoomTest do
       mock(fn
         %{
           method: :get,
-          url: @url <> "/room/" <> @room_id
+          url: "#{@url}/room/#{@room_id}"
         } ->
           json(%{"data" => build_room_json(false)}, status: 200)
 
         %{
           method: :get,
-          url: @url <> "/room/" <> @invalid_room_id
+          url: "#{@url}/room/#{@invalid_room_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)

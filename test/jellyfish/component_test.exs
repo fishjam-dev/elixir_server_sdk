@@ -24,9 +24,9 @@ defmodule Jellyfish.SDK.ComponentTest do
     ]
 
     adapter = Tesla.Mock
-    http_client = Tesla.client(middleware, adapter)
+    http_request = Tesla.client(middleware, adapter)
 
-    %{client: %Client{http_client: http_client}}
+    %{client: %Client{http_request: http_request}}
   end
 
   describe "Component.create_component/4" do
@@ -34,15 +34,15 @@ defmodule Jellyfish.SDK.ComponentTest do
       mock(fn
         %{
           method: :post,
-          url: @url <> "/room/" <> @room_id <> "/component",
-          body: "{\"options\":{},\"type\":\"" <> @component_type <> "\"}"
+          url: "#{@url}/room/#{@room_id}/component",
+          body: "{\"options\":{},\"type\":\"#{@component_type}\"}"
         } ->
           json(%{"data" => build_component_json()}, status: 201)
 
         %{
           method: :post,
-          url: @url <> "/room/" <> @room_id <> "/component",
-          body: "{\"options\":{},\"type\":\"" <> @invalid_peer_component <> "\"}"
+          url: "#{@url}/room/#{@room_id}/component",
+          body: "{\"options\":{},\"type\":\"#{@invalid_peer_component}\"}"
         } ->
           json(%{"errors" => @error_message}, status: 400)
       end)
@@ -64,13 +64,13 @@ defmodule Jellyfish.SDK.ComponentTest do
       mock(fn
         %{
           method: :delete,
-          url: @url <> "/room/" <> @room_id <> "/component/" <> @component_id
+          url: "#{@url}/room/#{@room_id}/component/#{@component_id}"
         } ->
           text("", status: 204)
 
         %{
           method: :delete,
-          url: @url <> "/room/" <> @room_id <> "/component/" <> @invalid_component_id
+          url: "#{@url}/room/#{@room_id}/component/#{@invalid_component_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)

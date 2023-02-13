@@ -52,8 +52,8 @@ defmodule Jellyfish.SDK.Peer do
   @spec add_peer(Client.t(), String.t(), String.t()) :: {:ok, t()} | {:error, String.t()}
   def add_peer(client, room_id, type) do
     case Tesla.post(
-           client.http_client,
-           "/room/" <> room_id <> "/peer",
+           client.http_request,
+           "/room/#{room_id}/peer",
            %{"type" => type},
            headers: [{"content-type", "application/json"}]
          ) do
@@ -74,8 +74,8 @@ defmodule Jellyfish.SDK.Peer do
   @spec delete_peer(Client.t(), String.t(), String.t()) :: :ok | {:error, String.t()}
   def delete_peer(client, room_id, peer_id) do
     case Tesla.delete(
-           client.http_client,
-           "/room/" <> room_id <> "/peer/" <> peer_id
+           client.http_request,
+           "/room/#{room_id}/peer/#{peer_id}"
          ) do
       {:ok, %Env{status: 204}} -> :ok
       error -> Utils.translate_error_response(error)

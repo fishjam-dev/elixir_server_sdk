@@ -24,9 +24,9 @@ defmodule Jellyfish.SDK.PeerTest do
     ]
 
     adapter = Tesla.Mock
-    http_client = Tesla.client(middleware, adapter)
+    http_request = Tesla.client(middleware, adapter)
 
-    %{client: %Client{http_client: http_client}}
+    %{client: %Client{http_request: http_request}}
   end
 
   describe "Peer.add_peer/3" do
@@ -34,15 +34,15 @@ defmodule Jellyfish.SDK.PeerTest do
       mock(fn
         %{
           method: :post,
-          url: @url <> "/room/" <> @room_id <> "/peer",
-          body: "{\"type\":\"" <> @peer_type <> "\"}"
+          url: "#{@url}/room/#{@room_id}/peer",
+          body: "{\"type\":\"#{@peer_type}\"}"
         } ->
           json(%{"data" => build_peer_json()}, status: 201)
 
         %{
           method: :post,
-          url: @url <> "/room/" <> @room_id <> "/peer",
-          body: "{\"type\":\"" <> @invalid_peer_type <> "\"}"
+          url: "#{@url}/room/#{@room_id}/peer",
+          body: "{\"type\":\"#{@invalid_peer_type}\"}"
         } ->
           json(%{"errors" => @error_message}, status: 400)
       end)
@@ -64,13 +64,13 @@ defmodule Jellyfish.SDK.PeerTest do
       mock(fn
         %{
           method: :delete,
-          url: @url <> "/room/" <> @room_id <> "/peer/" <> @peer_id
+          url: "#{@url}/room/#{@room_id}/peer/#{@peer_id}"
         } ->
           text("", status: 204)
 
         %{
           method: :delete,
-          url: @url <> "/room/" <> @room_id <> "/peer/" <> @invalid_peer_id
+          url: "#{@url}/room/#{@room_id}/peer/#{@invalid_peer_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)

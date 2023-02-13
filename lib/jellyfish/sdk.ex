@@ -6,10 +6,10 @@ defmodule Jellyfish.SDK.Client do
   * `http_request` - stores information used to make HTTP requests
   """
   @type t :: %__MODULE__{
-          http_client: Tesla.Client.t()
+          http_request: Tesla.Client.t()
         }
 
-  defstruct [:http_client]
+  defstruct [:http_request]
 
   @doc ~S"""
   Creates new instance of `t:Jellyfish.SDK.Client.t/0` struct
@@ -26,8 +26,8 @@ defmodule Jellyfish.SDK.Client do
     ]
 
     adapter = Tesla.Adapter.Hackney
-    http_client = Tesla.client(middleware, adapter)
+    http_request = Tesla.client(middleware, adapter)
 
-    %__MODULE__{http_client: http_client}
+    %__MODULE__{http_request: http_request}
   end
 end
