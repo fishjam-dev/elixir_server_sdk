@@ -24,9 +24,9 @@ defmodule Jellyfish.SDK.ComponentTest do
     ]
 
     adapter = Tesla.Mock
-    http_request = Tesla.client(middleware, adapter)
+    http_client = Tesla.client(middleware, adapter)
 
-    %{client: %Client{http_request: http_request}}
+    %{client: %Client{http_client: http_client}}
   end
 
   describe "Component.create_component/4" do

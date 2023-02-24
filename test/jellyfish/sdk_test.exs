@@ -10,7 +10,7 @@ defmodule Jellyfish.SDKTest do
       client = Client.new(@url)
 
       assert %Client{
-               http_request: %Tesla.Client{
+               http_client: %Tesla.Client{
                  adapter: {Tesla.Adapter.Hackney, :call, [[]]},
                  pre: [
                    {Tesla.Middleware.BaseUrl, :call, [@url]},

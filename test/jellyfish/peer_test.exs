@@ -24,9 +24,9 @@ defmodule Jellyfish.SDK.PeerTest do
     ]
 
     adapter = Tesla.Mock
-    http_request = Tesla.client(middleware, adapter)
+    http_client = Tesla.client(middleware, adapter)
 
-    %{client: %Client{http_request: http_request}}
+    %{client: %Client{http_client: http_client}}
   end
 
   describe "Peer.add_peer/3" do

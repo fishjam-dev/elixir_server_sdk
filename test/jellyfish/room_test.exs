@@ -30,9 +30,9 @@ defmodule Jellyfish.SDK.RoomTest do
     ]
 
     adapter = Tesla.Mock
-    http_request = Tesla.client(middleware, adapter)
+    http_client = Tesla.client(middleware, adapter)
 
-    %{client: %Client{http_request: http_request}}
+    %{client: %Client{http_client: http_client}}
   end
 
   describe "Room.create_room/2" do
@@ -121,8 +121,8 @@ defmodule Jellyfish.SDK.RoomTest do
       ]
 
       adapter = Tesla.Mock
-      http_request = Tesla.client(middleware, adapter)
-      invalid_client = %Client{http_request: http_request}
+      http_client = Tesla.client(middleware, adapter)
+      invalid_client = %Client{http_client: http_client}
 
       assert {:error, "Received unexpected response: {nil}"} = Room.get_rooms(invalid_client)
     end

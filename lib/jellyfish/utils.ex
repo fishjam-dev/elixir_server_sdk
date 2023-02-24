@@ -1,4 +1,4 @@
-defmodule Jellyfish.SDK.Utils do
+defmodule Jellyfish.Utils do
   @moduledoc false
 
   alias Tesla.Env
