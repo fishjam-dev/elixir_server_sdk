@@ -1,7 +1,7 @@
-defmodule Jellyfish.SDKTest do
+defmodule Jellyfish.ClientTest do
   use ExUnit.Case
 
-  alias Jellyfish.SDK.Client
+  alias Jellyfish.Client
 
   @url "https://somemockurl.com"
 

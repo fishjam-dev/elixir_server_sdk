@@ -1,9 +1,9 @@
-defmodule Jellyfish.SDK.RoomTest do
+defmodule Jellyfish.RoomTest do
   use ExUnit.Case
 
   import Tesla.Mock
 
-  alias Jellyfish.SDK.{Client, Component, Peer, Room}
+  alias Jellyfish.{Client, Component, Peer, Room}
 
   @url "http://mockurl.com"
   @invalid_url "http://invalid-url.com"
@@ -21,6 +21,12 @@ defmodule Jellyfish.SDK.RoomTest do
   @invalid_room_id "invalid_mock_room_id"
   @invalid_max_peers "abc"
 
+  @invalid_peer_id "invalid_peer_id"
+  @invalid_peer_type "abc"
+
+  @invalid_component_id "invalid_component_id"
+  @invalid_peer_component "abc"
+
   @error_message "Mock error message"
 
   setup do
@@ -35,7 +41,7 @@ defmodule Jellyfish.SDK.RoomTest do
     %{client: %Client{http_client: http_client}}
   end
 
-  describe "Room.create_room/2" do
+  describe "Room.create/2" do
     setup do
       mock(fn
         %{
@@ -55,17 +61,17 @@ defmodule Jellyfish.SDK.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, room} = Room.create_room(client, @max_peers)
+      assert {:ok, room} = Room.create(client, max_peers: @max_peers)
       assert room == build_room(true)
     end
 
     test "when request is invalid", %{client: client} do
       assert {:error, "Request failed: #{@error_message}"} =
-               Room.create_room(client, @invalid_max_peers)
+               Room.create(client, max_peers: @invalid_max_peers)
     end
   end
 
-  describe "Room.delete_room/2" do
+  describe "Room.delete/2" do
     setup do
       mock(fn
         %{
@@ -83,16 +89,15 @@ defmodule Jellyfish.SDK.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert :ok = Room.delete_room(client, @room_id)
+      assert :ok = Room.delete(client, @room_id)
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} =
-               Room.delete_room(client, @invalid_room_id)
+      assert {:error, "Request failed: #{@error_message}"} = Room.delete(client, @invalid_room_id)
     end
   end
 
-  describe "Room.get_rooms/1" do
+  describe "Room.list/1" do
     setup do
       mock(fn
         %{
@@ -110,7 +115,7 @@ defmodule Jellyfish.SDK.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, rooms} = Room.get_rooms(client)
+      assert {:ok, rooms} = Room.list(client)
       assert rooms == [build_room(false)]
     end
 
@@ -124,11 +129,11 @@ defmodule Jellyfish.SDK.RoomTest do
       http_client = Tesla.client(middleware, adapter)
       invalid_client = %Client{http_client: http_client}
 
-      assert {:error, "Received unexpected response: {nil}"} = Room.get_rooms(invalid_client)
+      assert {:error, "Received unexpected response: {nil}"} = Room.list(invalid_client)
     end
   end
 
-  describe "Room.get_room_by_id/2" do
+  describe "Room.get_by_id/2" do
     setup do
       mock(fn
         %{
@@ -146,23 +151,127 @@ defmodule Jellyfish.SDK.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, room} = Room.get_room_by_id(client, @room_id)
+      assert {:ok, room} = Room.get_by_id(client, @room_id)
       assert room == build_room(false)
     end
 
     test "when request is invalid", %{client: client} do
       assert {:error, "Request failed: #{@error_message}"} =
-               Room.get_room_by_id(client, @invalid_room_id)
+               Room.get_by_id(client, @invalid_room_id)
     end
   end
 
-  describe "Room.room_from_json/1" do
-    test "when input is valid" do
-      assert build_room(false) == Room.room_from_json(build_room_json(false))
+  describe "Room.add_component/4" do
+    setup do
+      mock(fn
+        %{
+          method: :post,
+          url: "#{@url}/room/#{@room_id}/component",
+          body: "{\"options\":{},\"type\":\"#{@component_type}\"}"
+        } ->
+          json(%{"data" => build_component_json()}, status: 201)
+
+        %{
+          method: :post,
+          url: "#{@url}/room/#{@room_id}/component",
+          body: "{\"options\":{},\"type\":\"#{@invalid_peer_component}\"}"
+        } ->
+          json(%{"errors" => @error_message}, status: 400)
+      end)
     end
 
-    test "when input is invalid" do
-      catch_error(Room.room_from_json(%{"invalid_key" => 5}))
+    test "when request is valid", %{client: client} do
+      assert {:ok, component} = Room.add_component(client, @room_id, @component_type)
+      assert component == build_component()
+    end
+
+    test "when request is invalid", %{client: client} do
+      assert {:error, "Request failed: #{@error_message}"} =
+               Room.add_component(client, @room_id, @invalid_peer_component)
+    end
+  end
+
+  describe "Room.delete_component/3" do
+    setup do
+      mock(fn
+        %{
+          method: :delete,
+          url: "#{@url}/room/#{@room_id}/component/#{@component_id}"
+        } ->
+          text("", status: 204)
+
+        %{
+          method: :delete,
+          url: "#{@url}/room/#{@room_id}/component/#{@invalid_component_id}"
+        } ->
+          json(%{"errors" => @error_message}, status: 404)
+      end)
+    end
+
+    test "when request is valid", %{client: client} do
+      assert :ok = Room.delete_component(client, @room_id, @component_id)
+    end
+
+    test "when request is invalid", %{client: client} do
+      assert {:error, "Request failed: #{@error_message}"} =
+               Room.delete_component(client, @room_id, @invalid_component_id)
+    end
+  end
+
+  describe "Room.add_peer/3" do
+    setup do
+      mock(fn
+        %{
+          method: :post,
+          url: "#{@url}/room/#{@room_id}/peer",
+          body: "{\"type\":\"#{@peer_type}\"}"
+        } ->
+          json(%{"data" => build_peer_json()}, status: 201)
+
+        %{
+          method: :post,
+          url: "#{@url}/room/#{@room_id}/peer",
+          body: "{\"type\":\"#{@invalid_peer_type}\"}"
+        } ->
+          json(%{"errors" => @error_message}, status: 400)
+      end)
+    end
+
+    test "when request is valid", %{client: client} do
+      assert {:ok, peer} = Room.add_peer(client, @room_id, @peer_type)
+      assert peer == build_peer()
+    end
+
+    test "when request is invalid", %{client: client} do
+      assert {:error, "Request failed: #{@error_message}"} =
+               Room.add_peer(client, @room_id, @invalid_peer_type)
+    end
+  end
+
+  describe "Room.delete_peer/3" do
+    setup do
+      mock(fn
+        %{
+          method: :delete,
+          url: "#{@url}/room/#{@room_id}/peer/#{@peer_id}"
+        } ->
+          text("", status: 204)
+
+        %{
+          method: :delete,
+          url: "#{@url}/room/#{@room_id}/peer/#{@invalid_peer_id}"
+        } ->
+          json(%{"errors" => @error_message}, status: 404)
+      end)
+    end
+
+    test "when request is valid", %{client: client} do
+      assert :ok = Room.delete_peer(client, @room_id, @peer_id)
+    end
+
+    test "when request is invalid", %{client: client} do
+      assert {:error, "Request failed: #{@error_message}"} =
+               Room.delete_peer(client, @room_id, @invalid_peer_id)
     end
   end
 
@@ -184,5 +293,21 @@ defmodule Jellyfish.SDK.RoomTest do
         if(empty?, do: [], else: [%{"id" => @component_id, "type" => @component_type}]),
       "peers" => if(empty?, do: [], else: [%{"id" => @peer_id, "type" => @peer_type}])
     }
+  end
+
+  defp build_component() do
+    %Component{id: @component_id, type: @component_type}
+  end
+
+  defp build_component_json() do
+    %{"id" => @component_id, "type" => @component_type}
+  end
+
+  defp build_peer() do
+    %Peer{id: @peer_id, type: @peer_type}
+  end
+
+  defp build_peer_json() do
+    %{"id" => @peer_id, "type" => @peer_type}
   end
 end
