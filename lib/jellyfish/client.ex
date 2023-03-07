@@ -8,9 +8,6 @@ defmodule Jellyfish.Client do
   ]
   defstruct @enforce_keys
 
-  @typedoc """
-    Stores information related to SDK state.
-  """
   @type t :: %__MODULE__{
           http_client: Tesla.Client.t()
         }

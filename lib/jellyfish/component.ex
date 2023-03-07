@@ -1,6 +1,9 @@
 defmodule Jellyfish.Component do
   @moduledoc """
   Defines `t:Jellyfish.SDK.Component.t/0`.
+
+  Component is a server-side entity that can publish to, subscribe and process tracks.
+  For more information refer to [Jellyfish documentation](https://www.membrane.stream)
   """
 
   @enforce_keys [
@@ -10,23 +13,22 @@ defmodule Jellyfish.Component do
   defstruct @enforce_keys
 
   @typedoc """
-  Id of a component in a form of UUID string.
+  Id of the component, unique within the room.
   """
   @type id :: String.t()
 
-  # TODO: use atoms instead of strings, proper link to documentation
   @typedoc """
   Type of the component.
 
-  For more information see [Jellyfish documentation](https://www.membrane.stream).
+  For more information refer to [Jellyfish documentation](https://www.membrane.stream).
   """
   @type type :: String.t()
 
   @typedoc """
-  Stores information about the peer.
+  Stores information about the component.
   """
   @type t :: %__MODULE__{
-          id: id,
-          type: type
+          id: id(),
+          type: type()
         }
 end

@@ -24,6 +24,7 @@ defmodule Jellyfish.Room do
 
   alias Tesla.Env
   alias Jellyfish.{Client, Component, Peer, Utils}
+  alias Jellyfish.Exception.ResponseStructureError
 
   @enforce_keys [
     :id,
@@ -34,16 +35,29 @@ defmodule Jellyfish.Room do
   defstruct @enforce_keys
 
   @typedoc """
-  Id of the room in a form of UUID.
+  Id of the room, unique within Jellyfish instance.
   """
   @type id :: String.t()
+
+  @typedoc """
+  Type describing room options.
+
+    * `:max_peers` - maximum number of peers present in a room simultaneously. Unlimited, if not specified.
+  """
+  @type room_options :: [{:max_peers, non_neg_integer()}]
+
+  @typedoc """
+  Type describing component options.
+  For the list of available options, please refer to the component's documentation
+  """
+  @type component_options :: Keyword.t()
 
   @typedoc """
   Stores information about the room.
   """
   @type t :: %__MODULE__{
-          id: id,
-          config: map,
+          id: id(),
+          config: map(),
           components: [Component.t()],
           peers: [Peer.t()]
         }
@@ -51,7 +65,7 @@ defmodule Jellyfish.Room do
   @doc """
   List metadata of all of the rooms.
   """
-  @spec list(Client.t()) :: {:ok, [t]} | {:error, String.t()}
+  @spec list(Client.t()) :: {:ok, [t()]} | {:error, String.t()}
   def list(client) do
     case Tesla.get(client.http_client, "/room") do
       {:ok, %Env{status: 200, body: body}} ->
@@ -70,7 +84,7 @@ defmodule Jellyfish.Room do
   @doc """
   Get metadata of the room with `room_id`.
   """
-  @spec get_by_id(Client.t(), id) :: {:ok, t} | {:error, String.t()}
+  @spec get_by_id(Client.t(), id()) :: {:ok, t()} | {:error, String.t()}
   def get_by_id(client, room_id) do
     case Tesla.get(client.http_client, "/room/#{room_id}") do
       {:ok, %Env{status: 200, body: body}} ->
@@ -83,13 +97,8 @@ defmodule Jellyfish.Room do
 
   @doc """
   Create a room.
-
-  Options:
-
-    * `:max_peers` - maximum number of peers present in a room simultaneously. Unlimited, if not specified.
   """
-  @type room_options :: [{:max_peers, non_neg_integer}]
-  @spec create(Client.t(), room_options) :: {:ok, t} | {:error, String.t()}
+  @spec create(Client.t(), room_options()) :: {:ok, t()} | {:error, String.t()}
   def create(client, opts \\ []) do
     case Tesla.post(
            client.http_client,
@@ -108,7 +117,7 @@ defmodule Jellyfish.Room do
   @doc """
   Delete the room with `room_id`.
   """
-  @spec delete(Client.t(), id) :: :ok | {:error, String.t()}
+  @spec delete(Client.t(), id()) :: :ok | {:error, String.t()}
   def delete(client, room_id) do
     case Tesla.delete(client.http_client, "/room/#{room_id}") do
       {:ok, %Env{status: 204}} -> :ok
@@ -119,7 +128,7 @@ defmodule Jellyfish.Room do
   @doc """
   Add a peer to the room with `room_id`.
   """
-  @spec add_peer(Client.t(), id, Peer.type()) :: {:ok, t} | {:error, String.t()}
+  @spec add_peer(Client.t(), id(), Peer.type()) :: {:ok, t()} | {:error, String.t()}
   def add_peer(client, room_id, type) do
     case Tesla.post(
            client.http_client,
@@ -135,7 +144,7 @@ defmodule Jellyfish.Room do
   @doc """
   Delete the peer with `peer_id` from the room with `room_id`.
   """
-  @spec delete_peer(Client.t(), id, Peer.id()) :: :ok | {:error, String.t()}
+  @spec delete_peer(Client.t(), id(), Peer.id()) :: :ok | {:error, String.t()}
   def delete_peer(client, room_id, peer_id) do
     case Tesla.delete(
            client.http_client,
@@ -146,15 +155,10 @@ defmodule Jellyfish.Room do
     end
   end
 
-  # TODO: add options (there arent any at the moment)
   @doc """
   Add component to the room with `room_id`.
-
-  Options:
-
   """
-  @type component_options :: []
-  @spec add_component(Client.t(), id, Component.type(), component_options) ::
+  @spec add_component(Client.t(), id(), Component.type(), component_options()) ::
           {:ok, t()} | {:error, String.t()}
   def add_component(client, room_id, type, opts \\ []) do
     case Tesla.post(
@@ -174,7 +178,7 @@ defmodule Jellyfish.Room do
   @doc """
   Delete the component with `component_id` from the room with `room_id`.
   """
-  @spec delete_component(Client.t(), id, Component.id()) :: :ok | {:error, String.t()}
+  @spec delete_component(Client.t(), id(), Component.id()) :: :ok | {:error, String.t()}
   def delete_component(client, room_id, component_id) do
     case Tesla.delete(
            client.http_client,
@@ -201,7 +205,7 @@ defmodule Jellyfish.Room do
         }
 
       _other ->
-        raise "Server response structure is invalid"
+        raise ResponseStructureError
     end
   end
 
@@ -217,7 +221,7 @@ defmodule Jellyfish.Room do
         }
 
       _other ->
-        raise "Server response structure is invalid"
+        raise ResponseStructureError
     end
   end
 
@@ -233,7 +237,7 @@ defmodule Jellyfish.Room do
         }
 
       _other ->
-        raise "Server response structure is invalid"
+        raise ResponseStructureError
     end
   end
 end

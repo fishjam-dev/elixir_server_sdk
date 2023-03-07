@@ -1,6 +1,10 @@
 defmodule Jellyfish.Peer do
   @moduledoc """
   Defines `t:Jellyfish.SDK.Peer.t/0`.
+
+  Peer is an entity that connects to the server to publish, subscribe or publish and subscribe
+  to tracks published by components and other peers.
+  For more information refer to [Jellyfish documentation](https://www.membrane.stream)
   """
 
   @enforce_keys [
@@ -10,15 +14,14 @@ defmodule Jellyfish.Peer do
   defstruct @enforce_keys
 
   @typedoc """
-  Id of a component in a form of UUID string.
+  Id of the peer, unique across within the room.
   """
   @type id :: String.t()
 
-  # TODO: use atoms instead of strings, proper link to documentation
   @typedoc """
   Type of the peer.
 
-  For more information see [Jellyfish documentation](https://www.membrane.stream).
+  For more information refer to [Jellyfish documentation](https://www.membrane.stream).
   """
   @type type :: String.t()
 
@@ -26,7 +29,7 @@ defmodule Jellyfish.Peer do
   Stores information about the peer.
   """
   @type t :: %__MODULE__{
-          id: id,
-          type: type
+          id: id(),
+          type: type()
         }
 end
