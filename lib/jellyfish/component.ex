@@ -26,7 +26,7 @@ defmodule Jellyfish.Component do
 
   @typedoc """
   Type describing component options.
-  For the list of available options, please refer to the component's documentation
+  For the list of available options, please refer to the component's documentation.
   """
   @type options :: Keyword.t()
 
