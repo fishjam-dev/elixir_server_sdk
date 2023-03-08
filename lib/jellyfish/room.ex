@@ -23,7 +23,7 @@ defmodule Jellyfish.Room do
   """
 
   alias Tesla.Env
-  alias Jellyfish.{Client, Component, Peer, Utils}
+  alias Jellyfish.{Client, Component, Peer}
   alias Jellyfish.Exception.ResponseStructureError
 
   @enforce_keys [
@@ -44,13 +44,7 @@ defmodule Jellyfish.Room do
 
     * `:max_peers` - maximum number of peers present in a room simultaneously. Unlimited, if not specified.
   """
-  @type room_options :: [{:max_peers, non_neg_integer()}]
-
-  @typedoc """
-  Type describing component options.
-  For the list of available options, please refer to the component's documentation
-  """
-  @type component_options :: Keyword.t()
+  @type options :: [{:max_peers, non_neg_integer()}]
 
   @typedoc """
   Stores information about the room.
@@ -65,127 +59,137 @@ defmodule Jellyfish.Room do
   @doc """
   List metadata of all of the rooms.
   """
-  @spec list(Client.t()) :: {:ok, [t()]} | {:error, String.t()}
+  @spec list(Client.t()) :: {:ok, [t()]} | {:error, atom() | String.t()}
   def list(client) do
-    case Tesla.get(client.http_client, "/room") do
-      {:ok, %Env{status: 200, body: body}} ->
-        result =
-          body
-          |> Map.fetch!("data")
-          |> Enum.map(&room_from_json/1)
-
-        {:ok, result}
-
-      error ->
-        Utils.translate_error_response(error)
+    with {:ok, %Env{status: 200, body: body}} <- Tesla.get(client.http_client, "/room"),
+         {:ok, data} <- Map.fetch(body, "data"),
+         result <- Enum.map(data, &room_from_json/1) do
+      {:ok, result}
+    else
+      :error -> raise ResponseStructureError
+      error -> handle_response_error(error)
     end
   end
 
   @doc """
   Get metadata of the room with `room_id`.
   """
-  @spec get_by_id(Client.t(), id()) :: {:ok, t()} | {:error, String.t()}
+  @spec get_by_id(Client.t(), id()) :: {:ok, t()} | {:error, atom() | String.t()}
   def get_by_id(client, room_id) do
-    case Tesla.get(client.http_client, "/room/#{room_id}") do
-      {:ok, %Env{status: 200, body: body}} ->
-        {:ok, room_from_json(Map.fetch!(body, "data"))}
-
-      error ->
-        Utils.translate_error_response(error)
+    with {:ok, %Env{status: 200, body: body}} <-
+           Tesla.get(client.http_client, "/room/#{room_id}"),
+         {:ok, data} <- Map.fetch(body, "data"),
+         result <- room_from_json(data) do
+      {:ok, result}
+    else
+      :error -> raise ResponseStructureError
+      error -> handle_response_error(error)
     end
   end
 
   @doc """
   Create a room.
   """
-  @spec create(Client.t(), room_options()) :: {:ok, t()} | {:error, String.t()}
+  @spec create(Client.t(), options()) :: {:ok, t()} | {:error, atom() | String.t()}
   def create(client, opts \\ []) do
-    case Tesla.post(
-           client.http_client,
-           "/room",
-           %{"maxPeers" => Keyword.get(opts, :max_peers)},
-           headers: [{"content-type", "application/json"}]
-         ) do
-      {:ok, %Env{status: 201, body: body}} ->
-        {:ok, room_from_json(Map.fetch!(body, "data"))}
-
-      error ->
-        Utils.translate_error_response(error)
+    with {:ok, %Env{status: 201, body: body}} <-
+           Tesla.post(
+             client.http_client,
+             "/room",
+             %{"maxPeers" => Keyword.get(opts, :max_peers)},
+             headers: [{"content-type", "application/json"}]
+           ),
+         {:ok, data} <- Map.fetch(body, "data"),
+         result <- room_from_json(data) do
+      {:ok, result}
+    else
+      :error -> raise ResponseStructureError
+      error -> handle_response_error(error)
     end
   end
 
   @doc """
   Delete the room with `room_id`.
   """
-  @spec delete(Client.t(), id()) :: :ok | {:error, String.t()}
+  @spec delete(Client.t(), id()) :: :ok | {:error, atom() | String.t()}
   def delete(client, room_id) do
     case Tesla.delete(client.http_client, "/room/#{room_id}") do
       {:ok, %Env{status: 204}} -> :ok
-      error -> Utils.translate_error_response(error)
+      error -> handle_response_error(error)
     end
   end
 
   @doc """
   Add a peer to the room with `room_id`.
   """
-  @spec add_peer(Client.t(), id(), Peer.type()) :: {:ok, t()} | {:error, String.t()}
+  @spec add_peer(Client.t(), id(), Peer.type()) :: {:ok, t()} | {:error, atom() | String.t()}
   def add_peer(client, room_id, type) do
-    case Tesla.post(
-           client.http_client,
-           "/room/#{room_id}/peer",
-           %{"type" => type},
-           headers: [{"content-type", "application/json"}]
-         ) do
-      {:ok, %Env{status: 201, body: body}} -> {:ok, peer_from_json(Map.fetch!(body, "data"))}
-      error -> Utils.translate_error_response(error)
+    with {:ok, %Env{status: 201, body: body}} <-
+           Tesla.post(
+             client.http_client,
+             "/room/#{room_id}/peer",
+             %{"type" => type},
+             headers: [{"content-type", "application/json"}]
+           ),
+         {:ok, data} <- Map.fetch(body, "data"),
+         result <- peer_from_json(data) do
+      {:ok, result}
+    else
+      :error -> raise ResponseStructureError
+      error -> handle_response_error(error)
     end
   end
 
   @doc """
   Delete the peer with `peer_id` from the room with `room_id`.
   """
-  @spec delete_peer(Client.t(), id(), Peer.id()) :: :ok | {:error, String.t()}
+  @spec delete_peer(Client.t(), id(), Peer.id()) :: :ok | {:error, atom() | String.t()}
   def delete_peer(client, room_id, peer_id) do
     case Tesla.delete(
            client.http_client,
            "/room/#{room_id}/peer/#{peer_id}"
          ) do
       {:ok, %Env{status: 204}} -> :ok
-      error -> Utils.translate_error_response(error)
+      error -> handle_response_error(error)
     end
   end
 
   @doc """
   Add component to the room with `room_id`.
   """
-  @spec add_component(Client.t(), id(), Component.type(), component_options()) ::
-          {:ok, t()} | {:error, String.t()}
+  @spec add_component(Client.t(), id(), Component.type(), Component.options()) ::
+          {:ok, t()} | {:error, atom() | String.t()}
   def add_component(client, room_id, type, opts \\ []) do
-    case Tesla.post(
-           client.http_client,
-           "/room/#{room_id}/component",
-           %{
-             "type" => type,
-             "options" => Map.new(opts)
-           },
-           headers: [{"content-type", "application/json"}]
-         ) do
-      {:ok, %Env{status: 201, body: body}} -> {:ok, component_from_json(Map.get(body, "data"))}
-      error -> Utils.translate_error_response(error)
+    with {:ok, %Env{status: 201, body: body}} <-
+           Tesla.post(
+             client.http_client,
+             "/room/#{room_id}/component",
+             %{
+               "type" => type,
+               "options" => Map.new(opts)
+             },
+             headers: [{"content-type", "application/json"}]
+           ),
+         {:ok, data} <- Map.fetch(body, "data"),
+         result <- component_from_json(data) do
+      {:ok, result}
+    else
+      :error -> raise ResponseStructureError
+      error -> handle_response_error(error)
     end
   end
 
   @doc """
   Delete the component with `component_id` from the room with `room_id`.
   """
-  @spec delete_component(Client.t(), id(), Component.id()) :: :ok | {:error, String.t()}
+  @spec delete_component(Client.t(), id(), Component.id()) :: :ok | {:error, atom() | String.t()}
   def delete_component(client, room_id, component_id) do
     case Tesla.delete(
            client.http_client,
            "/room/#{room_id}/component/#{component_id}"
          ) do
       {:ok, %Env{status: 204}} -> :ok
-      error -> Utils.translate_error_response(error)
+      error -> handle_response_error(error)
     end
   end
 
@@ -240,4 +244,10 @@ defmodule Jellyfish.Room do
         raise ResponseStructureError
     end
   end
+
+  defp handle_response_error({:ok, %Env{body: %{"errors" => error}}}),
+    do: {:error, "Request failed: #{error}"}
+
+  defp handle_response_error({:ok, %Env{body: _body}}), do: raise(ResponseStructureError)
+  defp handle_response_error({:error, reason}), do: {:error, reason}
 end

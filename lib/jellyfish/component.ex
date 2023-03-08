@@ -25,6 +25,12 @@ defmodule Jellyfish.Component do
   @type type :: String.t()
 
   @typedoc """
+  Type describing component options.
+  For the list of available options, please refer to the component's documentation
+  """
+  @type options :: Keyword.t()
+
+  @typedoc """
   Stores information about the component.
   """
   @type t :: %__MODULE__{

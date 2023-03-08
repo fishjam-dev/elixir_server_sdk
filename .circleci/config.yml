@@ -23,3 +23,15 @@ workflows:
       - elixir/build_test
       - test
       - elixir/lint
+      - elixir/hex_publish:
+          requires:
+            - elixir/build_test
+            - test
+            - elixir/lint
+          context:
+            - Deployment
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v.*/
