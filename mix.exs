@@ -49,7 +49,7 @@ defmodule Membrane.Template.Mixfile do
   defp deps do
     [
       {:tesla, "~> 1.5"},
-      {:hackney, "~> 1.18"},
+      {:mint, "~> 1.0"},
       {:jason, "~> 1.4"},
 
       # Docs, credo, test coverage, dialyzer

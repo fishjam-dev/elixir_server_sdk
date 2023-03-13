@@ -2,7 +2,7 @@ defmodule Jellyfish.Component do
   @moduledoc """
   Defines `t:Jellyfish.SDK.Component.t/0`.
 
-  Component is a server-side entity that can publish to, subscribe and process tracks.
+  Component is a server-side entity that can publish, subscribe to and process tracks.
   For more information refer to [Jellyfish documentation](https://www.membrane.stream)
   """
 
@@ -17,6 +17,7 @@ defmodule Jellyfish.Component do
   """
   @type id :: String.t()
 
+  # TODO change links do docs to proper ones (here and in moduledoc)
   @typedoc """
   Type of the component.
 

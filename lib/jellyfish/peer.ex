@@ -2,7 +2,7 @@ defmodule Jellyfish.Peer do
   @moduledoc """
   Defines `t:Jellyfish.SDK.Peer.t/0`.
 
-  Peer is an entity that connects to the server to publish, subscribe or publish and subscribe
+  Peer is an entity that connects to the server to publish, subscribe to or publish and subscribe
   to tracks published by components and other peers.
   For more information refer to [Jellyfish documentation](https://www.membrane.stream)
   """
@@ -18,6 +18,7 @@ defmodule Jellyfish.Peer do
   """
   @type id :: String.t()
 
+  # TODO change links do docs to proper ones (here and in moduledoc)
   @typedoc """
   Type of the peer.
 

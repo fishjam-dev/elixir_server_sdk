@@ -11,7 +11,7 @@ defmodule Jellyfish.ClientTest do
 
       assert %Client{
                http_client: %Tesla.Client{
-                 adapter: {Tesla.Adapter.Hackney, :call, [[]]},
+                 adapter: {Tesla.Adapter.Mint, :call, [[]]},
                  pre: [
                    {Tesla.Middleware.BaseUrl, :call, [@url]},
                    {Tesla.Middleware.JSON, :call, [[]]}

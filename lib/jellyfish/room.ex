@@ -122,7 +122,7 @@ defmodule Jellyfish.Room do
   @doc """
   Add a peer to the room with `room_id`.
   """
-  @spec add_peer(Client.t(), id(), Peer.type()) :: {:ok, t()} | {:error, atom() | String.t()}
+  @spec add_peer(Client.t(), id(), Peer.type()) :: {:ok, Peer.t()} | {:error, atom() | String.t()}
   def add_peer(client, room_id, type) do
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
@@ -158,7 +158,7 @@ defmodule Jellyfish.Room do
   Add component to the room with `room_id`.
   """
   @spec add_component(Client.t(), id(), Component.type(), Component.options()) ::
-          {:ok, t()} | {:error, atom() | String.t()}
+          {:ok, Component.t()} | {:error, atom() | String.t()}
   def add_component(client, room_id, type, opts \\ []) do
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
