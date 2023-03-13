@@ -30,7 +30,7 @@ Make API calls to Jellyfish:
 client = Jellyfish.Client.new("http://address-of-your-server.com")
 
 # Create room
-{:ok, room} = Jellyfish.Client.create_room(client, max_peers: 10)
+{:ok, room} = Jellyfish.Room.create(client, max_peers: 10)
 
 room.id
 # => "8878cd13-99a6-40d6-8d7e-8da23d803dab"
