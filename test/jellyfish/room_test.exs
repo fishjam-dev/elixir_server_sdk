@@ -99,7 +99,7 @@ defmodule Jellyfish.RoomTest do
     end
   end
 
-  describe "Room.list/1" do
+  describe "Room.get_all/1" do
     setup do
       mock(fn
         %{
@@ -117,7 +117,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, rooms} = Room.list(client)
+      assert {:ok, rooms} = Room.get_all(client)
       assert rooms == [build_room(false)]
     end
 
@@ -131,11 +131,13 @@ defmodule Jellyfish.RoomTest do
       http_client = Tesla.client(middleware, adapter)
       invalid_client = %Client{http_client: http_client}
 
-      assert_raise Jellyfish.Exception.ResponseStructureError, fn -> Room.list(invalid_client) end
+      assert_raise Jellyfish.Exception.ResponseStructureError, fn ->
+        Room.get_all(invalid_client)
+      end
     end
   end
 
-  describe "Room.get_by_id/2" do
+  describe "Room.get/2" do
     setup do
       mock(fn
         %{
@@ -153,13 +155,12 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, room} = Room.get_by_id(client, @room_id)
+      assert {:ok, room} = Room.get(client, @room_id)
       assert room == build_room(false)
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} =
-               Room.get_by_id(client, @invalid_room_id)
+      assert {:error, "Request failed: #{@error_message}"} = Room.get(client, @invalid_room_id)
     end
   end
 

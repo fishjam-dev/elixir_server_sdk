@@ -1,8 +1,8 @@
 defmodule Jellyfish.Client do
   @moduledoc """
-  Defines a `t:Jellyfish.SDK.Client.t/0`.
+  Defines a `t:Jellyfish.Client.t/0`.
 
-  By default, Mint adapter for Tesla is used to make HTTP request, but it can be changed:
+  By default, Mint adapter for [Tesla](https://github.com/elixir-tesla/tesla) is used to make HTTP requests, but it can be changed:
   ```
   # config.exs
   config :jellyfish, tesla_adapter: Tesla.Adapter.Hackney

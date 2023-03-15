@@ -59,11 +59,11 @@ defmodule Jellyfish.Room do
   @doc """
   List metadata of all of the rooms.
   """
-  @spec list(Client.t()) :: {:ok, [t()]} | {:error, atom() | String.t()}
-  def list(client) do
+  @spec get_all(Client.t()) :: {:ok, [t()]} | {:error, atom() | String.t()}
+  def get_all(client) do
     with {:ok, %Env{status: 200, body: body}} <- Tesla.get(client.http_client, "/room"),
          {:ok, data} <- Map.fetch(body, "data"),
-         result <- Enum.map(data, &room_from_json/1) do
+         result <- Enum.map(data, &from_json/1) do
       {:ok, result}
     else
       :error -> raise ResponseStructureError
@@ -74,12 +74,12 @@ defmodule Jellyfish.Room do
   @doc """
   Get metadata of the room with `room_id`.
   """
-  @spec get_by_id(Client.t(), id()) :: {:ok, t()} | {:error, atom() | String.t()}
-  def get_by_id(client, room_id) do
+  @spec get(Client.t(), id()) :: {:ok, t()} | {:error, atom() | String.t()}
+  def get(client, room_id) do
     with {:ok, %Env{status: 200, body: body}} <-
            Tesla.get(client.http_client, "/room/#{room_id}"),
          {:ok, data} <- Map.fetch(body, "data"),
-         result <- room_from_json(data) do
+         result <- from_json(data) do
       {:ok, result}
     else
       :error -> raise ResponseStructureError
@@ -96,11 +96,10 @@ defmodule Jellyfish.Room do
            Tesla.post(
              client.http_client,
              "/room",
-             %{"maxPeers" => Keyword.get(opts, :max_peers)},
-             headers: [{"content-type", "application/json"}]
+             %{"maxPeers" => Keyword.get(opts, :max_peers)}
            ),
          {:ok, data} <- Map.fetch(body, "data"),
-         result <- room_from_json(data) do
+         result <- from_json(data) do
       {:ok, result}
     else
       :error -> raise ResponseStructureError
@@ -128,11 +127,10 @@ defmodule Jellyfish.Room do
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/peer",
-             %{"type" => type},
-             headers: [{"content-type", "application/json"}]
+             %{"type" => type}
            ),
          {:ok, data} <- Map.fetch(body, "data"),
-         result <- peer_from_json(data) do
+         result <- Peer.from_json(data) do
       {:ok, result}
     else
       :error -> raise ResponseStructureError
@@ -167,11 +165,10 @@ defmodule Jellyfish.Room do
              %{
                "type" => type,
                "options" => Map.new(opts)
-             },
-             headers: [{"content-type", "application/json"}]
+             }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
-         result <- component_from_json(data) do
+         result <- Component.from_json(data) do
       {:ok, result}
     else
       :error -> raise ResponseStructureError
@@ -193,7 +190,9 @@ defmodule Jellyfish.Room do
     end
   end
 
-  defp room_from_json(response) do
+  @doc false
+  @spec from_json(map()) :: t()
+  def from_json(response) do
     case response do
       %{
         "id" => id,
@@ -204,40 +203,8 @@ defmodule Jellyfish.Room do
         %__MODULE__{
           id: id,
           config: %{max_peers: max_peers},
-          components: Enum.map(components, &component_from_json/1),
-          peers: Enum.map(peers, &peer_from_json/1)
-        }
-
-      _other ->
-        raise ResponseStructureError
-    end
-  end
-
-  defp peer_from_json(response) do
-    case response do
-      %{
-        "id" => id,
-        "type" => type
-      } ->
-        %Peer{
-          id: id,
-          type: type
-        }
-
-      _other ->
-        raise ResponseStructureError
-    end
-  end
-
-  defp component_from_json(response) do
-    case response do
-      %{
-        "id" => id,
-        "type" => type
-      } ->
-        %Component{
-          id: id,
-          type: type
+          components: Enum.map(components, &Component.from_json/1),
+          peers: Enum.map(peers, &Peer.from_json/1)
         }
 
       _other ->
