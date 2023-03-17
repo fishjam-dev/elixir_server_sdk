@@ -2,11 +2,12 @@ defmodule Membrane.Template.Mixfile do
   use Mix.Project
 
   @version "0.1.0"
-  @github_url "https://github.com/membraneframework/membrane_template_plugin"
+  @github_url "https://https://github.com/jellyfish-dev/server_sdk_elixir"
+  @homepage_url "https://membrane.stream"
 
   def project do
     [
-      app: :membrane_template_plugin,
+      app: :jellyfish_server_sdk,
       version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -15,14 +16,24 @@ defmodule Membrane.Template.Mixfile do
       dialyzer: dialyzer(),
 
       # hex
-      description: "Template Plugin for Membrane Multimedia Framework",
+      description: "Jellyfish Server SDK",
       package: package(),
 
       # docs
-      name: "Membrane Template plugin",
+      name: "Jellyfish Server SDK",
       source_url: @github_url,
-      homepage_url: "https://membraneframework.org",
-      docs: docs()
+      homepage_url: @homepage_url,
+      docs: docs(),
+
+      # test coverage
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.json": :test
+      ]
     ]
   end
 
@@ -37,10 +48,15 @@ defmodule Membrane.Template.Mixfile do
 
   defp deps do
     [
-      {:membrane_core, "~> 0.10.0"},
+      {:tesla, "~> 1.5"},
+      {:mint, "~> 1.0"},
+      {:jason, "~> 1.4"},
+
+      # Docs, credo, test coverage, dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
-      {:credo, ">= 0.0.0", only: :dev, runtime: false}
+      {:credo, ">= 0.0.0", only: :dev, runtime: false},
+      {:excoveralls, ">= 0.0.0", only: :test, runtime: false}
     ]
   end
 
@@ -63,7 +79,7 @@ defmodule Membrane.Template.Mixfile do
       licenses: ["Apache-2.0"],
       links: %{
         "GitHub" => @github_url,
-        "Membrane Framework Homepage" => "https://membraneframework.org"
+        "Membrane Framework Homepage" => @homepage_url
       }
     ]
   end
