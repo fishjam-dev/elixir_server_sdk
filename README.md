@@ -1,7 +1,7 @@
 # Jellyfish Elixir Server SDK
 
 [![Hex.pm](https://img.shields.io/hexpm/v/jellyfish_server_sdk.svg)](https://hex.pm/packages/jellyfish_server_sdk)
-[![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/jellyfish_server_sdk)
+[![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/jellyfish_server_sdk/)
 [![codecov](https://codecov.io/gh/jellyfish-dev/server_sdk_elixir/branch/master/graph/badge.svg?token=ByIko4o5U8)](https://codecov.io/gh/jellyfish-dev/server_sdk_elixir)
 [![CircleCI](https://circleci.com/gh/jellyfish-dev/server_sdk_elixir.svg?style=svg)](https://circleci.com/gh/jellyfish-dev/server_sdk_elixir)
 
