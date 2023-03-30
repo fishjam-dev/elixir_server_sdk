@@ -317,6 +317,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   defp build_peer_json() do
-    %{"id" => @peer_id, "type" => @peer_type}
+    %{"id" => @peer_id, "type" => @peer_type, "unexpectedKey" => "value"}
   end
 end
