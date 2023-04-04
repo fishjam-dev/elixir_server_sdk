@@ -32,12 +32,15 @@ defmodule Jellyfish.Client do
   ## Parameters
 
     * `address` - url or IP address of the Jellyfish server instance
+    * `token` - token used for authorizing HTTP requests. It's the same
+    token as one configured in Jellyfish.
   """
-  @spec new(String.t()) :: t()
-  def new(address) do
+  @spec new(String.t(), String.t()) :: t()
+  def new(address, token) do
     middleware = [
       {Tesla.Middleware.BaseUrl, address},
-      Tesla.Middleware.JSON
+      {Tesla.Middleware.BearerAuth, token: token},
+      Tesla.Middleware.JSON,
     ]
 
     adapter = Application.get_env(:jellyfish, :tesla_adapter, Tesla.Adapter.Mint)
