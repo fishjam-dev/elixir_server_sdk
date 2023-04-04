@@ -247,7 +247,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, peer, token} = Room.add_peer(client, @room_id, @peer_type)
+      assert {:ok, peer, _token} = Room.add_peer(client, @room_id, @peer_type)
       assert peer == build_peer()
     end
 
