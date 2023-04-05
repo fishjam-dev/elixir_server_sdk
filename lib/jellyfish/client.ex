@@ -40,7 +40,7 @@ defmodule Jellyfish.Client do
     middleware = [
       {Tesla.Middleware.BaseUrl, address},
       {Tesla.Middleware.BearerAuth, token: token},
-      Tesla.Middleware.JSON,
+      Tesla.Middleware.JSON
     ]
 
     adapter = Application.get_env(:jellyfish, :tesla_adapter, Tesla.Adapter.Mint)
