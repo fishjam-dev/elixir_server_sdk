@@ -5,6 +5,8 @@ defmodule Jellyfish.RoomTest do
 
   alias Jellyfish.{Client, Component, Peer, Room}
 
+  @token "testtoken"
+
   @url "http://mockurl.com"
   @invalid_url "http://invalid-url.com"
 
@@ -29,15 +31,49 @@ defmodule Jellyfish.RoomTest do
   @error_message "Mock error message"
 
   setup do
-    middleware = [
-      {Tesla.Middleware.BaseUrl, @url},
-      Tesla.Middleware.JSON
-    ]
+    current_adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter)
 
-    adapter = Tesla.Mock
-    http_client = Tesla.client(middleware, adapter)
+    Application.put_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Mock)
 
-    %{client: %Client{http_client: http_client}}
+    on_exit(fn ->
+      if current_adapter == nil do
+        Application.delete_env(:jellyfish_server_sdk, :tesla_adapter)
+      else
+        Application.put_env(:jellyfish_server_sdk, :tesla_adapter, current_adapter)
+      end
+    end)
+
+    %{client: Client.new(@url, @token)}
+  end
+
+  describe "auth" do
+    setup do
+      valid_body = Jason.encode!(%{"maxPeers" => @max_peers})
+
+      mock(fn %{
+                method: :post,
+                url: "#{@url}/room",
+                body: ^valid_body
+              } = env ->
+        case Tesla.get_header(env, "authorization") do
+          "Bearer " <> @token ->
+            json(%{"data" => build_room_json(true)}, status: 201)
+
+          "Bearer " <> _other ->
+            json(%{"errors" => "Invalid token"}, status: 401)
+        end
+      end)
+    end
+
+    test "correct token", %{client: client} do
+      assert {:ok, room} = Room.create(client, max_peers: @max_peers)
+      assert room == build_room(true)
+    end
+
+    test "invalid token" do
+      client = Client.new(@url, "invalid" <> @token)
+      assert {:error, _reason} = Room.create(client, max_peers: @max_peers)
+    end
   end
 
   describe "Room.create/2" do
