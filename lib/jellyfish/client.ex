@@ -5,7 +5,7 @@ defmodule Jellyfish.Client do
   By default, Mint adapter for [Tesla](https://github.com/elixir-tesla/tesla) is used to make HTTP requests, but it can be changed:
   ```
   # config.exs
-  config :jellyfish, tesla_adapter: Tesla.Adapter.Hackney
+  config :jellyfish_server_sdk, tesla_adapter: Tesla.Adapter.Hackney
 
   # mix.exs
   defp deps do
@@ -43,7 +43,7 @@ defmodule Jellyfish.Client do
       Tesla.Middleware.JSON
     ]
 
-    adapter = Application.get_env(:jellyfish, :tesla_adapter, Tesla.Adapter.Mint)
+    adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Adapter.Mint)
     http_client = Tesla.client(middleware, adapter)
 
     %__MODULE__{http_client: http_client}

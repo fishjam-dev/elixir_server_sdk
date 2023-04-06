@@ -216,9 +216,6 @@ defmodule Jellyfish.Room do
   defp handle_response_error({:ok, %Env{body: %{"errors" => error}}}),
     do: {:error, "Request failed: #{error}"}
 
-  defp handle_response_error({:ok, %Env{body: error}}) when is_binary(error),
-    do: {:error, "Request failed: #{error}"}
-
   defp handle_response_error({:ok, %Env{body: _body}}), do: raise(ResponseStructureError)
   defp handle_response_error({:error, reason}), do: {:error, reason}
 end
