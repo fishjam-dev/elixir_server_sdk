@@ -33,7 +33,7 @@ defmodule Jellyfish.Client do
 
     * `address` - url or IP address of the Jellyfish server instance
     * `token` - token used for authorizing HTTP requests. It's the same
-    token as one configured in Jellyfish.
+    token as the one configured in Jellyfish.
   """
   @spec new(String.t(), String.t()) :: t()
   def new(address, token) do
