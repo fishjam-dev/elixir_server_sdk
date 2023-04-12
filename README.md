@@ -27,7 +27,6 @@ end
 Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication)):
 
 ```elixir
-# create client instance used in other functions to make the HTTP requests
 client = Jellyfish.Client.new("http://address-of-your-server.com", "your-jellyfish-token")
 
 # Create room
