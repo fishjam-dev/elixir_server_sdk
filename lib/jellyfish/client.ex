@@ -30,10 +30,11 @@ defmodule Jellyfish.Client do
   Creates new instance of `t:Jellyfish.SDK.Client.t/0`.
 
   ```
-  #config.exs
+  # in config.exs
   config :jellyfish_server_sdk, token: "your-jellyfish-token"
 
   client = Jellyfish.Client.new("http://address-of-your-server.com")
+
   # or pass the token explicitly
   client = Jellyfish.Client.new("http://address-of-your-server.com", "your-jellyfish-token")
   ```
