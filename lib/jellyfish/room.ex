@@ -39,6 +39,11 @@ defmodule Jellyfish.Room do
   Id of the room, unique within Jellyfish instance.
   """
   @type id :: String.t()
+  
+  @typedoc """
+  Client token, created by Jellyfish. Required by client application to open connection to Jellyfish.
+  """
+  @type client_token :: String.t()
 
   @typedoc """
   Type describing room options.
@@ -122,7 +127,7 @@ defmodule Jellyfish.Room do
   @doc """
   Add a peer to the room with `room_id`.
   """
-  @spec add_peer(Client.t(), id(), Peer.type()) :: {:ok, Peer.t()} | {:error, atom() | String.t()}
+  @spec add_peer(Client.t(), id(), Peer.type()) :: {:ok, Peer.t(), client_token()} | {:error, atom() | String.t()}
   def add_peer(client, room_id, type) do
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(

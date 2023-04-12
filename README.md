@@ -24,10 +24,11 @@ end
 
 ## Usage
 
-Make API calls to Jellyfish:
+Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication)):
 
 ```elixir
-client = Jellyfish.Client.new("http://address-of-your-server.com")
+# create client instance used in other functions to make the HTTP requests
+client = Jellyfish.Client.new("http://address-of-your-server.com", "your-jellyfish-token")
 
 # Create room
 {:ok, %Jellyfish.Room{id: room_id}} = Jellyfish.Room.create(client, max_peers: 10)
@@ -36,7 +37,7 @@ room_id
 # => "8878cd13-99a6-40d6-8d7e-8da23d803dab"
 
 # Add peer
-{:ok, %Jellyfish.Peer{id: peer_id}, token} = Jellyfish.Room.add_peer(client, room_id, "webrtc")
+{:ok, %Jellyfish.Peer{id: peer_id}, client_token} = Jellyfish.Room.add_peer(client, room_id, "webrtc")
 
 # Delete peer
 :ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)

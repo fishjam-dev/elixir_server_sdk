@@ -29,14 +29,33 @@ defmodule Jellyfish.Client do
   @doc """
   Creates new instance of `t:Jellyfish.SDK.Client.t/0`.
 
+  ```
+  #config.exs
+  config :jellyfish_server_sdk, token: "your-jellyfish-token"
+
+  client = Jellyfish.Client.new("http://address-of-your-server.com")
+  # or pass the token explicitly
+  client = Jellyfish.Client.new("http://address-of-your-server.com", "your-jellyfish-token")
+  ```
+
   ## Parameters
 
     * `address` - url or IP address of the Jellyfish server instance
     * `token` - token used for authorizing HTTP requests. It's the same
-    token as the one configured in Jellyfish.
+    token as the one configured in Jellyfish. If not passed, value set via
+    `config :jellyfish_server_sdk, token: "your-token"` in `config.exs` is used.
   """
-  @spec new(String.t(), String.t()) :: t()
-  def new(address, token) do
+  @spec new(String.t(), String.t() | nil) :: t()
+  def new(address, token \\ nil)
+
+  def new(address, nil) do
+    token = Application.fetch_env!(:jellyfish_server_sdk, :token)
+    build_client(address, token)
+  end
+
+  def new(address, token), do: build_client(address, token)
+
+  defp build_client(address, token) do
     middleware = [
       {Tesla.Middleware.BaseUrl, address},
       {Tesla.Middleware.BearerAuth, token: token},
