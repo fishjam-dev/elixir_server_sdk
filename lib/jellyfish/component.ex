@@ -26,10 +26,9 @@ defmodule Jellyfish.Component do
   """
   @type type :: String.t()
 
-  # TODO update to proper link when it's done
   @typedoc """
   Type describing component options.
-  For the list of available options, please refer to the [component's documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
+  For the list of available options, please refer to the [documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
   @type options :: Keyword.t()
 
