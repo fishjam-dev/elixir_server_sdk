@@ -36,7 +36,7 @@ room_id
 # => "8878cd13-99a6-40d6-8d7e-8da23d803dab"
 
 # Add peer
-{:ok, %Jellyfish.Peer{id: peer_id}, client_token} = Jellyfish.Room.add_peer(client, room_id, "webrtc")
+{:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Jellyfish.Room.add_peer(client, room_id, "webrtc")
 
 # Delete peer
 :ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)
