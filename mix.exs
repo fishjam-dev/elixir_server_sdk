@@ -1,7 +1,7 @@
 defmodule Membrane.Template.Mixfile do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.1"
   @github_url "https://github.com/jellyfish-dev/server_sdk_elixir"
   @homepage_url "https://membrane.stream"
 
@@ -9,7 +9,7 @@ defmodule Membrane.Template.Mixfile do
     [
       app: :jellyfish_server_sdk,
       version: @version,
-      elixir: "~> 1.13",
+      elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),

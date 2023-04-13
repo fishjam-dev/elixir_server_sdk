@@ -17,7 +17,7 @@ The package can be installed by adding `jellyfish_server_sdk` to your list of de
 ```elixir
 def deps do
   [
-    {:jellyfish_server_sdk, "~> 0.1.0"}
+    {:jellyfish_server_sdk, "~> 0.1.1"}
   ]
 end
 ```
