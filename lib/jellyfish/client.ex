@@ -27,17 +27,7 @@ defmodule Jellyfish.Client do
         }
 
   @doc """
-  Creates new instance of `t:Jellyfish.SDK.Client.t/0`.
-
-  ```
-  # in config.exs
-  config :jellyfish_server_sdk, token: "your-jellyfish-token"
-
-  client = Jellyfish.Client.new("http://address-of-your-server.com")
-
-  # or pass the token explicitly
-  client = Jellyfish.Client.new("http://address-of-your-server.com", "your-jellyfish-token")
-  ```
+  Creates new instance of `t:Jellyfish.Client.t/0`.
 
   ## Parameters
 
@@ -46,15 +36,27 @@ defmodule Jellyfish.Client do
     token as the one configured in Jellyfish. If not passed, value set via
     `config :jellyfish_server_sdk, token: "your-token"` in `config.exs` is used.
   """
-  @spec new(String.t(), String.t() | nil) :: t()
-  def new(address, token \\ nil)
+  @spec new(String.t(), String.t()) :: t()
+  def new(address, token), do: build_client(address, token)
 
-  def new(address, nil) do
+  @doc """
+  Creates new instance of `t:Jellyfish.Client.t/0`.
+
+  Uses token set in `config.exs`. To explicitly pass the token, see `new/2`.
+  ```
+  # in config.exs
+  config :jellyfish_server_sdk, token: "your-jellyfish-token"
+
+  client = Jellyfish.Client.new("http://address-of-your-server.com")
+  ```
+
+  See `new/2` for description of parameters.
+  """
+  @spec new(String.t()) :: t()
+  def new(address) do
     token = Application.fetch_env!(:jellyfish_server_sdk, :token)
     build_client(address, token)
   end
-
-  def new(address, token), do: build_client(address, token)
 
   defp build_client(address, token) do
     middleware = [
