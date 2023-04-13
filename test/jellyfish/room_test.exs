@@ -5,7 +5,7 @@ defmodule Jellyfish.RoomTest do
 
   alias Jellyfish.{Client, Component, Peer, Room}
 
-  @token "testtoken"
+  @server_api_token "testtoken"
 
   @url "http://mockurl.com"
   @invalid_url "http://invalid-url.com"
@@ -43,7 +43,7 @@ defmodule Jellyfish.RoomTest do
       end
     end)
 
-    %{client: Client.new(@url, @token)}
+    %{client: Client.new(@url, @server_api_token)}
   end
 
   describe "auth" do
@@ -56,7 +56,7 @@ defmodule Jellyfish.RoomTest do
                 body: ^valid_body
               } = env ->
         case Tesla.get_header(env, "authorization") do
-          "Bearer " <> @token ->
+          "Bearer " <> @server_api_token ->
             json(%{"data" => build_room_json(true)}, status: 201)
 
           "Bearer " <> _other ->
@@ -71,7 +71,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "invalid token" do
-      client = Client.new(@url, "invalid" <> @token)
+      client = Client.new(@url, "invalid" <> @server_api_token)
       assert {:error, _reason} = Room.create(client, max_peers: @max_peers)
     end
   end
@@ -283,7 +283,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, peer, _token} = Room.add_peer(client, @room_id, @peer_type)
+      assert {:ok, peer, _peer_token} = Room.add_peer(client, @room_id, @peer_type)
       assert peer == build_peer()
     end
 

@@ -13,7 +13,7 @@ defmodule Jellyfish.Room do
       peers: []
   }}
 
-  iex> {:ok, peer, token} = Jellyfish.Room.add_peer(client, room.id, "webrtc")
+  iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, "webrtc")
    {:ok,
     %Jellyfish.Peer{id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e", type: "webrtc"},
     "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
@@ -41,7 +41,7 @@ defmodule Jellyfish.Room do
   @type id :: String.t()
 
   @typedoc """
-  Client token, created by Jellyfish. Required by client application to open connection to Jellyfish.
+  Peer token, created by Jellyfish. Required by client application to open connection to Jellyfish.
   """
   @type peer_token :: String.t()
 
