@@ -14,4 +14,18 @@ defmodule Jellyfish.Exception do
       %__MODULE__{message: msg}
     end
   end
+
+  defmodule NotificationStructureError do
+    defexception [:message]
+
+    @impl true
+    def exception(_opts) do
+      msg = """
+      Received notification with unexpected structure.
+      Make sure you are using correct combination of Jellyfish and SDK versions.
+      """
+
+      %__MODULE__{message: msg}
+    end
+  end
 end
