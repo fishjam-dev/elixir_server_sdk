@@ -9,6 +9,7 @@ Elixir server SDK for [Jellyfish](https://github.com/jellyfish-dev/jellyfish).
 Currently it allows for:
 
 - making API calls to Jellyfish server (QoL wrapper for HTTP requests)
+- listening to Jellyfish server notifications via WebSocket
 
 ## Installation
 
@@ -24,9 +25,14 @@ end
 
 ## Usage
 
-Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication)):
+Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication))
+and receive server notifications:
 
 ```elixir
+# start process responsible for receiving notifications
+{:ok, pid} = Jellyfish.Notifier.start("ws://address-of-your-server.com", "your-jellyfish-token")
+
+# create HTTP client instance
 client = Jellyfish.Client.new("http://address-of-your-server.com", "your-jellyfish-token")
 
 # Create room
@@ -37,6 +43,10 @@ room_id
 
 # Add peer
 {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Jellyfish.Room.add_peer(client, room_id, "webrtc")
+
+receive do
+  {:jellyfish_notification, %{type: :peer_connected} = notification} -> # handle the notification
+end
 
 # Delete peer
 :ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)

@@ -4,11 +4,11 @@ defmodule Jellyfish.Notifier do
   WebSocket connection and receiving notifications form Jellyfish server.
 
   ```
-  iex> {:ok, pid} = Jellyfish.Notifier.start("ws://address-of-jellyfish-server.com", "your-token")
+  iex> {:ok, pid} = Jellyfish.Notifier.start("ws://address-of-jellyfish-server.com", "your-jellyfish-token")
   {:ok, #PID<0.301.0>}
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
-  # when the peer established signalling connection, you should receive notification
+  # you should receive a notification after the peer established connection
 
   iex> flush()
   {:jellyfish_notification,
@@ -23,7 +23,7 @@ defmodule Jellyfish.Notifier do
 
   use WebSockex
 
-  alias Jellyfish.Exception
+  alias Jellyfish.{Exception, Utils}
 
   @auth_timeout 2000
 
@@ -34,22 +34,10 @@ defmodule Jellyfish.Notifier do
 
   See `start/1` for more information.
   """
-  @spec start_link(String.t()) :: {:ok, pid()} | {:error, term()}
-  def start_link(address) do
-    token = Application.fetch_env!(:jellyfish_server_sdk, :server_api_token)
-    start_link(address, token)
-  end
-
-  @doc """
-  Starts the Notifier process and connects to Jellyfish. 
-
-  Acts like `start/2` but links to the calling process.
-
-  See `start/2` for more information.
-  """
-  @spec start_link(String.t(), String.t()) :: {:ok, pid()} | {:error, term()}
-  def start_link(address, token) do
-    case start(address, token) do
+  @spec start_link(server_address: String.t(), server_api_token: String.t()) ::
+          {:ok, pid()} | {:error, term()}
+  def start_link(opts) do
+    case start(opts) do
       {:ok, pid} ->
         Process.link(pid)
         {:ok, pid}
@@ -65,41 +53,30 @@ defmodule Jellyfish.Notifier do
   Received notifications are send to the calling process in
   a form of `{:jellyfish_notification, msg}`.
 
-  Uses token set in `config.exs`. To explicitly pass the token, see `start/2`.
+  ## Options
+
+    * `:server_address` - url or IP address of the Jellyfish server instance.
+    * `:server_api_token` - token used for authorizing HTTP requests. It's the same
+    token as the one configured in Jellyfish.
+
+  When an option is not explicily passed, value set in `config.exs` is used:
   ```
   # in config.exs
-  config :jellyfish_server_sdk, server_api_token: "your-jellyfish-token"
-
-  {:ok, pid} = Jellyfish.Notifier.start("ws://address-of-your-server.com")
+  config :jellyfish_server_sdk, 
+    server_address: "http://you-jellyfish-server-address.com",
+    server_api_token: "your-jellyfish-token",
   ```
   """
-  @spec start(String.t()) :: {:ok, pid()} | {:error, term()}
-  def start(address) do
-    token = Application.fetch_env!(:jellyfish_server_sdk, :server_api_token)
-    start(address, token)
-  end
-
-  @doc """
-  Starts the Notifier process and connects to Jellyfish. 
-
-  Received notifications are send to the calling process in
-  a form of `{:jellyfish_notification, msg}`.
-
-  ## Parameters
-
-    * `address` - WebSocket url or IP address of the Jellyfish instance
-    * `token` - token used for authorizing HTTP requests and WebSocket connection. 
-    It's the same token as the one configured in Jellyfish.
-  """
-  @spec start(String.t(), String.t()) :: {:ok, pid()} | {:error, term()}
-  def start(address, token) do
+  @spec start(server_address: String.t(), server_api_token: String.t()) ::
+          {:ok, pid()} | {:error, term()}
+  def start(opts) do
     state = %{receiver_pid: self()}
 
-    auth_msg =
-      %{type: "controlMessage", data: %{type: "authRequest", token: token}}
-      |> Jason.encode!()
-
-    with {:ok, pid} <- WebSockex.start("#{address}/socket/server/websocket", __MODULE__, state),
+    with {:ok, {address, api_token}} <- Utils.get_options_or_defaults(opts),
+         address <- convert_url_prefix(address),
+         {:ok, pid} <- WebSockex.start("#{address}/socket/server/websocket", __MODULE__, state),
+         auth_msg <-
+           Jason.encode!(%{type: "controlMessage", data: %{type: "authRequest", token: api_token}}),
          :ok <- WebSockex.send_frame(pid, {:text, auth_msg}) do
       receive do
         {:jellyfish_notification, %{type: :authenticated}} ->
@@ -114,8 +91,7 @@ defmodule Jellyfish.Notifier do
           {:error, :authentication_timeout}
       end
     else
-      {:error, _reason} = error ->
-        error
+      {:error, _reason} = error -> error
     end
   end
 
@@ -177,4 +153,17 @@ defmodule Jellyfish.Notifier do
   end
 
   defp decode_notification(_other), do: {:error, :invalid_type}
+
+  defp convert_url_prefix(url) do
+    # assumes that url starts with valid prefix, like "http://"
+    [prefix, address] = String.split(url, ":", parts: 2)
+
+    new_prefix =
+      case prefix do
+        "http" -> "ws"
+        "https" -> "wss"
+      end
+
+    "#{new_prefix}:#{address}"
+  end
 end

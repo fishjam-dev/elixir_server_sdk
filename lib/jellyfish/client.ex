@@ -17,6 +17,8 @@ defmodule Jellyfish.Client do
   For the list of supported Tesla adapters refer to [Tesla docs](https://hexdocs.pm/tesla/readme.html#adapters).
   """
 
+  alias Jellyfish.Utils
+
   @enforce_keys [
     :http_client
   ]
@@ -29,44 +31,37 @@ defmodule Jellyfish.Client do
   @doc """
   Creates a new instance of `t:Jellyfish.Client.t/0`.
 
-  ## Parameters
+  ## Options
 
-    * `address` - url or IP address of the Jellyfish server instance
-    * `server_api_token` - token used for authorizing HTTP requests. It's the same
+    * `:server_address` - url or IP address of the Jellyfish server instance.
+    * `:server_api_token` - token used for authorizing HTTP requests. It's the same
     token as the one configured in Jellyfish.
-  """
-  @spec new(String.t(), String.t()) :: t()
-  def new(address, server_api_token), do: build_client(address, server_api_token)
 
-  @doc """
-  Creates a new instance of `t:Jellyfish.Client.t/0`.
-
-  Uses token set in `config.exs`. To explicitly pass the token, see `new/2`.
+  When an option is not explicily passed, value set in `config.exs` is used:
   ```
   # in config.exs
-  config :jellyfish_server_sdk, server_api_token: "your-jellyfish-token"
-
-  client = Jellyfish.Client.new("http://address-of-your-server.com")
+  config :jellyfish_server_sdk, 
+    server_address: "http://you-jellyfish-server-address.com",
+    server_api_token: "your-jellyfish-token",
   ```
-
-  See `new/2` for description of parameters.
   """
-  @spec new(String.t()) :: t()
-  def new(address) do
-    server_api_token = Application.fetch_env!(:jellyfish_server_sdk, :server_api_token)
-    build_client(address, server_api_token)
-  end
+  @spec new(server_address: String.t(), server_api_token: String.t()) ::
+          {:ok, t()} | {:error, term()}
+  def new(opts) do
+    with {:ok, {address, api_token}} <- Utils.get_options_or_defaults(opts) do
+      adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Adapter.Mint)
 
-  defp build_client(address, server_api_token) do
-    middleware = [
-      {Tesla.Middleware.BaseUrl, address},
-      {Tesla.Middleware.BearerAuth, token: server_api_token},
-      Tesla.Middleware.JSON
-    ]
+      middleware = [
+        {Tesla.Middleware.BaseUrl, address},
+        {Tesla.Middleware.BearerAuth, token: api_token},
+        Tesla.Middleware.JSON
+      ]
 
-    adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Adapter.Mint)
-    http_client = Tesla.client(middleware, adapter)
+      http_client = Tesla.client(middleware, adapter)
 
-    %__MODULE__{http_client: http_client}
+      {:ok, %__MODULE__{http_client: http_client}}
+    else
+      {:error, :missing_url_protocol_prefix} = error -> error
+    end
   end
 end
