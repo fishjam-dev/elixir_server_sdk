@@ -7,8 +7,8 @@ defmodule Jellyfish.RoomTest do
 
   @server_api_token "testtoken"
 
-  @url "http://mockurl.com"
-  @invalid_url "http://invalid-url.com"
+  @url "mockurl.com"
+  @invalid_url "invalid-url.com"
 
   @component_id "mock_component_id"
   @component_type "hls"
@@ -43,7 +43,7 @@ defmodule Jellyfish.RoomTest do
       end
     end)
 
-    %{client: Client.new(@url, @server_api_token)}
+    %{client: Client.new(server_address: @url, server_api_token: @server_api_token)}
   end
 
   describe "auth" do
@@ -52,7 +52,7 @@ defmodule Jellyfish.RoomTest do
 
       mock(fn %{
                 method: :post,
-                url: "#{@url}/room",
+                url: "http://#{@url}/room",
                 body: ^valid_body
               } = env ->
         case Tesla.get_header(env, "authorization") do
@@ -71,7 +71,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "invalid token" do
-      client = Client.new(@url, "invalid" <> @server_api_token)
+      client = Client.new(server_address: @url, server_api_token: "invalid" <> @server_api_token)
       assert {:error, _reason} = Room.create(client, max_peers: @max_peers)
     end
   end
@@ -84,14 +84,14 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :post,
-          url: "#{@url}/room",
+          url: "http://#{@url}/room",
           body: ^valid_body
         } ->
           json(%{"data" => build_room_json(true)}, status: 201)
 
         %{
           method: :post,
-          url: "#{@url}/room",
+          url: "http://#{@url}/room",
           body: ^invalid_body
         } ->
           json(%{"errors" => @error_message}, status: 400)
@@ -114,13 +114,13 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :delete,
-          url: "#{@url}/room/#{@room_id}"
+          url: "http://#{@url}/room/#{@room_id}"
         } ->
           text("", status: 204)
 
         %{
           method: :delete,
-          url: "#{@url}/room/#{@invalid_room_id}"
+          url: "http://#{@url}/room/#{@invalid_room_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)
@@ -140,13 +140,13 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :get,
-          url: "#{@url}/room"
+          url: "http://#{@url}/room"
         } ->
           json(%{"data" => [build_room_json(false)]}, status: 200)
 
         %{
           method: :get,
-          url: "#{@invalid_url}/room"
+          url: "http://#{@invalid_url}/room"
         } ->
           %Tesla.Env{status: 404, body: nil}
       end)
@@ -159,7 +159,7 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is invalid" do
       middleware = [
-        {Tesla.Middleware.BaseUrl, @invalid_url},
+        {Tesla.Middleware.BaseUrl, "http://#{@invalid_url}"},
         Tesla.Middleware.JSON
       ]
 
@@ -167,7 +167,7 @@ defmodule Jellyfish.RoomTest do
       http_client = Tesla.client(middleware, adapter)
       invalid_client = %Client{http_client: http_client}
 
-      assert_raise Jellyfish.Exception.ResponseStructureError, fn ->
+      assert_raise Jellyfish.Exception.StructureError, fn ->
         Room.get_all(invalid_client)
       end
     end
@@ -178,13 +178,13 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :get,
-          url: "#{@url}/room/#{@room_id}"
+          url: "http://#{@url}/room/#{@room_id}"
         } ->
           json(%{"data" => build_room_json(false)}, status: 200)
 
         %{
           method: :get,
-          url: "#{@url}/room/#{@invalid_room_id}"
+          url: "http://#{@url}/room/#{@invalid_room_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)
@@ -208,14 +208,14 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :post,
-          url: "#{@url}/room/#{@room_id}/component",
+          url: "http://#{@url}/room/#{@room_id}/component",
           body: ^valid_body
         } ->
           json(%{"data" => build_component_json()}, status: 201)
 
         %{
           method: :post,
-          url: "#{@url}/room/#{@room_id}/component",
+          url: "http://#{@url}/room/#{@room_id}/component",
           body: ^invalid_body
         } ->
           json(%{"errors" => @error_message}, status: 400)
@@ -238,13 +238,13 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :delete,
-          url: "#{@url}/room/#{@room_id}/component/#{@component_id}"
+          url: "http://#{@url}/room/#{@room_id}/component/#{@component_id}"
         } ->
           text("", status: 204)
 
         %{
           method: :delete,
-          url: "#{@url}/room/#{@room_id}/component/#{@invalid_component_id}"
+          url: "http://#{@url}/room/#{@room_id}/component/#{@invalid_component_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)
@@ -268,14 +268,14 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :post,
-          url: "#{@url}/room/#{@room_id}/peer",
+          url: "http://#{@url}/room/#{@room_id}/peer",
           body: ^valid_body
         } ->
           json(%{"data" => build_peer_json()}, status: 201)
 
         %{
           method: :post,
-          url: "#{@url}/room/#{@room_id}/peer",
+          url: "http://#{@url}/room/#{@room_id}/peer",
           body: ^invalid_body
         } ->
           json(%{"errors" => @error_message}, status: 400)
@@ -298,13 +298,13 @@ defmodule Jellyfish.RoomTest do
       mock(fn
         %{
           method: :delete,
-          url: "#{@url}/room/#{@room_id}/peer/#{@peer_id}"
+          url: "http://#{@url}/room/#{@room_id}/peer/#{@peer_id}"
         } ->
           text("", status: 204)
 
         %{
           method: :delete,
-          url: "#{@url}/room/#{@room_id}/peer/#{@invalid_peer_id}"
+          url: "http://#{@url}/room/#{@room_id}/peer/#{@invalid_peer_id}"
         } ->
           json(%{"errors" => @error_message}, status: 404)
       end)

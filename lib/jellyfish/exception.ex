@@ -1,13 +1,13 @@
 defmodule Jellyfish.Exception do
   @moduledoc false
 
-  defmodule ResponseStructureError do
+  defmodule StructureError do
     defexception [:message]
 
     @impl true
     def exception(_opts) do
       msg = """
-      Received server response with unexpected structure.
+      Received server response or notification with unexpected structure.
       Make sure you are using correct combination of Jellyfish and SDK versions.
       """
 
@@ -15,14 +15,14 @@ defmodule Jellyfish.Exception do
     end
   end
 
-  defmodule NotificationStructureError do
+  defmodule ProtocolPrefixError do
     defexception [:message]
 
     @impl true
     def exception(_opts) do
       msg = """
-      Received notification with unexpected structure.
-      Make sure you are using correct combination of Jellyfish and SDK versions.
+      Passed address starts with protocol prefix, like "http://" or "https://", which is undesired.
+      To use SSL, pass `secure?: true` option.
       """
 
       %__MODULE__{message: msg}

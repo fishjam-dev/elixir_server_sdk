@@ -7,7 +7,7 @@ defmodule Jellyfish.Peer do
   For more information refer to [Jellyfish documentation](https://www.membrane.stream)
   """
 
-  alias Jellyfish.Exception.ResponseStructureError
+  alias Jellyfish.Exception.StructureError
 
   @enforce_keys [
     :id,
@@ -49,7 +49,7 @@ defmodule Jellyfish.Peer do
         }
 
       _other ->
-        raise ResponseStructureError
+        raise StructureError
     end
   end
 end

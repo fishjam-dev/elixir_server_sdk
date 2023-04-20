@@ -1,10 +1,10 @@
 defmodule Jellyfish.Notifier do
   @moduledoc """
-  This module defines a process responsible for establishing
+  Module defining a process responsible for establishing
   WebSocket connection and receiving notifications form Jellyfish server.
 
   ```
-  iex> {:ok, pid} = Jellyfish.Notifier.start("ws://address-of-jellyfish-server.com", "your-jellyfish-token")
+  iex> {:ok, pid} = Jellyfish.Notifier.start(server_address: "address-of-jellyfish-server.com", server_api_token: "your-jellyfish-token")
   {:ok, #PID<0.301.0>}
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
@@ -23,7 +23,8 @@ defmodule Jellyfish.Notifier do
 
   use WebSockex
 
-  alias Jellyfish.{Exception, Utils}
+  alias Jellyfish.{Client, Utils}
+  alias Jellyfish.Exception.StructureError
 
   @auth_timeout 2000
 
@@ -34,9 +35,8 @@ defmodule Jellyfish.Notifier do
 
   See `start/1` for more information.
   """
-  @spec start_link(server_address: String.t(), server_api_token: String.t()) ::
-          {:ok, pid()} | {:error, term()}
-  def start_link(opts) do
+  @spec start_link(Client.connection_options()) :: {:ok, pid()} | {:error, term()}
+  def start_link(opts \\ []) do
     case start(opts) do
       {:ok, pid} ->
         Process.link(pid)
@@ -53,30 +53,19 @@ defmodule Jellyfish.Notifier do
   Received notifications are send to the calling process in
   a form of `{:jellyfish_notification, msg}`.
 
-  ## Options
-
-    * `:server_address` - url or IP address of the Jellyfish server instance.
-    * `:server_api_token` - token used for authorizing HTTP requests. It's the same
-    token as the one configured in Jellyfish.
-
-  When an option is not explicily passed, value set in `config.exs` is used:
-  ```
-  # in config.exs
-  config :jellyfish_server_sdk, 
-    server_address: "http://you-jellyfish-server-address.com",
-    server_api_token: "your-jellyfish-token",
-  ```
+  For information about options, see `t:Jellyfish.Client.connection_options/0`.
   """
-  @spec start(server_address: String.t(), server_api_token: String.t()) ::
-          {:ok, pid()} | {:error, term()}
-  def start(opts) do
+  @spec start(Client.connection_options()) :: {:ok, pid()} | {:error, term()}
+  def start(opts \\ []) do
+    {address, api_token, secure?} = Utils.get_options_or_defaults(opts)
+    address = if secure?, do: "wss://#{address}", else: "ws://#{address}"
     state = %{receiver_pid: self()}
 
-    with {:ok, {address, api_token}} <- Utils.get_options_or_defaults(opts),
-         address <- convert_url_prefix(address),
-         {:ok, pid} <- WebSockex.start("#{address}/socket/server/websocket", __MODULE__, state),
-         auth_msg <-
-           Jason.encode!(%{type: "controlMessage", data: %{type: "authRequest", token: api_token}}),
+    auth_msg =
+      %{type: "controlMessage", data: %{type: "authRequest", token: api_token}}
+      |> Jason.encode!()
+
+    with {:ok, pid} <- WebSockex.start("#{address}/socket/server/websocket", __MODULE__, state),
          :ok <- WebSockex.send_frame(pid, {:text, auth_msg}) do
       receive do
         {:jellyfish_notification, %{type: :authenticated}} ->
@@ -102,9 +91,15 @@ defmodule Jellyfish.Notifier do
          {:ok, notification} <- decode_notification(data) do
       send(state.receiver_pid, {:jellyfish_notification, notification})
     else
-      _other -> raise Exception.NotificationStructureError
+      _other -> raise StructureError
     end
 
+    {:ok, state}
+  end
+
+  @impl true
+  def handle_cast(_msg, state) do
+    # ignore incoming messages
     {:ok, state}
   end
 
@@ -153,17 +148,4 @@ defmodule Jellyfish.Notifier do
   end
 
   defp decode_notification(_other), do: {:error, :invalid_type}
-
-  defp convert_url_prefix(url) do
-    # assumes that url starts with valid prefix, like "http://"
-    [prefix, address] = String.split(url, ":", parts: 2)
-
-    new_prefix =
-      case prefix do
-        "http" -> "ws"
-        "https" -> "wss"
-      end
-
-    "#{new_prefix}:#{address}"
-  end
 end

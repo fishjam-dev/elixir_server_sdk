@@ -28,14 +28,13 @@ defmodule Jellyfish.Client do
           http_client: Tesla.Client.t()
         }
 
-  @doc """
-  Creates a new instance of `t:Jellyfish.Client.t/0`.
+  @typedoc """
+  Options needed to open connection to Jellyfish server.
 
-  ## Options
-
-    * `:server_address` - url or IP address of the Jellyfish server instance.
-    * `:server_api_token` - token used for authorizing HTTP requests. It's the same
-    token as the one configured in Jellyfish.
+  * `:server_address` - url or IP address of the Jellyfish server instance.
+  * `:server_api_token` - token used for authorizing HTTP requests and WebSocket connection.
+  It's the same token as the one configured in Jellyfish.
+  * `:secure?` - if true, use HTTPS and WSS instead of HTTP and WS, false by default.
 
   When an option is not explicily passed, value set in `config.exs` is used:
   ```
@@ -43,25 +42,34 @@ defmodule Jellyfish.Client do
   config :jellyfish_server_sdk, 
     server_address: "http://you-jellyfish-server-address.com",
     server_api_token: "your-jellyfish-token",
+    secure?: true
   ```
   """
-  @spec new(server_address: String.t(), server_api_token: String.t()) ::
-          {:ok, t()} | {:error, term()}
-  def new(opts) do
-    with {:ok, {address, api_token}} <- Utils.get_options_or_defaults(opts) do
-      adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Adapter.Mint)
+  @type connection_options :: [
+          server_address: String.t(),
+          server_api_token: String.t(),
+          secure?: boolean()
+        ]
 
-      middleware = [
-        {Tesla.Middleware.BaseUrl, address},
-        {Tesla.Middleware.BearerAuth, token: api_token},
-        Tesla.Middleware.JSON
-      ]
+  @doc """
+  Creates a new instance of `t:Jellyfish.Client.t/0`.
 
-      http_client = Tesla.client(middleware, adapter)
+  For information about options, see `t:connection_options/0`.
+  """
+  @spec new(connection_options()) :: t()
+  def new(opts \\ []) do
+    {address, api_token, secure?} = Utils.get_options_or_defaults(opts)
+    address = if secure?, do: "https://#{address}", else: "http://#{address}"
+    adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Adapter.Mint)
 
-      {:ok, %__MODULE__{http_client: http_client}}
-    else
-      {:error, :missing_url_protocol_prefix} = error -> error
-    end
+    middleware = [
+      {Tesla.Middleware.BaseUrl, address},
+      {Tesla.Middleware.BearerAuth, token: api_token},
+      Tesla.Middleware.JSON
+    ]
+
+    http_client = Tesla.client(middleware, adapter)
+
+    %__MODULE__{http_client: http_client}
   end
 end

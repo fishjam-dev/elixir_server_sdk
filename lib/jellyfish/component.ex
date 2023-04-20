@@ -6,7 +6,7 @@ defmodule Jellyfish.Component do
   For more information refer to [Jellyfish documentation](https://www.membrane.stream)
   """
 
-  alias Jellyfish.Exception.ResponseStructureError
+  alias Jellyfish.Exception.StructureError
 
   @enforce_keys [
     :id,
@@ -54,7 +54,7 @@ defmodule Jellyfish.Component do
         }
 
       _other ->
-        raise ResponseStructureError
+        raise StructureError
     end
   end
 end

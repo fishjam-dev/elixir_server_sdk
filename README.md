@@ -30,10 +30,10 @@ and receive server notifications:
 
 ```elixir
 # start process responsible for receiving notifications
-{:ok, pid} = Jellyfish.Notifier.start("ws://address-of-your-server.com", "your-jellyfish-token")
+{:ok, pid} = Jellyfish.Notifier.start(server_address: "ws://address-of-your-server.com", server_api_key: "your-jellyfish-token")
 
 # create HTTP client instance
-client = Jellyfish.Client.new("http://address-of-your-server.com", "your-jellyfish-token")
+client = Jellyfish.Client.new(server_address: "http://address-of-your-server.com", server_api_key: "your-jellyfish-token")
 
 # Create room
 {:ok, %Jellyfish.Room{id: room_id}} = Jellyfish.Room.create(client, max_peers: 10)
