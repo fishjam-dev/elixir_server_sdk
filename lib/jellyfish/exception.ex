@@ -22,7 +22,7 @@ defmodule Jellyfish.Exception do
     def exception(_opts) do
       msg = """
       Passed address starts with protocol prefix, like "http://" or "https://", which is undesired.
-      To use SSL, pass `secure?: true` option.
+      To use SSL, set `secure?: true` option in `config.exs` or pass this option to called function.
       """
 
       %__MODULE__{message: msg}

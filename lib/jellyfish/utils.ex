@@ -4,7 +4,7 @@ defmodule Jellyfish.Utils do
   alias Jellyfish.Client
   alias Jellyfish.Exception.ProtocolPrefixError
 
-  @protocl_prefixes ["http://", "https://", "ws://", "wss://"]
+  @protocol_prefixes ["http://", "https://", "ws://", "wss://"]
 
   @spec get_options_or_defaults(Client.connection_options()) ::
           {String.t(), String.t(), boolean()}
@@ -18,7 +18,7 @@ defmodule Jellyfish.Utils do
     secure? =
       Keyword.get(opts, :secure?, Application.get_env(:jellyfish_server_sdk, :secure?, false))
 
-    if String.starts_with?(server_address, @protocl_prefixes), do: raise(ProtocolPrefixError)
+    if String.starts_with?(server_address, @protocol_prefixes), do: raise(ProtocolPrefixError)
 
     {server_address, server_api_token, secure?}
   end

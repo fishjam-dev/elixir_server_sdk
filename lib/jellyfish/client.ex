@@ -34,13 +34,13 @@ defmodule Jellyfish.Client do
   * `:server_address` - url or IP address of the Jellyfish server instance.
   * `:server_api_token` - token used for authorizing HTTP requests and WebSocket connection.
   It's the same token as the one configured in Jellyfish.
-  * `:secure?` - if true, use HTTPS and WSS instead of HTTP and WS, false by default.
+  * `:secure?` - if `true`, use HTTPS and WSS instead of HTTP and WS, `false` by default.
 
   When an option is not explicily passed, value set in `config.exs` is used:
   ```
   # in config.exs
   config :jellyfish_server_sdk, 
-    server_address: "http://you-jellyfish-server-address.com",
+    server_address: "you-jellyfish-server-address.com",
     server_api_token: "your-jellyfish-token",
     secure?: true
   ```
