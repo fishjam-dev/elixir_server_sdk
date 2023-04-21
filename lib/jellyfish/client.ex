@@ -17,6 +17,8 @@ defmodule Jellyfish.Client do
   For the list of supported Tesla adapters refer to [Tesla docs](https://hexdocs.pm/tesla/readme.html#adapters).
   """
 
+  alias Jellyfish.Utils
+
   @enforce_keys [
     :http_client
   ]
@@ -26,45 +28,46 @@ defmodule Jellyfish.Client do
           http_client: Tesla.Client.t()
         }
 
-  @doc """
-  Creates a new instance of `t:Jellyfish.Client.t/0`.
+  @typedoc """
+  Options needed to open connection to Jellyfish server.
 
-  ## Parameters
+  * `:server_address` - url or IP address of the Jellyfish server instance.
+  * `:server_api_token` - token used for authorizing HTTP requests and WebSocket connection.
+  It's the same token as the one configured in Jellyfish.
+  * `:secure?` - if `true`, use HTTPS and WSS instead of HTTP and WS, `false` by default.
 
-    * `address` - url or IP address of the Jellyfish server instance
-    * `server_api_token` - token used for authorizing HTTP requests. It's the same
-    token as the one configured in Jellyfish.
-  """
-  @spec new(String.t(), String.t()) :: t()
-  def new(address, server_api_token), do: build_client(address, server_api_token)
-
-  @doc """
-  Creates a new instance of `t:Jellyfish.Client.t/0`.
-
-  Uses token set in `config.exs`. To explicitly pass the token, see `new/2`.
+  When an option is not explicily passed, value set in `config.exs` is used:
   ```
   # in config.exs
-  config :jellyfish_server_sdk, server_api_token: "your-jellyfish-token"
-
-  client = Jellyfish.Client.new("http://address-of-your-server.com")
+  config :jellyfish_server_sdk, 
+    server_address: "you-jellyfish-server-address.com",
+    server_api_token: "your-jellyfish-token",
+    secure?: true
   ```
-
-  See `new/2` for description of parameters.
   """
-  @spec new(String.t()) :: t()
-  def new(address) do
-    server_api_token = Application.fetch_env!(:jellyfish_server_sdk, :server_api_token)
-    build_client(address, server_api_token)
-  end
+  @type connection_options :: [
+          server_address: String.t(),
+          server_api_token: String.t(),
+          secure?: boolean()
+        ]
 
-  defp build_client(address, server_api_token) do
+  @doc """
+  Creates a new instance of `t:Jellyfish.Client.t/0`.
+
+  For information about options, see `t:connection_options/0`.
+  """
+  @spec new(connection_options()) :: t()
+  def new(opts \\ []) do
+    {address, api_token, secure?} = Utils.get_options_or_defaults(opts)
+    address = if secure?, do: "https://#{address}", else: "http://#{address}"
+    adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Adapter.Mint)
+
     middleware = [
       {Tesla.Middleware.BaseUrl, address},
-      {Tesla.Middleware.BearerAuth, token: server_api_token},
+      {Tesla.Middleware.BearerAuth, token: api_token},
       Tesla.Middleware.JSON
     ]
 
-    adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Adapter.Mint)
     http_client = Tesla.client(middleware, adapter)
 
     %__MODULE__{http_client: http_client}

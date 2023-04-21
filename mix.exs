@@ -51,6 +51,7 @@ defmodule Membrane.Template.Mixfile do
       {:tesla, "~> 1.5"},
       {:mint, "~> 1.0"},
       {:jason, "~> 1.4"},
+      {:websockex, "~> 0.4.3"},
 
       # Docs, credo, test coverage, dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},

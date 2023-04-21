@@ -25,7 +25,7 @@ defmodule Jellyfish.Room do
 
   alias Tesla.Env
   alias Jellyfish.{Client, Component, Peer}
-  alias Jellyfish.Exception.ResponseStructureError
+  alias Jellyfish.Exception.StructureError
 
   @enforce_keys [
     :id,
@@ -72,7 +72,7 @@ defmodule Jellyfish.Room do
          result <- Enum.map(data, &from_json/1) do
       {:ok, result}
     else
-      :error -> raise ResponseStructureError
+      :error -> raise StructureError
       error -> handle_response_error(error)
     end
   end
@@ -88,7 +88,7 @@ defmodule Jellyfish.Room do
          result <- from_json(data) do
       {:ok, result}
     else
-      :error -> raise ResponseStructureError
+      :error -> raise StructureError
       error -> handle_response_error(error)
     end
   end
@@ -108,7 +108,7 @@ defmodule Jellyfish.Room do
          result <- from_json(data) do
       {:ok, result}
     else
-      :error -> raise ResponseStructureError
+      :error -> raise StructureError
       error -> handle_response_error(error)
     end
   end
@@ -140,7 +140,7 @@ defmodule Jellyfish.Room do
          result <- Peer.from_json(peer) do
       {:ok, result, token}
     else
-      :error -> raise ResponseStructureError
+      :error -> raise StructureError
       error -> handle_response_error(error)
     end
   end
@@ -178,7 +178,7 @@ defmodule Jellyfish.Room do
          result <- Component.from_json(data) do
       {:ok, result}
     else
-      :error -> raise ResponseStructureError
+      :error -> raise StructureError
       error -> handle_response_error(error)
     end
   end
@@ -215,13 +215,13 @@ defmodule Jellyfish.Room do
         }
 
       _other ->
-        raise ResponseStructureError
+        raise StructureError
     end
   end
 
   defp handle_response_error({:ok, %Env{body: %{"errors" => error}}}),
     do: {:error, "Request failed: #{error}"}
 
-  defp handle_response_error({:ok, %Env{body: _body}}), do: raise(ResponseStructureError)
+  defp handle_response_error({:ok, %Env{body: _body}}), do: raise(StructureError)
   defp handle_response_error({:error, reason}), do: {:error, reason}
 end
