@@ -45,7 +45,7 @@ room_id
 {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Jellyfish.Room.add_peer(client, room_id, "webrtc")
 
 receive do
-  {:jellyfish_notification, %{type: :peer_connected} = notification} -> # handle the notification
+  {:jellyfish, {:peer_connected, ^room_id, ^peer_id}} -> # handle the notification
 end
 
 # Delete peer
