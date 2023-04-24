@@ -162,16 +162,16 @@ defmodule Jellyfish.Room do
   @doc """
   Add component to the room with `room_id`.
   """
-  @spec add_component(Client.t(), id(), Component.type(), Component.options()) ::
+  @spec add_component(Client.t(), id(), Component.options()) ::
           {:ok, Component.t()} | {:error, atom() | String.t()}
-  def add_component(client, room_id, type, opts \\ []) do
+  def add_component(client, room_id, component) do
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/component",
              %{
-               "type" => type,
-               "options" => Map.new(opts)
+               "type" => Component.get_type(component),
+               "options" => Map.from_struct(component)
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
