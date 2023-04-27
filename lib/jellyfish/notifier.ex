@@ -70,12 +70,9 @@ defmodule Jellyfish.Notifier do
          {:ok, notification} <- decode_notification(decoded_msg) do
       # notification will be either {type, room_id, peer_id/component_id},
       # {type, room_id} or just type
-      IO.inspect(notification, label: :handle_frame)
       send(state.receiver_pid, {:jellyfish, notification})
     else
-      other ->
-        IO.inspect(other, label: :error_in_handle_frame)
-        raise StructureError
+      _other -> raise StructureError
     end
 
     {:ok, state}
@@ -198,5 +195,5 @@ defmodule Jellyfish.Notifier do
     if is_nil(decoded_type), do: {:error, :invalid_type}, else: {:ok, decoded_type}
   end
 
-  defp decode_notification(other), do: {:error, :invalid_type}
+  defp decode_notification(_other), do: {:error, :invalid_type}
 end
