@@ -20,8 +20,20 @@ defmodule Jellyfish.Notifier do
 
   use WebSockex
 
+  require Logger
+
   alias Jellyfish.{Client, Utils}
   alias Jellyfish.Exception.StructureError
+  alias Jellyfish.Server.ControlMessage
+
+  alias Jellyfish.Server.ClientMessage.TokenMessage
+
+  alias Jellyfish.Server.ServerNotification.{
+    Authenticated,
+    ComponentNotification,
+    PeerNotification,
+    RoomNotification
+  }
 
   @auth_timeout 2000
 
@@ -53,15 +65,17 @@ defmodule Jellyfish.Notifier do
   end
 
   @impl true
-  def handle_frame({:text, msg}, state) do
-    with {:ok, decoded_msg} <- Jason.decode(msg),
-         %{"type" => "controlMessage", "data" => data} <- decoded_msg,
-         {:ok, notification} <- decode_notification(data) do
+  def handle_frame({:binary, msg}, state) do
+    with decoded_msg <- ControlMessage.decode(msg),
+         {:ok, notification} <- decode_notification(decoded_msg) do
       # notification will be either {type, room_id, peer_id/component_id},
       # {type, room_id} or just type
+      IO.inspect(notification, label: :handle_frame)
       send(state.receiver_pid, {:jellyfish, notification})
     else
-      _other -> raise StructureError
+      other ->
+        IO.inspect(other, label: :error_in_handle_frame)
+        raise StructureError
     end
 
     {:ok, state}
@@ -89,12 +103,12 @@ defmodule Jellyfish.Notifier do
     state = %{receiver_pid: self()}
 
     auth_msg =
-      %{type: "controlMessage", data: %{type: "authRequest", token: api_token}}
-      |> Jason.encode!()
+      %ControlMessage{content: {:authRequest, %TokenMessage{token: api_token}}}
+      |> ControlMessage.encode()
 
     with {:ok, pid} <-
            apply(WebSockex, fun, ["#{address}/socket/server/websocket", __MODULE__, state]),
-         :ok <- WebSockex.send_frame(pid, {:text, auth_msg}) do
+         :ok <- WebSockex.send_frame(pid, {:binary, auth_msg}) do
       receive do
         {:jellyfish, :authenticated} ->
           {:ok, pid}
@@ -111,16 +125,20 @@ defmodule Jellyfish.Notifier do
     end
   end
 
-  defp decode_notification(%{"type" => type, "roomId" => room_id, "id" => id}) do
+  defp decode_notification(%ControlMessage{
+         content: {type, %PeerNotification{roomId: room_id, peerId: id}}
+       }) do
     decoded_type =
       case type do
-        "authenticated" -> :authenticated
-        "roomCrashed" -> :room_crashed
-        "peerConnected" -> :peer_connected
-        "peerDisconnected" -> :peer_disconnected
-        "peerCrashed" -> :peer_crashed
-        "componentCrashed" -> :component_crashed
-        _other -> nil
+        :peerConnected ->
+          :peer_connected
+
+        :peerDisconnected ->
+          :peer_disconected
+
+        unknown_type ->
+          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
+          nil
       end
 
     if is_nil(decoded_type) do
@@ -130,27 +148,55 @@ defmodule Jellyfish.Notifier do
     end
   end
 
-  defp decode_notification(%{"type" => type, "room_id" => id}) do
+  defp decode_notification(%ControlMessage{
+         content: {type, %ComponentNotification{roomId: room_id, componentId: id}}
+       }) do
     decoded_type =
       case type do
-        "roomCrashed" -> :room_crashed
-        _other -> nil
+        :componentCrashed ->
+          :component_crashed
+
+        unknown_type ->
+          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
+          nil
+      end
+
+    if is_nil(decoded_type) do
+      {:error, :invalid_type}
+    else
+      {:ok, {decoded_type, room_id, id}}
+    end
+  end
+
+  defp decode_notification(%ControlMessage{content: {type, %RoomNotification{roomId: room_id}}}) do
+    decoded_type =
+      case type do
+        :roomCrashed ->
+          :room_crashed
+
+        unknown_type ->
+          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
+          nil
       end
 
     if is_nil(decoded_type),
       do: {:error, :invalid_type},
-      else: {:ok, {decoded_type, id}}
+      else: {:ok, {decoded_type, room_id}}
   end
 
-  defp decode_notification(%{"type" => type}) do
+  defp decode_notification(%ControlMessage{content: {type, %Authenticated{}}}) do
     decoded_type =
       case type do
-        "authenticated" -> :authenticated
-        _other -> nil
+        :authenticated ->
+          :authenticated
+
+        unknown_type ->
+          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
+          nil
       end
 
     if is_nil(decoded_type), do: {:error, :invalid_type}, else: {:ok, decoded_type}
   end
 
-  defp decode_notification(_other), do: {:error, :invalid_type}
+  defp decode_notification(other), do: {:error, :invalid_type}
 end
