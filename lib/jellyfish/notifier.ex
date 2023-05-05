@@ -26,7 +26,7 @@ defmodule Jellyfish.Notifier do
   @auth_timeout 2000
 
   @doc """
-  Starts the Notifier process and connects to Jellyfish. 
+  Starts the Notifier process and connects to Jellyfish.
 
   Acts like `start/1` but links to the calling process.
 
@@ -38,10 +38,10 @@ defmodule Jellyfish.Notifier do
   end
 
   @doc """
-  Starts the Notifier process and connects to Jellyfish. 
+  Starts the Notifier process and connects to Jellyfish.
 
   Received notifications are send to the calling process in
-  a form of `{:jellyfish, msg}`, where `msg` is 
+  a form of `{:jellyfish, msg}`, where `msg` is
   `type` or `{type, room_id}` or `{type, room_id, (peer/component)_id}`.
   Refer to [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/) to learn more about server notifications.
 
@@ -115,8 +115,10 @@ defmodule Jellyfish.Notifier do
     decoded_type =
       case type do
         "authenticated" -> :authenticated
+        "roomCrashed" -> :room_crashed
         "peerConnected" -> :peer_connected
-        "peerDisconnected" -> :peer_disconected
+        "peerDisconnected" -> :peer_disconnected
+        "peerCrashed" -> :peer_crashed
         "componentCrashed" -> :component_crashed
         _other -> nil
       end
