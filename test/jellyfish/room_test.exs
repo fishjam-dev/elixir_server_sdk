@@ -11,10 +11,10 @@ defmodule Jellyfish.RoomTest do
   @invalid_url "invalid-url.com"
 
   @component_id "mock_component_id"
-  @component_type "hls"
+  @component_type :hls
   @component_opts %Component.HLS{}
   @peer_id "mock_peer_id"
-  @peer_type "webrtc"
+  @peer_type :webrtc
 
   @room_id "mock_room_id"
 
@@ -24,7 +24,7 @@ defmodule Jellyfish.RoomTest do
   @invalid_max_peers "abc"
 
   @invalid_peer_id "invalid_peer_id"
-  @invalid_peer_type "abc"
+  @invalid_peer_type :abc
 
   @invalid_component_id "invalid_component_id"
   defmodule InvalidComponentOpts do
@@ -223,7 +223,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid", %{client: client} do
-      assert_raise CaseClauseError, fn ->
+      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
         Room.add_component(client, @room_id, %InvalidComponentOpts{})
       end
     end

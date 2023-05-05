@@ -13,9 +13,9 @@ defmodule Jellyfish.Room do
       peers: []
   }}
 
-  iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, "webrtc")
+  iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, :webrtc)
    {:ok,
-    %Jellyfish.Peer{id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e", type: "webrtc"},
+    %Jellyfish.Peer{id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e", type: :webrtc},
     "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
 
   iex> :ok = Jellyfish.Room.delete(client, room.id)
@@ -134,7 +134,7 @@ defmodule Jellyfish.Room do
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/peer",
-             %{"type" => type}
+             %{"type" => Atom.to_string(type)}
            ),
          {:ok, %{"peer" => peer, "token" => token}} <- Map.fetch(body, "data"),
          result <- Peer.from_json(peer) do
@@ -170,7 +170,7 @@ defmodule Jellyfish.Room do
              client.http_client,
              "/room/#{room_id}/component",
              %{
-               "type" => Component.get_type(component),
+               "type" => Component.type_from_options(component) |> Atom.to_string(),
                "options" => Map.from_struct(component)
              }
            ),
