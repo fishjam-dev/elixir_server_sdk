@@ -8,6 +8,7 @@ defmodule Jellyfish.Peer do
   """
 
   alias Jellyfish.Exception.StructureError
+  alias Jellyfish.Peer.WebRTC
 
   @enforce_keys [
     :id,
@@ -26,6 +27,18 @@ defmodule Jellyfish.Peer do
   For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
   @type type :: :webrtc
+
+  @typedoc """
+  Peer-specific options.
+
+  For the list of available options, refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
+  """
+  @type options :: WebRTC.t()
+
+  @typedoc """
+  Peer options module.
+  """
+  @type options_module :: WebRTC
 
   @typedoc """
   Stores information about the peer.
@@ -56,7 +69,16 @@ defmodule Jellyfish.Peer do
   end
 
   @doc false
-  @spec type_from_string(String.t()) :: atom()
+  @spec type_from_options(struct()) :: type()
+  def type_from_options(peer) do
+    case peer do
+      %WebRTC{} -> :webrtc
+      _other -> raise "Invalid peer options struct"
+    end
+  end
+
+  @doc false
+  @spec type_from_string(String.t()) :: type()
   def type_from_string(string) do
     if string in @valid_type_strings,
       do: String.to_atom(string),

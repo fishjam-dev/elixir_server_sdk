@@ -35,6 +35,11 @@ defmodule Jellyfish.Component do
   @type options :: HLS.t() | RTSP.t()
 
   @typedoc """
+  Component options module.
+  """
+  @type options_module :: HLS | RTSP
+
+  @typedoc """
   Stores information about the component.
   """
   @type t :: %__MODULE__{
@@ -63,7 +68,7 @@ defmodule Jellyfish.Component do
   end
 
   @doc false
-  @spec type_from_options(struct()) :: atom()
+  @spec type_from_options(struct()) :: type()
   def type_from_options(component) do
     case component do
       %HLS{} -> :hls
@@ -73,7 +78,7 @@ defmodule Jellyfish.Component do
   end
 
   @doc false
-  @spec type_from_string(String.t()) :: atom()
+  @spec type_from_string(String.t()) :: type()
   def type_from_string(string) do
     if string in @valid_type_strings,
       do: String.to_atom(string),

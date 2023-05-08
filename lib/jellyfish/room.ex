@@ -13,7 +13,7 @@ defmodule Jellyfish.Room do
       peers: []
   }}
 
-  iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, :webrtc)
+  iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
    {:ok,
     %Jellyfish.Peer{id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e", type: :webrtc},
     "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
@@ -127,14 +127,16 @@ defmodule Jellyfish.Room do
   @doc """
   Add a peer to the room with `room_id`.
   """
-  @spec add_peer(Client.t(), id(), Peer.type()) ::
+  @spec add_peer(Client.t(), id(), Peer.options() | Peer.options_module()) ::
           {:ok, Peer.t(), peer_token()} | {:error, atom() | String.t()}
-  def add_peer(client, room_id, type) do
+  def add_peer(client, room_id, peer) do
+    peer = if is_atom(peer), do: struct!(peer), else: peer
+
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/peer",
-             %{"type" => Atom.to_string(type)}
+             %{"type" => Peer.type_from_options(peer) |> Atom.to_string()}
            ),
          {:ok, %{"peer" => peer, "token" => token}} <- Map.fetch(body, "data"),
          result <- Peer.from_json(peer) do
@@ -162,16 +164,20 @@ defmodule Jellyfish.Room do
   @doc """
   Add component to the room with `room_id`.
   """
-  @spec add_component(Client.t(), id(), Component.options()) ::
+  @spec add_component(Client.t(), id(), Component.options() | Component.options_module()) ::
           {:ok, Component.t()} | {:error, atom() | String.t()}
   def add_component(client, room_id, component) do
+    component = if is_atom(component), do: struct!(component), else: component
+
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/component",
              %{
                "type" => Component.type_from_options(component) |> Atom.to_string(),
-               "options" => Map.from_struct(component)
+               "options" =>
+                 Map.from_struct(component)
+                 |> Map.new(fn {k, v} -> {snake_case_to_camel_case(k), v} end)
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
@@ -224,4 +230,10 @@ defmodule Jellyfish.Room do
 
   defp handle_response_error({:ok, %Env{body: _body}}), do: raise(StructureError)
   defp handle_response_error({:error, reason}), do: {:error, reason}
+
+  defp snake_case_to_camel_case(atom) do
+    [first | rest] = Atom.to_string(atom) |> String.split("_")
+    rest = rest |> Enum.map(&String.capitalize/1)
+    Enum.join([first | rest])
+  end
 end
