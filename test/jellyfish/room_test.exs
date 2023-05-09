@@ -11,9 +11,13 @@ defmodule Jellyfish.RoomTest do
   @invalid_url "invalid-url.com"
 
   @component_id "mock_component_id"
-  @component_type "hls"
+  @component_type :hls
+  @component_opts %Component.HLS{}
+  @component_opts_module Component.HLS
   @peer_id "mock_peer_id"
-  @peer_type "webrtc"
+  @peer_type :webrtc
+  @peer_opts %Peer.WebRTC{}
+  @peer_opts_module Peer.WebRTC
 
   @room_id "mock_room_id"
 
@@ -23,10 +27,14 @@ defmodule Jellyfish.RoomTest do
   @invalid_max_peers "abc"
 
   @invalid_peer_id "invalid_peer_id"
-  @invalid_peer_type "abc"
+  defmodule InvalidPeerOpts do
+    defstruct [:qwe, :rty]
+  end
 
   @invalid_component_id "invalid_component_id"
-  @invalid_component_type "abc"
+  defmodule InvalidComponentOpts do
+    defstruct [:abc, :def]
+  end
 
   @error_message "Mock error message"
 
@@ -200,10 +208,9 @@ defmodule Jellyfish.RoomTest do
     end
   end
 
-  describe "Room.add_component/4" do
+  describe "Room.add_component/3" do
     setup do
       valid_body = Jason.encode!(%{"options" => %{}, "type" => @component_type})
-      invalid_body = Jason.encode!(%{"options" => %{}, "type" => @invalid_component_type})
 
       mock(fn
         %{
@@ -212,24 +219,25 @@ defmodule Jellyfish.RoomTest do
           body: ^valid_body
         } ->
           json(%{"data" => build_component_json()}, status: 201)
-
-        %{
-          method: :post,
-          url: "http://#{@url}/room/#{@room_id}/component",
-          body: ^invalid_body
-        } ->
-          json(%{"errors" => @error_message}, status: 400)
       end)
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, component} = Room.add_component(client, @room_id, @component_type)
+      assert {:ok, component} = Room.add_component(client, @room_id, @component_opts)
+      assert component == build_component()
+
+      assert {:ok, component} = Room.add_component(client, @room_id, @component_opts_module)
       assert component == build_component()
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} =
-               Room.add_component(client, @room_id, @invalid_component_type)
+      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+        Room.add_component(client, @room_id, %InvalidComponentOpts{})
+      end
+
+      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+        Room.add_component(client, @room_id, InvalidComponentOpts)
+      end
     end
   end
 
@@ -263,7 +271,6 @@ defmodule Jellyfish.RoomTest do
   describe "Room.add_peer/3" do
     setup do
       valid_body = Jason.encode!(%{"type" => @peer_type})
-      invalid_body = Jason.encode!(%{"type" => @invalid_peer_type})
 
       mock(fn
         %{
@@ -272,24 +279,25 @@ defmodule Jellyfish.RoomTest do
           body: ^valid_body
         } ->
           json(%{"data" => build_peer_json()}, status: 201)
-
-        %{
-          method: :post,
-          url: "http://#{@url}/room/#{@room_id}/peer",
-          body: ^invalid_body
-        } ->
-          json(%{"errors" => @error_message}, status: 400)
       end)
     end
 
     test "when request is valid", %{client: client} do
-      assert {:ok, peer, _peer_token} = Room.add_peer(client, @room_id, @peer_type)
+      assert {:ok, peer, _peer_token} = Room.add_peer(client, @room_id, @peer_opts)
+      assert peer == build_peer()
+
+      assert {:ok, peer, _peer_token} = Room.add_peer(client, @room_id, @peer_opts_module)
       assert peer == build_peer()
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} =
-               Room.add_peer(client, @room_id, @invalid_peer_type)
+      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+        Room.add_peer(client, @room_id, %InvalidPeerOpts{})
+      end
+
+      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+        Room.add_peer(client, @room_id, InvalidPeerOpts)
+      end
     end
   end
 
