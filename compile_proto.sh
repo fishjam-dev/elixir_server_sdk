@@ -3,7 +3,7 @@
 # Terminate on errors
 set -e
 
-deps="printf find git protoc"
+deps="printf find git protoc protoc-gen-elixir echo"
 
 for dep in $deps; do
   if ! [[ $(which $dep) ]]; then
@@ -29,3 +29,5 @@ for file in $files; do
   printf "DONE\n"
   count=$(expr $count + 1)
 done
+
+mix format "lib/protos/**/*.ex"
