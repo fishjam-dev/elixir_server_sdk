@@ -26,13 +26,14 @@ defmodule Jellyfish.Notifier do
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Server.ControlMessage
 
-  alias Jellyfish.Server.ClientMessage.TokenMessage
-
-  alias Jellyfish.Server.ServerNotification.{
+  alias Jellyfish.Server.ControlMessage.{
     Authenticated,
-    ComponentNotification,
-    PeerNotification,
-    RoomNotification
+    AuthRequest,
+    ComponentCrashed,
+    PeerConnected,
+    PeerCrashed,
+    PeerDisconnected,
+    RoomCrashed
   }
 
   @auth_timeout 2000
@@ -100,7 +101,7 @@ defmodule Jellyfish.Notifier do
     state = %{receiver_pid: self()}
 
     auth_msg =
-      %ControlMessage{content: {:authRequest, %TokenMessage{token: api_token}}}
+      %ControlMessage{content: {:authRequest, %AuthRequest{token: api_token}}}
       |> ControlMessage.encode()
 
     with {:ok, pid} <-
@@ -123,76 +124,35 @@ defmodule Jellyfish.Notifier do
   end
 
   defp decode_notification(%ControlMessage{
-         content: {type, %PeerNotification{roomId: room_id, peerId: id}}
+         content: {_type, %PeerDisconnected{room_id: room_id, peer_id: id}}
        }) do
-    decoded_type =
-      case type do
-        :peerConnected ->
-          :peer_connected
-
-        :peerDisconnected ->
-          :peer_disconected
-
-        unknown_type ->
-          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
-          nil
-      end
-
-    if is_nil(decoded_type) do
-      {:error, :invalid_type}
-    else
-      {:ok, {decoded_type, room_id, id}}
-    end
+    {:ok, {:peer_disconnected, room_id, id}}
   end
 
   defp decode_notification(%ControlMessage{
-         content: {type, %ComponentNotification{roomId: room_id, componentId: id}}
+         content: {_type, %PeerConnected{room_id: room_id, peer_id: id}}
        }) do
-    decoded_type =
-      case type do
-        :componentCrashed ->
-          :component_crashed
-
-        unknown_type ->
-          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
-          nil
-      end
-
-    if is_nil(decoded_type) do
-      {:error, :invalid_type}
-    else
-      {:ok, {decoded_type, room_id, id}}
-    end
+    {:ok, {:peer_connected, room_id, id}}
   end
 
-  defp decode_notification(%ControlMessage{content: {type, %RoomNotification{roomId: room_id}}}) do
-    decoded_type =
-      case type do
-        :roomCrashed ->
-          :room_crashed
-
-        unknown_type ->
-          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
-          nil
-      end
-
-    if is_nil(decoded_type),
-      do: {:error, :invalid_type},
-      else: {:ok, {decoded_type, room_id}}
+  defp decode_notification(%ControlMessage{
+         content: {_type, %PeerCrashed{room_id: room_id, peer_id: id}}
+       }) do
+    {:ok, {:peer_crashed, room_id, id}}
   end
 
-  defp decode_notification(%ControlMessage{content: {type, %Authenticated{}}}) do
-    decoded_type =
-      case type do
-        :authenticated ->
-          :authenticated
+  defp decode_notification(%ControlMessage{
+         content: {_type, %ComponentCrashed{room_id: room_id, component_id: id}}
+       }) do
+    {:ok, {:component_crashed, room_id, id}}
+  end
 
-        unknown_type ->
-          Logger.info("Doesn't recognize #{inspect(unknown_type)}")
-          nil
-      end
+  defp decode_notification(%ControlMessage{content: {_type, %RoomCrashed{room_id: room_id}}}) do
+    {:ok, {:room_crashed, room_id}}
+  end
 
-    if is_nil(decoded_type), do: {:error, :invalid_type}, else: {:ok, decoded_type}
+  defp decode_notification(%ControlMessage{content: {_type, %Authenticated{}}}) do
+    {:ok, :authenticated}
   end
 
   defp decode_notification(_other), do: {:error, :invalid_type}
