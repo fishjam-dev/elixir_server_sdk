@@ -67,7 +67,7 @@ defmodule Jellyfish.Notifier do
 
   @impl true
   def handle_frame({:binary, msg}, state) do
-    with decoded_msg <- ControlMessage.decode(msg),
+    with %ControlMessage{content: {_type, decoded_msg}} <- ControlMessage.decode(msg),
          {:ok, notification} <- decode_notification(decoded_msg) do
       # notification will be either {type, room_id, peer_id/component_id},
       # {type, room_id} or just type
@@ -123,35 +123,27 @@ defmodule Jellyfish.Notifier do
     end
   end
 
-  defp decode_notification(%ControlMessage{
-         content: {_type, %PeerDisconnected{room_id: room_id, peer_id: id}}
-       }) do
+  defp decode_notification(%PeerDisconnected{room_id: room_id, peer_id: id}) do
     {:ok, {:peer_disconnected, room_id, id}}
   end
 
-  defp decode_notification(%ControlMessage{
-         content: {_type, %PeerConnected{room_id: room_id, peer_id: id}}
-       }) do
+  defp decode_notification(%PeerConnected{room_id: room_id, peer_id: id}) do
     {:ok, {:peer_connected, room_id, id}}
   end
 
-  defp decode_notification(%ControlMessage{
-         content: {_type, %PeerCrashed{room_id: room_id, peer_id: id}}
-       }) do
+  defp decode_notification(%PeerCrashed{room_id: room_id, peer_id: id}) do
     {:ok, {:peer_crashed, room_id, id}}
   end
 
-  defp decode_notification(%ControlMessage{
-         content: {_type, %ComponentCrashed{room_id: room_id, component_id: id}}
-       }) do
+  defp decode_notification(%ComponentCrashed{room_id: room_id, component_id: id}) do
     {:ok, {:component_crashed, room_id, id}}
   end
 
-  defp decode_notification(%ControlMessage{content: {_type, %RoomCrashed{room_id: room_id}}}) do
+  defp decode_notification(%RoomCrashed{room_id: room_id}) do
     {:ok, {:room_crashed, room_id}}
   end
 
-  defp decode_notification(%ControlMessage{content: {_type, %Authenticated{}}}) do
+  defp decode_notification(%Authenticated{}) do
     {:ok, :authenticated}
   end
 
