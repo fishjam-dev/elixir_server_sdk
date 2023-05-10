@@ -101,7 +101,7 @@ defmodule Jellyfish.Notifier do
     state = %{receiver_pid: self()}
 
     auth_msg =
-      %ControlMessage{content: {:authRequest, %AuthRequest{token: api_token}}}
+      %ControlMessage{content: {:auth_request, %AuthRequest{token: api_token}}}
       |> ControlMessage.encode()
 
     with {:ok, pid} <-
