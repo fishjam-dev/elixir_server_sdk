@@ -1,7 +1,6 @@
 Mix.install([
-  {:jellyfish_server_sdk, path: __DIR__ |> Path.join("..") |> Path.expand()},
-  {:protobuf, "~> 0.12.0"},
-])
+  {:jellyfish_server_sdk, path: __DIR__ |> Path.join("..") |> Path.expand()}
+], force: true)
 
 server_api_token = "development"
 
