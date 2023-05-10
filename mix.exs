@@ -55,6 +55,8 @@ defmodule Membrane.Template.Mixfile do
 
       # protobuf deps
       {:protobuf, "~> 0.12.0"},
+      # Tests
+      {:divo, "~> 1.3.1", only: [:test]},
 
       # Docs, credo, test coverage, dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},

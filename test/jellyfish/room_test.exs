@@ -7,7 +7,7 @@ defmodule Jellyfish.RoomTest do
 
   @server_api_token "testtoken"
 
-  @url "mockurl.com"
+  @url "localhost:5002"
   @invalid_url "invalid-url.com"
 
   @component_id "mock_component_id"
@@ -41,38 +41,10 @@ defmodule Jellyfish.RoomTest do
   setup do
     current_adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter)
 
-    Application.put_env(:jellyfish_server_sdk, :tesla_adapter, Tesla.Mock)
-
-    on_exit(fn ->
-      if current_adapter == nil do
-        Application.delete_env(:jellyfish_server_sdk, :tesla_adapter)
-      else
-        Application.put_env(:jellyfish_server_sdk, :tesla_adapter, current_adapter)
-      end
-    end)
-
     %{client: Client.new(server_address: @url, server_api_token: @server_api_token)}
   end
 
   describe "auth" do
-    setup do
-      valid_body = Jason.encode!(%{"maxPeers" => @max_peers})
-
-      mock(fn %{
-                method: :post,
-                url: "http://#{@url}/room",
-                body: ^valid_body
-              } = env ->
-        case Tesla.get_header(env, "authorization") do
-          "Bearer " <> @server_api_token ->
-            json(%{"data" => build_room_json(true)}, status: 201)
-
-          "Bearer " <> _other ->
-            json(%{"errors" => "Invalid token"}, status: 401)
-        end
-      end)
-    end
-
     test "correct token", %{client: client} do
       assert {:ok, room} = Room.create(client, max_peers: @max_peers)
       assert room == build_room(true)
@@ -85,27 +57,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.create/2" do
-    setup do
-      valid_body = Jason.encode!(%{"maxPeers" => @max_peers})
-      invalid_body = Jason.encode!(%{"maxPeers" => @invalid_max_peers})
-
-      mock(fn
-        %{
-          method: :post,
-          url: "http://#{@url}/room",
-          body: ^valid_body
-        } ->
-          json(%{"data" => build_room_json(true)}, status: 201)
-
-        %{
-          method: :post,
-          url: "http://#{@url}/room",
-          body: ^invalid_body
-        } ->
-          json(%{"errors" => @error_message}, status: 400)
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert {:ok, room} = Room.create(client, max_peers: @max_peers)
       assert room == build_room(true)
@@ -118,22 +69,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.delete/2" do
-    setup do
-      mock(fn
-        %{
-          method: :delete,
-          url: "http://#{@url}/room/#{@room_id}"
-        } ->
-          text("", status: 204)
-
-        %{
-          method: :delete,
-          url: "http://#{@url}/room/#{@invalid_room_id}"
-        } ->
-          json(%{"errors" => @error_message}, status: 404)
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert :ok = Room.delete(client, @room_id)
     end
@@ -144,22 +79,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.get_all/1" do
-    setup do
-      mock(fn
-        %{
-          method: :get,
-          url: "http://#{@url}/room"
-        } ->
-          json(%{"data" => [build_room_json(false)]}, status: 200)
-
-        %{
-          method: :get,
-          url: "http://#{@invalid_url}/room"
-        } ->
-          %Tesla.Env{status: 404, body: nil}
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert {:ok, rooms} = Room.get_all(client)
       assert rooms == [build_room(false)]
@@ -182,22 +101,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.get/2" do
-    setup do
-      mock(fn
-        %{
-          method: :get,
-          url: "http://#{@url}/room/#{@room_id}"
-        } ->
-          json(%{"data" => build_room_json(false)}, status: 200)
-
-        %{
-          method: :get,
-          url: "http://#{@url}/room/#{@invalid_room_id}"
-        } ->
-          json(%{"errors" => @error_message}, status: 404)
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert {:ok, room} = Room.get(client, @room_id)
       assert room == build_room(false)
@@ -209,19 +112,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.add_component/3" do
-    setup do
-      valid_body = Jason.encode!(%{"options" => %{}, "type" => @component_type})
-
-      mock(fn
-        %{
-          method: :post,
-          url: "http://#{@url}/room/#{@room_id}/component",
-          body: ^valid_body
-        } ->
-          json(%{"data" => build_component_json()}, status: 201)
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert {:ok, component} = Room.add_component(client, @room_id, @component_opts)
       assert component == build_component()
@@ -242,22 +132,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.delete_component/3" do
-    setup do
-      mock(fn
-        %{
-          method: :delete,
-          url: "http://#{@url}/room/#{@room_id}/component/#{@component_id}"
-        } ->
-          text("", status: 204)
-
-        %{
-          method: :delete,
-          url: "http://#{@url}/room/#{@room_id}/component/#{@invalid_component_id}"
-        } ->
-          json(%{"errors" => @error_message}, status: 404)
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert :ok = Room.delete_component(client, @room_id, @component_id)
     end
@@ -269,19 +143,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.add_peer/3" do
-    setup do
-      valid_body = Jason.encode!(%{"type" => @peer_type})
-
-      mock(fn
-        %{
-          method: :post,
-          url: "http://#{@url}/room/#{@room_id}/peer",
-          body: ^valid_body
-        } ->
-          json(%{"data" => build_peer_json()}, status: 201)
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert {:ok, peer, _peer_token} = Room.add_peer(client, @room_id, @peer_opts)
       assert peer == build_peer()
@@ -302,22 +163,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.delete_peer/3" do
-    setup do
-      mock(fn
-        %{
-          method: :delete,
-          url: "http://#{@url}/room/#{@room_id}/peer/#{@peer_id}"
-        } ->
-          text("", status: 204)
-
-        %{
-          method: :delete,
-          url: "http://#{@url}/room/#{@room_id}/peer/#{@invalid_peer_id}"
-        } ->
-          json(%{"errors" => @error_message}, status: 404)
-      end)
-    end
-
     test "when request is valid", %{client: client} do
       assert :ok = Room.delete_peer(client, @room_id, @peer_id)
     end

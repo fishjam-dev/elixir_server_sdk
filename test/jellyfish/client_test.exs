@@ -3,7 +3,7 @@ defmodule Jellyfish.ClientTest do
 
   alias Jellyfish.Client
 
-  @server_address "valid-address.com"
+  @server_address "localhost:5002"
   @server_api_token "valid-token"
 
   describe "creates client struct" do
