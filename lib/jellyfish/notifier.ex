@@ -67,15 +67,9 @@ defmodule Jellyfish.Notifier do
 
   @impl true
   def handle_frame({:binary, msg}, state) do
-    with %ControlMessage{content: {_type, decoded_msg}} <- ControlMessage.decode(msg),
-         {:ok, notification} <- decode_notification(decoded_msg) do
-      # notification will be either {type, room_id, peer_id/component_id},
-      # {type, room_id} or just type
-      send(state.receiver_pid, {:jellyfish, notification})
-    else
-      _other -> raise StructureError
-    end
+    %ControlMessage{content: {_type, notification}} = ControlMessage.decode(msg)
 
+    send(state.receiver_pid, {:jellyfish, notification})
     {:ok, state}
   end
 
@@ -108,7 +102,7 @@ defmodule Jellyfish.Notifier do
            apply(WebSockex, fun, ["#{address}/socket/server/websocket", __MODULE__, state]),
          :ok <- WebSockex.send_frame(pid, {:binary, auth_msg}) do
       receive do
-        {:jellyfish, :authenticated} ->
+        {:jellyfish, %Authenticated{}} ->
           {:ok, pid}
 
         {:jellyfish, :invalid_token} ->
@@ -122,30 +116,4 @@ defmodule Jellyfish.Notifier do
       {:error, _reason} = error -> error
     end
   end
-
-  defp decode_notification(%PeerDisconnected{room_id: room_id, peer_id: id}) do
-    {:ok, {:peer_disconnected, room_id, id}}
-  end
-
-  defp decode_notification(%PeerConnected{room_id: room_id, peer_id: id}) do
-    {:ok, {:peer_connected, room_id, id}}
-  end
-
-  defp decode_notification(%PeerCrashed{room_id: room_id, peer_id: id}) do
-    {:ok, {:peer_crashed, room_id, id}}
-  end
-
-  defp decode_notification(%ComponentCrashed{room_id: room_id, component_id: id}) do
-    {:ok, {:component_crashed, room_id, id}}
-  end
-
-  defp decode_notification(%RoomCrashed{room_id: room_id}) do
-    {:ok, {:room_crashed, room_id}}
-  end
-
-  defp decode_notification(%Authenticated{}) do
-    {:ok, :authenticated}
-  end
-
-  defp decode_notification(_other), do: {:error, :invalid_type}
 end
