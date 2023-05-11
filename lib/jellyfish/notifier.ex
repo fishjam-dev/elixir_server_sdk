@@ -23,17 +23,11 @@ defmodule Jellyfish.Notifier do
   require Logger
 
   alias Jellyfish.{Client, Utils}
-  alias Jellyfish.Exception.StructureError
   alias Jellyfish.Server.ControlMessage
 
   alias Jellyfish.Server.ControlMessage.{
     Authenticated,
-    AuthRequest,
-    ComponentCrashed,
-    PeerConnected,
-    PeerCrashed,
-    PeerDisconnected,
-    RoomCrashed
+    AuthRequest
   }
 
   @auth_timeout 2000
