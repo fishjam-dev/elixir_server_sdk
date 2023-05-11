@@ -11,9 +11,26 @@ jobs:
           MIX_ENV: test
 
     steps:
+      - setup_remote_docker:
+         version: 20.10.11
+        #  docker_layer_caching: true
       - checkout
+      - run: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+      - run: curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      - run: chmod +x /usr/local/bin/docker-compose
       - run: mix deps.get
-      - run: mix coveralls.json --warnings-as-errors
+      - run: docker run -td --name my-app membraneframeworklabs/docker_membrane:latest
+      - run: docker cp ./ my-app:/test
+      - run: docker exec my-app sh -c "cd /test && mix coveralls.json --warnings-as-errors" > logs.txt
+      - run: cat logs.txt
+      - run: docker cp my-app:/cover ./cover
+      - run: docker kill my-app
+      # - run: mix coveralls.json --warnings-as-errors
       - codecov/upload
 
 workflows:
