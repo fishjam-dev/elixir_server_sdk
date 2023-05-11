@@ -1,21 +1,14 @@
 defmodule Jellyfish.RoomTest do
   use ExUnit.Case
 
-  import Tesla.Mock
-
   alias Jellyfish.{Client, Component, Peer, Room}
 
   @server_api_token "development"
 
-  @url "localhost:5002"
-  @invalid_url "invalid-url.com"
+  @url "0.0.0.0:5002"
 
-  @component_id "mock_component_id"
-  @component_type :hls
   @component_opts %Component.HLS{}
   @component_opts_module Component.HLS
-  @peer_id "mock_peer_id"
-  @peer_type :webrtc
   @peer_opts %Peer.WebRTC{}
   @peer_opts_module Peer.WebRTC
 
@@ -37,8 +30,6 @@ defmodule Jellyfish.RoomTest do
   end
 
   setup do
-    current_adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter)
-
     %{client: Client.new(server_address: @url, server_api_token: @server_api_token)}
   end
 

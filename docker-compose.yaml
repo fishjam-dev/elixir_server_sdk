@@ -11,7 +11,6 @@ services:
         curl --fail -H "authorization: Bearer development" http://localhost:5002/room || exit 1
       interval: 15s
       retries: 5
-      start_period: 15s
       timeout: 10s
     environment:
       VIRTUAL_HOST: "localhost"
