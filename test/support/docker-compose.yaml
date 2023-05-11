@@ -7,10 +7,11 @@ services:
     restart: on-failure
     # network_mode: "host"
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:5002/room || exit 1
-      interval: 60s
+      test: >
+        curl --fail -H "authorization: Bearer development" http://localhost:5002/room || exit 1
+      interval: 15s
       retries: 5
-      start_period: 20s
+      start_period: 15s
       timeout: 10s
     environment:
       VIRTUAL_HOST: "localhost"

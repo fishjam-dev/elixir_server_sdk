@@ -5,7 +5,7 @@ defmodule Jellyfish.RoomTest do
 
   alias Jellyfish.{Client, Component, Peer, Room}
 
-  @server_api_token "testtoken"
+  @server_api_token "development"
 
   @url "localhost:5002"
   @invalid_url "invalid-url.com"
@@ -36,8 +36,6 @@ defmodule Jellyfish.RoomTest do
     defstruct [:abc, :def]
   end
 
-  @error_message "Mock error message"
-
   setup do
     current_adapter = Application.get_env(:jellyfish_server_sdk, :tesla_adapter)
 
@@ -47,7 +45,13 @@ defmodule Jellyfish.RoomTest do
   describe "auth" do
     test "correct token", %{client: client} do
       assert {:ok, room} = Room.create(client, max_peers: @max_peers)
-      assert room == build_room(true)
+
+      assert %Jellyfish.Room{
+               components: [],
+               config: %{max_peers: 10},
+               id: _id,
+               peers: []
+             } = room
     end
 
     test "invalid token" do
@@ -59,65 +63,71 @@ defmodule Jellyfish.RoomTest do
   describe "Room.create/2" do
     test "when request is valid", %{client: client} do
       assert {:ok, room} = Room.create(client, max_peers: @max_peers)
-      assert room == build_room(true)
+
+      assert %Jellyfish.Room{
+               components: [],
+               config: %{max_peers: 10},
+               id: _id,
+               peers: []
+             } = room
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} =
+      assert {:error, "Request failed: maxPeers must be a number"} =
                Room.create(client, max_peers: @invalid_max_peers)
     end
   end
 
   describe "Room.delete/2" do
-    test "when request is valid", %{client: client} do
-      assert :ok = Room.delete(client, @room_id)
+    setup [:create_room]
+
+    test "when request is valid", %{client: client, room_id: room_id} do
+      assert :ok = Room.delete(client, room_id)
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} = Room.delete(client, @invalid_room_id)
+      assert {:error, "Request failed: Room #{@invalid_room_id} doest not exist"} =
+               Room.delete(client, @invalid_room_id)
     end
   end
 
   describe "Room.get_all/1" do
-    test "when request is valid", %{client: client} do
+    setup [:create_room]
+
+    test "when request is valid", %{client: client, room_id: room_id} do
       assert {:ok, rooms} = Room.get_all(client)
-      assert rooms == [build_room(false)]
-    end
-
-    test "when request is invalid" do
-      middleware = [
-        {Tesla.Middleware.BaseUrl, "http://#{@invalid_url}"},
-        Tesla.Middleware.JSON
-      ]
-
-      adapter = Tesla.Mock
-      http_client = Tesla.client(middleware, adapter)
-      invalid_client = %Client{http_client: http_client}
-
-      assert_raise Jellyfish.Exception.StructureError, fn ->
-        Room.get_all(invalid_client)
-      end
+      assert Enum.any?(rooms, &(&1.id == room_id))
     end
   end
 
   describe "Room.get/2" do
-    test "when request is valid", %{client: client} do
-      assert {:ok, room} = Room.get(client, @room_id)
-      assert room == build_room(false)
+    setup [:create_room]
+
+    test "when request is valid", %{client: client, room_id: room_id} do
+      assert {:ok,
+              %Jellyfish.Room{
+                components: [],
+                config: %{max_peers: @max_peers},
+                id: ^room_id,
+                peers: []
+              }} = Room.get(client, room_id)
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} = Room.get(client, @invalid_room_id)
+      assert {:error, "Request failed: Room invalid_mock_room_id does not exist"} =
+               Room.get(client, @invalid_room_id)
     end
   end
 
   describe "Room.add_component/3" do
-    test "when request is valid", %{client: client} do
-      assert {:ok, component} = Room.add_component(client, @room_id, @component_opts)
-      assert component == build_component()
+    setup [:create_room]
 
-      assert {:ok, component} = Room.add_component(client, @room_id, @component_opts_module)
-      assert component == build_component()
+    test "when request is valid", %{client: client, room_id: room_id} do
+      assert {:ok, component} = Room.add_component(client, room_id, @component_opts)
+      assert %Jellyfish.Component{type: :hls} = component
+
+      assert {:ok, component} = Room.add_component(client, room_id, @component_opts_module)
+      assert %Jellyfish.Component{type: :hls} = component
     end
 
     test "when request is invalid", %{client: client} do
@@ -132,23 +142,27 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.delete_component/3" do
-    test "when request is valid", %{client: client} do
-      assert :ok = Room.delete_component(client, @room_id, @component_id)
+    setup [:create_room, :create_component]
+
+    test "when request is valid", %{client: client, room_id: room_id, component_id: component_id} do
+      assert :ok = Room.delete_component(client, room_id, component_id)
     end
 
-    test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} =
-               Room.delete_component(client, @room_id, @invalid_component_id)
+    test "when request is invalid", %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Component #{@invalid_component_id} does not exist"} =
+               Room.delete_component(client, room_id, @invalid_component_id)
     end
   end
 
   describe "Room.add_peer/3" do
-    test "when request is valid", %{client: client} do
-      assert {:ok, peer, _peer_token} = Room.add_peer(client, @room_id, @peer_opts)
-      assert peer == build_peer()
+    setup [:create_room]
 
-      assert {:ok, peer, _peer_token} = Room.add_peer(client, @room_id, @peer_opts_module)
-      assert peer == build_peer()
+    test "when request is valid", %{client: client, room_id: room_id} do
+      assert {:ok, peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts)
+      assert %Jellyfish.Peer{type: :webrtc} = peer
+
+      assert {:ok, peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts_module)
+      assert %Jellyfish.Peer{type: :webrtc} = peer
     end
 
     test "when request is invalid", %{client: client} do
@@ -163,49 +177,35 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.delete_peer/3" do
-    test "when request is valid", %{client: client} do
-      assert :ok = Room.delete_peer(client, @room_id, @peer_id)
+    setup [:create_room, :create_peer]
+
+    test "when request is valid", %{client: client, room_id: room_id, peer_id: peer_id} do
+      assert :ok = Room.delete_peer(client, room_id, peer_id)
     end
 
-    test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: #{@error_message}"} =
-               Room.delete_peer(client, @room_id, @invalid_peer_id)
+    test "when request is invalid", %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Peer #{@invalid_peer_id} does not exist"} =
+               Room.delete_peer(client, room_id, @invalid_peer_id)
     end
   end
 
-  defp build_room(empty?) do
-    %Room{
-      id: @room_id,
-      config: %{max_peers: @max_peers},
-      components:
-        if(empty?, do: [], else: [%Component{id: @component_id, type: @component_type}]),
-      peers: if(empty?, do: [], else: [%Peer{id: @peer_id, type: @peer_type}])
-    }
+  defp create_room(state) do
+    assert {:ok, %Jellyfish.Room{id: id}} = Room.create(state.client, max_peers: @max_peers)
+
+    %{room_id: id}
   end
 
-  defp build_room_json(empty?) do
-    %{
-      "id" => @room_id,
-      "config" => %{"maxPeers" => @max_peers},
-      "components" =>
-        if(empty?, do: [], else: [%{"id" => @component_id, "type" => @component_type}]),
-      "peers" => if(empty?, do: [], else: [%{"id" => @peer_id, "type" => @peer_type}])
-    }
+  defp create_peer(state) do
+    assert {:ok, %Jellyfish.Peer{id: id}, _token} =
+             Room.add_peer(state.client, state.room_id, @peer_opts)
+
+    %{peer_id: id}
   end
 
-  defp build_component() do
-    %Component{id: @component_id, type: @component_type}
-  end
+  defp create_component(state) do
+    assert {:ok, %Jellyfish.Component{id: id}} =
+             Room.add_component(state.client, state.room_id, @component_opts)
 
-  defp build_component_json() do
-    %{"id" => @component_id, "type" => @component_type}
-  end
-
-  defp build_peer() do
-    %Peer{id: @peer_id, type: @peer_type}
-  end
-
-  defp build_peer_json() do
-    %{peer: %{"id" => @peer_id, "type" => @peer_type}, token: "token"}
+    %{component_id: id}
   end
 end
