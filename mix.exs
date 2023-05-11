@@ -53,6 +53,9 @@ defmodule Membrane.Template.Mixfile do
       {:jason, "~> 1.4"},
       {:websockex, "~> 0.4.3"},
 
+      # protobuf deps
+      {:protobuf, "~> 0.12.0"},
+
       # Docs, credo, test coverage, dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
