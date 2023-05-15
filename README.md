@@ -45,12 +45,15 @@ room_id
 {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Jellyfish.Room.add_peer(client, room_id, Jellyfish.Peer.WebRTC)
 
 receive do
-  {:jellyfish, {:peer_connected, ^room_id, ^peer_id}} -> # handle the notification
+  {:jellyfish, %Jellyfish.Server.ControlMessage.PeerConnected{room_id: ^room_id, peer_id: ^peer_id} ->
+    # handle the notification
 end
 
 # Delete peer
 :ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)
 ```
+
+List of structs representing server notifications can be found in [generated Protobuf file](lib/protos/jellyfish/server_notifications.pb.ex).
 
 ## Copyright and License
 
