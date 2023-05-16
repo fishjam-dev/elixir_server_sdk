@@ -1,5 +1,5 @@
-# IO.inspect(__ENV__.file)
-# IO.inspect(Path.wildcard("./*"))
-Divo.Suite.start()
-IO.inspect(System.cmd("docker", ["ps"], stderr_to_stdout: true))
+if Mix.env() != :integration_test do
+  Divo.Suite.start()
+end
+
 ExUnit.start(capture_log: true)
