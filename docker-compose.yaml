@@ -1,11 +1,19 @@
 version: "3"
 
 services:
+  test:
+    image: membraneframeworklabs/docker_membrane:latest
+    command: bash -c "cd app/ && mix deps.get && mix coveralls.json --warnings-as-errors"
+    environment:
+      - MIX_ENV=integration_test
+    volumes:
+      - .:/app
+    links:
+      - jellyfish
   jellyfish:
     image: "ghcr.io/jellyfish-dev/jellyfish:${TAG:-latest}"
     container_name: jellyfish
     restart: on-failure
-    # network_mode: "host"
     healthcheck:
       test: >
         curl --fail -H "authorization: Bearer development" http://localhost:5002/room || exit 1

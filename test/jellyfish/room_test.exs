@@ -5,7 +5,7 @@ defmodule Jellyfish.RoomTest do
 
   @server_api_token "development"
 
-  @url "0.0.0.0:5002"
+  @url if Mix.env() == :integration_test, do: "jellyfish:5002", else: "localhost:5002"
 
   @component_opts %Component.HLS{}
   @component_opts_module Component.HLS
@@ -77,7 +77,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid", %{client: client} do
-      assert {:error, "Request failed: Room #{@invalid_room_id} doest not exist"} =
+      assert {:error, "Request failed: Room #{@invalid_room_id} does not exist"} =
                Room.delete(client, @invalid_room_id)
     end
   end

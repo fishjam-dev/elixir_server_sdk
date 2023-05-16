@@ -15,24 +15,8 @@ jobs:
   test:
     executor: machine_executor_amd64
     steps:
-      # - setup_remote_docker:
-      #    version: 20.10.11
-      #    docker_layer_caching: false
       - checkout
-      - run: sudo apt-get update
-      - run: sudo apt install curl git libssl-dev build-essential autoconf m4 libncurses5-dev libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev libgl1-mesa-dev libglu1-mesa-dev libpng-dev libssh-dev unixodbc-dev xsltproc fop libxml2-utils libncurses-dev openjdk-11-jdk
-      - run: git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.11.3
-      - run: echo ". \"$HOME/.asdf/asdf.sh\"" >> ~/.bashrc
-      - run: asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
-      - run: asdf install erlang 24.1
-      - run: asdf global erlang 24.1
-      - run: asdf install elixir 1.14.0-otp-24
-      - run: asdf global elixir 1.14.0-otp-24
-      - run: mix local.hex --force && mix local.rebar --force
-      - run: curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      - run: chmod +x /usr/local/bin/docker-compose
-      - run: mix deps.get
-      - run: MIX_ENV=test mix coveralls.json --warnings-as-errors
+      - run: docker compose run test
       - codecov/upload
 
 workflows:
