@@ -9,16 +9,7 @@ git submodule sync --recursive >> /dev/null
 git submodule update --recursive --remote --init >> /dev/null
 printf "DONE\n\n"
 
-files=$(find protos/jellyfish -name "*.proto")
-
-printf "Compiling:\n"
-count=1
-total=${#files[@]}
-for file in $files; do
-  printf "Compile file %s %s ... " $count $file
-  protoc --elixir_out=./lib/ $file
-  printf "DONE\n"
-  count=$(($count + 1))
-done
+file=$(find protos/jellyfish -name "server_notifications.proto")
+protoc --elixir_out=./lib/ $file
 
 mix format "lib/protos/**/*.ex"
