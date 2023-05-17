@@ -23,6 +23,10 @@ def deps do
 end
 ```
 
+## Testing
+
+When calling `mix test` it will automatically start the Jellyfish container under the hood. But tests on CI are run with the use of docker-compose, to run it locally in the same way as on CI you can use command `mix integration_test`.
+
 ## Usage
 
 Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication))
