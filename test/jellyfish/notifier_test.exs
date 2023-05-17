@@ -3,7 +3,7 @@ defmodule Jellyfish.NotifierTest do
 
   alias Jellyfish.{Client, Peer, Room}
 
-  alias Jellyfish.Server.ControlMessage.{
+  alias Jellyfish.ServerMessage.{
     PeerConnected,
     PeerDisconnected
   }
