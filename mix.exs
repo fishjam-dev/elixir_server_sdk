@@ -44,7 +44,7 @@ defmodule Membrane.Template.Mixfile do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(env) when env in [:test, :integration_test], do: ["lib", "test/support"]
   defp elixirc_paths(_env), do: ["lib"]
 
   defp deps do
