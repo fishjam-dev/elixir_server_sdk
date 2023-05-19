@@ -107,7 +107,8 @@ defmodule Jellyfish.Notifier do
           {:error, :authentication_timeout}
       end
     else
-      {:error, _reason} = error -> error
+      {:error, _reason} = error ->
+        error
     end
   end
 end

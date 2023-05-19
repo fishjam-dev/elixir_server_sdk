@@ -73,6 +73,9 @@ defmodule Jellyfish.ClientTest do
     end
 
     test "when options are not passed and config is not set" do
+      :ok = Application.delete_env(:jellyfish_server_sdk, :server_address, [])
+      :ok = Application.delete_env(:jellyfish_server_sdk, :server_api_token, [])
+
       assert_raise(
         ArgumentError,
         fn -> Client.new() end

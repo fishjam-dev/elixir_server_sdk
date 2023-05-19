@@ -5,8 +5,6 @@ defmodule Jellyfish.RoomTest do
 
   @server_api_token "development"
 
-  @url if Mix.env() == :integration_test, do: "jellyfish:5002", else: "localhost:5002"
-
   @component_opts %Component.HLS{}
   @component_opts_module Component.HLS
   @peer_opts %Peer.WebRTC{}
@@ -30,7 +28,7 @@ defmodule Jellyfish.RoomTest do
   end
 
   setup do
-    %{client: Client.new(server_address: @url, server_api_token: @server_api_token)}
+    %{client: Client.new()}
   end
 
   describe "auth" do
@@ -46,7 +44,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "invalid token" do
-      client = Client.new(server_address: @url, server_api_token: "invalid" <> @server_api_token)
+      client = Client.new(server_api_token: "invalid" <> @server_api_token)
       assert {:error, _reason} = Room.create(client, max_peers: @max_peers)
     end
   end
