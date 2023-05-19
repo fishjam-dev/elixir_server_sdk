@@ -20,3 +20,4 @@ protoc --elixir_out=./test/support $peer_file
 printf "\tDONE\n"
 
 mix format "lib/protos/**/*.ex"
+mix format "test/support/protos/**/*.ex"
