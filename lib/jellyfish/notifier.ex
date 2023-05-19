@@ -23,9 +23,9 @@ defmodule Jellyfish.Notifier do
   require Logger
 
   alias Jellyfish.{Client, Utils}
-  alias Jellyfish.Server.ControlMessage
+  alias Jellyfish.ServerMessage
 
-  alias Jellyfish.Server.ControlMessage.{
+  alias Jellyfish.ServerMessage.{
     Authenticated,
     AuthRequest
   }
@@ -61,7 +61,7 @@ defmodule Jellyfish.Notifier do
 
   @impl true
   def handle_frame({:binary, msg}, state) do
-    %ControlMessage{content: {_type, notification}} = ControlMessage.decode(msg)
+    %ServerMessage{content: {_type, notification}} = ServerMessage.decode(msg)
 
     send(state.receiver_pid, {:jellyfish, notification})
     {:ok, state}
@@ -89,8 +89,8 @@ defmodule Jellyfish.Notifier do
     state = %{receiver_pid: self()}
 
     auth_msg =
-      %ControlMessage{content: {:auth_request, %AuthRequest{token: api_token}}}
-      |> ControlMessage.encode()
+      %ServerMessage{content: {:auth_request, %AuthRequest{token: api_token}}}
+      |> ServerMessage.encode()
 
     with {:ok, pid} <-
            apply(WebSockex, fun, ["#{address}/socket/server/websocket", __MODULE__, state]),
@@ -107,7 +107,8 @@ defmodule Jellyfish.Notifier do
           {:error, :authentication_timeout}
       end
     else
-      {:error, _reason} = error -> error
+      {:error, _reason} = error ->
+        error
     end
   end
 end

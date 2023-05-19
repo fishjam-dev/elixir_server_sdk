@@ -3,17 +3,20 @@ orbs:
   elixir: membraneframework/elixir@1
   codecov: codecov/codecov@3.2.4
 
+executors:
+ machine_executor_amd64:
+   machine:
+     image: ubuntu-2204:2022.04.2
+   environment:
+     architecture: "amd64"
+     platform: "linux/amd64"
+
 jobs:
   test:
-    docker:
-      - image: membraneframeworklabs/docker_membrane:latest
-        environment:
-          MIX_ENV: test
-
+    executor: machine_executor_amd64
     steps:
       - checkout
-      - run: mix deps.get
-      - run: mix coveralls.json --warnings-as-errors
+      - run: docker compose run test
       - codecov/upload
 
 workflows:

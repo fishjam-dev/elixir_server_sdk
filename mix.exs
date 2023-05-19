@@ -9,10 +9,11 @@ defmodule Membrane.Template.Mixfile do
     [
       app: :jellyfish_server_sdk,
       version: @version,
-      elixir: "~> 1.14",
+      elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      aliases: aliases(),
       dialyzer: dialyzer(),
 
       # hex
@@ -43,7 +44,7 @@ defmodule Membrane.Template.Mixfile do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(env) when env in [:test, :integration_test], do: ["lib", "test/support"]
   defp elixirc_paths(_env), do: ["lib"]
 
   defp deps do
@@ -55,12 +56,14 @@ defmodule Membrane.Template.Mixfile do
 
       # protobuf deps
       {:protobuf, "~> 0.12.0"},
+      # Tests
+      {:divo, "~> 1.3.1", only: [:test]},
 
       # Docs, credo, test coverage, dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false},
-      {:excoveralls, ">= 0.0.0", only: :test, runtime: false}
+      {:excoveralls, ">= 0.0.0", only: [:test, :integration_test], runtime: false}
     ]
   end
 
@@ -95,6 +98,15 @@ defmodule Membrane.Template.Mixfile do
       formatters: ["html"],
       source_ref: "v#{@version}",
       nest_modules_by_prefix: [Membrane.Template]
+    ]
+  end
+
+  def aliases do
+    [
+      integration_test: [
+        "cmd docker pull ghcr.io/jellyfish-dev/jellyfish:edge",
+        "cmd docker compose run test"
+      ]
     ]
   end
 end

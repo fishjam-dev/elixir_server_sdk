@@ -3,7 +3,7 @@ defmodule Jellyfish.ClientTest do
 
   alias Jellyfish.Client
 
-  @server_address "valid-address.com"
+  @server_address "localhost:5002"
   @server_api_token "valid-token"
 
   describe "creates client struct" do
@@ -73,6 +73,9 @@ defmodule Jellyfish.ClientTest do
     end
 
     test "when options are not passed and config is not set" do
+      :ok = Application.delete_env(:jellyfish_server_sdk, :server_address, [])
+      :ok = Application.delete_env(:jellyfish_server_sdk, :server_api_token, [])
+
       assert_raise(
         ArgumentError,
         fn -> Client.new() end
