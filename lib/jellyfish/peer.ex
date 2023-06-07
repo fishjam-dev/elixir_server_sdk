@@ -12,7 +12,8 @@ defmodule Jellyfish.Peer do
 
   @enforce_keys [
     :id,
-    :type
+    :type,
+    :status
   ]
   defstruct @enforce_keys
 
@@ -27,6 +28,17 @@ defmodule Jellyfish.Peer do
   For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
   @type type :: :webrtc
+
+  @valid_type_strings ["webrtc"]
+
+  @typedoc """
+  Status of the peer.
+
+  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
+  """
+  @type status :: :disconnected | :connected
+
+  @valid_status_strings ["disconnected", "connected"]
 
   @typedoc """
   Peer-specific options.
@@ -45,10 +57,9 @@ defmodule Jellyfish.Peer do
   """
   @type t :: %__MODULE__{
           id: id(),
-          type: type()
+          type: type(),
+          status: status()
         }
-
-  @valid_type_strings ["webrtc"]
 
   @doc false
   @spec from_json(map()) :: t()
@@ -56,11 +67,13 @@ defmodule Jellyfish.Peer do
     case response do
       %{
         "id" => id,
-        "type" => type_str
+        "type" => type_str,
+        "status" => status_str
       } ->
         %__MODULE__{
           id: id,
-          type: type_from_string(type_str)
+          type: type_from_string(type_str),
+          status: status_from_string(status_str)
         }
 
       _other ->
@@ -81,6 +94,13 @@ defmodule Jellyfish.Peer do
   @spec type_from_string(String.t()) :: type()
   def type_from_string(string) do
     if string in @valid_type_strings,
+      do: String.to_atom(string),
+      else: raise("Invalid peer type string")
+  end
+
+  @spec status_from_string(String.t()) :: status()
+  def status_from_string(string) do
+    if string in @valid_status_strings,
       do: String.to_atom(string),
       else: raise("Invalid peer type string")
   end
