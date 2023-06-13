@@ -48,9 +48,10 @@ defmodule Jellyfish.Room do
   @typedoc """
   Type describing room options.
 
-    * `:max_peers` - maximum number of peers present in a room simultaneously. Unlimited, if not specified.
+    * `:max_peers` - maximum number of peers present in a room simultaneously.
+      If set to `nil` or unspecified, the number of peers is unlimited.
   """
-  @type options :: [{:max_peers, non_neg_integer()}]
+  @type options :: [{:max_peers, non_neg_integer() | nil}]
 
   @typedoc """
   Stores information about the room.
