@@ -98,10 +98,11 @@ defmodule Jellyfish.Peer do
       else: raise("Invalid peer type string")
   end
 
+  @doc false
   @spec status_from_string(String.t()) :: status()
   def status_from_string(string) do
     if string in @valid_status_strings,
       do: String.to_atom(string),
-      else: raise("Invalid peer type string")
+      else: raise("Invalid peer status string")
   end
 end
