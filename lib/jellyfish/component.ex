@@ -66,5 +66,5 @@ defmodule Jellyfish.Component do
   @spec string_from_options(struct()) :: String.t()
   def string_from_options(%HLS{}), do: "hls"
   def string_from_options(%RTSP{}), do: "rtsp"
-  def string_from_options(_struct), do: raise("Invalid component struct")
+  def string_from_options(_struct), do: raise("Invalid component options struct")
 end

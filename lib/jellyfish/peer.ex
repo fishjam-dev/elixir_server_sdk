@@ -76,7 +76,7 @@ defmodule Jellyfish.Peer do
   @doc false
   @spec string_from_options(struct()) :: String.t()
   def string_from_options(%WebRTC{}), do: "webrtc"
-  def string_from_options(_struct), do: raise("Invalid component struct")
+  def string_from_options(_struct), do: raise("Invalid peer options struct")
 
   @doc false
   @spec status_from_string(String.t()) :: status()

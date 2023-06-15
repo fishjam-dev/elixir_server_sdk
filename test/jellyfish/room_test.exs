@@ -113,10 +113,10 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @component_opts)
-      assert %Jellyfish.Component{type: :hls} = component
+      assert %Jellyfish.Component{type: Component.HLS} = component
 
       assert {:ok, component} = Room.add_component(client, room_id, @component_opts_module)
-      assert %Jellyfish.Component{type: :hls} = component
+      assert %Jellyfish.Component{type: Component.HLS} = component
     end
 
     test "when request is invalid", %{client: client} do
@@ -148,10 +148,10 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid", %{client: client, room_id: room_id} do
       assert {:ok, peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts)
-      assert %Jellyfish.Peer{type: :webrtc} = peer
+      assert %Jellyfish.Peer{type: Peer.WebRTC} = peer
 
       assert {:ok, peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts_module)
-      assert %Jellyfish.Peer{type: :webrtc} = peer
+      assert %Jellyfish.Peer{type: Peer.WebRTC} = peer
     end
 
     test "when request is invalid", %{client: client} do
