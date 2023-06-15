@@ -23,10 +23,6 @@ def deps do
 end
 ```
 
-## Testing
-
-When calling `mix test` it will automatically start the Jellyfish container under the hood. But tests on CI are run with the use of docker-compose, to run it locally in the same way as on CI you can use command `mix integration_test`.
-
 ## Usage
 
 Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication))
@@ -34,10 +30,10 @@ and receive server notifications:
 
 ```elixir
 # start process responsible for receiving notifications
-{:ok, _pid} = Jellyfish.Notifier.start(server_address: "address-of-your-server.com", server_api_key: "your-jellyfish-token")
+{:ok, _pid} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
 
 # create HTTP client instance
-client = Jellyfish.Client.new(server_address: "address-of-your-server.com", server_api_key: "your-jellyfish-token")
+client = Jellyfish.Client.new(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
 
 # Create room
 {:ok, %Jellyfish.Room{id: room_id}} = Jellyfish.Room.create(client, max_peers: 10)
@@ -49,7 +45,7 @@ room_id
 {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Jellyfish.Room.add_peer(client, room_id, Jellyfish.Peer.WebRTC)
 
 receive do
-  {:jellyfish, %Jellyfish.Server.ControlMessage.PeerConnected{room_id: ^room_id, peer_id: ^peer_id} ->
+  {:jellyfish, %Jellyfish.ServerMessage.PeerConnected{room_id: ^room_id, peer_id: ^peer_id}} ->
     # handle the notification
 end
 
@@ -58,6 +54,10 @@ end
 ```
 
 List of structs representing server notifications can be found in [generated Protobuf file](lib/protos/jellyfish/server_notifications.pb.ex).
+
+## Testing
+
+When calling `mix test` it will automatically start the Jellyfish container under the hood. But tests on CI are run with the use of docker-compose, to run it locally in the same way as on CI you can use command `mix integration_test`.
 
 ## Copyright and License
 

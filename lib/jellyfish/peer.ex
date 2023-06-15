@@ -4,7 +4,7 @@ defmodule Jellyfish.Peer do
 
   Peer is an entity that connects to the server to publish, subscribe to or publish and subscribe
   to tracks published by components and other peers.
-  For more information refer to [Jellyfish documentation](https://www.membrane.stream)
+  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
   """
 
   alias Jellyfish.Exception.StructureError
@@ -24,17 +24,11 @@ defmodule Jellyfish.Peer do
 
   @typedoc """
   Type of the peer.
-
-  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
-  @type type :: :webrtc
-
-  @valid_type_strings ["webrtc"]
+  @type type :: WebRTC
 
   @typedoc """
   Status of the peer.
-
-  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
   @type status :: :disconnected | :connected
 
@@ -42,15 +36,8 @@ defmodule Jellyfish.Peer do
 
   @typedoc """
   Peer-specific options.
-
-  For the list of available options, refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
   @type options :: WebRTC.t()
-
-  @typedoc """
-  Peer options module.
-  """
-  @type options_module :: WebRTC
 
   @typedoc """
   Stores information about the peer.
@@ -82,27 +69,19 @@ defmodule Jellyfish.Peer do
   end
 
   @doc false
-  @spec type_from_options(struct()) :: type()
-  def type_from_options(peer) do
-    case peer do
-      %WebRTC{} -> :webrtc
-      _other -> raise "Invalid peer options struct"
-    end
-  end
+  @spec type_from_string(String.t()) :: type()
+  def type_from_string("webrtc"), do: WebRTC
+  def type_from_string(_type), do: raise("Invalid peer type string")
 
   @doc false
-  @spec type_from_string(String.t()) :: type()
-  def type_from_string(string) do
-    if string in @valid_type_strings,
-      do: String.to_atom(string),
-      else: raise("Invalid peer type string")
-  end
+  @spec string_from_options(struct()) :: String.t()
+  def string_from_options(%WebRTC{}), do: "webrtc"
+  def string_from_options(_struct), do: raise("Invalid component struct")
 
   @doc false
   @spec status_from_string(String.t()) :: status()
-  def status_from_string(string) do
-    if string in @valid_status_strings,
-      do: String.to_atom(string),
-      else: raise("Invalid peer status string")
-  end
+  def status_from_string(status) when status in @valid_status_strings,
+    do: String.to_atom(status)
+
+  def status_from_string(_status), do: raise("Invalid peer status string")
 end
