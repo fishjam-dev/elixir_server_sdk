@@ -107,8 +107,8 @@ defmodule Membrane.Template.Mixfile do
   def aliases do
     [
       integration_test: [
-        "cmd docker pull ghcr.io/jellyfish-dev/jellyfish:edge",
-        "cmd docker compose run test"
+        "cmd docker compose -f docker-compose-integration.yaml pull",
+        "cmd docker compose -f docker-compose-integration.yaml run test"
       ]
     ]
   end
