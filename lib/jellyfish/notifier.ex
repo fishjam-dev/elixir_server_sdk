@@ -4,16 +4,17 @@ defmodule Jellyfish.Notifier do
   WebSocket connection and receiving notifications form Jellyfish server.
 
   ```
-  iex> {:ok, pid} = Jellyfish.Notifier.start(server_address: "address-of-jellyfish-server.com", server_api_token: "your-jellyfish-token")
+  iex> {:ok, pid} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
   {:ok, #PID<0.301.0>}
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
   # you should receive a notification after the peer established connection
 
   iex> flush()
-  {:jellyfish,
-   {:peer_connected, "21604fbe-8ac8-44e6-8474-98b5f50f1863",
-    "ae07f94e-0887-44c3-81d5-bfa9eac96252"}}
+  {:jellyfish, %Jellyfish.ServerMessage.PeerConnected{
+    room_id: "21604fbe-8ac8-44e6-8474-98b5f50f1863",
+    peer_id: "ae07f94e-0887-44c3-81d5-bfa9eac96252"
+  }}
   :ok
   ```
   """
@@ -48,9 +49,9 @@ defmodule Jellyfish.Notifier do
   Starts the Notifier process and connects to Jellyfish.
 
   Received notifications are send to the calling process in
-  a form of `{:jellyfish, msg}`, where `msg` is
-  `type` or `{type, room_id}` or `{type, room_id, (peer/component)_id}`.
-  Refer to [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/) to learn more about server notifications.
+  a form of `{:jellyfish, msg}`, where `msg` is one of the structs defined in
+  `lib/proto/jellyfish/server_notifications.pb.ex`,
+  for example `{:jellyfish, %Jellyfish.ServerMessage.RoomCrashed{room_id: "some_id"}}`
 
   For information about options, see `t:Jellyfish.Client.connection_options/0`.
   """

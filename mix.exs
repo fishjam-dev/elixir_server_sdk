@@ -97,15 +97,15 @@ defmodule Membrane.Template.Mixfile do
       extras: ["README.md", "LICENSE"],
       formatters: ["html"],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Membrane.Template]
+      nest_modules_by_prefix: [Jellyfish, Jellyfish.Exception]
     ]
   end
 
   def aliases do
     [
       integration_test: [
-        "cmd docker pull ghcr.io/jellyfish-dev/jellyfish:edge",
-        "cmd docker compose run test"
+        "cmd docker compose -f docker-compose-integration.yaml pull",
+        "cmd docker compose -f docker-compose-integration.yaml run test"
       ]
     ]
   end

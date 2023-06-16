@@ -3,7 +3,7 @@ defmodule Jellyfish.Component do
   Defines `t:Jellyfish.Component.t/0`.
 
   Component is a server-side entity that can publish, subscribe to and process tracks.
-  For more information refer to [Jellyfish documentation](https://www.membrane.stream)
+  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
   """
 
   alias Jellyfish.Component.{HLS, RTSP}
@@ -22,22 +22,13 @@ defmodule Jellyfish.Component do
 
   @typedoc """
   Type of the component.
-
-  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
-  @type type :: :hls | :rtsp
+  @type type :: HLS | RTSP
 
   @typedoc """
   Component-specific options.
-
-  For the list of available options, refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/).
   """
   @type options :: HLS.t() | RTSP.t()
-
-  @typedoc """
-  Component options module.
-  """
-  @type options_module :: HLS | RTSP
 
   @typedoc """
   Stores information about the component.
@@ -46,8 +37,6 @@ defmodule Jellyfish.Component do
           id: id(),
           type: type()
         }
-
-  @valid_type_strings ["hls", "rtsp"]
 
   @doc false
   @spec from_json(map()) :: t()
@@ -68,20 +57,14 @@ defmodule Jellyfish.Component do
   end
 
   @doc false
-  @spec type_from_options(struct()) :: type()
-  def type_from_options(component) do
-    case component do
-      %HLS{} -> :hls
-      %RTSP{} -> :rtsp
-      _other -> raise "Invalid component options struct"
-    end
-  end
+  @spec type_from_string(String.t()) :: type()
+  def type_from_string("hls"), do: HLS
+  def type_from_string("rtsp"), do: RTSP
+  def type_from_string(_type), do: raise("Invalid component type string")
 
   @doc false
-  @spec type_from_string(String.t()) :: type()
-  def type_from_string(string) do
-    if string in @valid_type_strings,
-      do: String.to_atom(string),
-      else: raise("Invalid component type string")
-  end
+  @spec string_from_options(struct()) :: String.t()
+  def string_from_options(%HLS{}), do: "hls"
+  def string_from_options(%RTSP{}), do: "rtsp"
+  def string_from_options(_struct), do: raise("Invalid component options struct")
 end

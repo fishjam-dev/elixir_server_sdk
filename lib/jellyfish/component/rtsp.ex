@@ -2,7 +2,8 @@ defmodule Jellyfish.Component.RTSP do
   @moduledoc """
   Options for the RTSP component.
 
-  For the description of these options refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/rtsp)
+  For the description of these options refer to [Jellyfish
+  documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/rtsp).
   """
 
   @enforce_keys [:source_uri]

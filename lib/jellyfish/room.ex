@@ -15,8 +15,11 @@ defmodule Jellyfish.Room do
 
   iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
    {:ok,
-    %Jellyfish.Peer{id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e", type: :webrtc},
-    "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
+    %Jellyfish.Peer{
+      id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e",
+      status: :disconnected,
+      type: Jellyfish.Peer.WebRTC
+    }, "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
 
   iex> :ok = Jellyfish.Room.delete(client, room.id)
   :ok
@@ -51,7 +54,7 @@ defmodule Jellyfish.Room do
     * `:max_peers` - maximum number of peers present in a room simultaneously.
       If set to `nil` or unspecified, the number of peers is unlimited.
   """
-  @type options :: [{:max_peers, non_neg_integer() | nil}]
+  @type options :: [max_peers: non_neg_integer() | nil]
 
   @typedoc """
   Stores information about the room.
@@ -128,7 +131,7 @@ defmodule Jellyfish.Room do
   @doc """
   Add a peer to the room with `room_id`.
   """
-  @spec add_peer(Client.t(), id(), Peer.options() | Peer.options_module()) ::
+  @spec add_peer(Client.t(), id(), Peer.options() | Peer.type()) ::
           {:ok, Peer.t(), peer_token()} | {:error, atom() | String.t()}
   def add_peer(client, room_id, peer) do
     peer = if is_atom(peer), do: struct!(peer), else: peer
@@ -137,7 +140,7 @@ defmodule Jellyfish.Room do
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/peer",
-             %{"type" => Peer.type_from_options(peer) |> Atom.to_string()}
+             %{"type" => Peer.string_from_options(peer)}
            ),
          {:ok, %{"peer" => peer, "token" => token}} <- Map.fetch(body, "data"),
          result <- Peer.from_json(peer) do
@@ -165,7 +168,7 @@ defmodule Jellyfish.Room do
   @doc """
   Add component to the room with `room_id`.
   """
-  @spec add_component(Client.t(), id(), Component.options() | Component.options_module()) ::
+  @spec add_component(Client.t(), id(), Component.options() | Component.type()) ::
           {:ok, Component.t()} | {:error, atom() | String.t()}
   def add_component(client, room_id, component) do
     component = if is_atom(component), do: struct!(component), else: component
@@ -175,7 +178,7 @@ defmodule Jellyfish.Room do
              client.http_client,
              "/room/#{room_id}/component",
              %{
-               "type" => Component.type_from_options(component) |> Atom.to_string(),
+               "type" => Component.string_from_options(component),
                "options" =>
                  Map.from_struct(component)
                  |> Map.new(fn {k, v} -> {snake_case_to_camel_case(k), v} end)
