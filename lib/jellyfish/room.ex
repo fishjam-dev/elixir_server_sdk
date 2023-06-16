@@ -15,8 +15,11 @@ defmodule Jellyfish.Room do
 
   iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
    {:ok,
-    %Jellyfish.Peer{id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e", type: Jellyfish.Peer.WebRTC},
-    "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
+    %Jellyfish.Peer{
+      id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e",
+      status: :disconnected,
+      type: Jellyfish.Peer.WebRTC
+    }, "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
 
   iex> :ok = Jellyfish.Room.delete(client, room.id)
   :ok
