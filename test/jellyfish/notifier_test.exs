@@ -1,7 +1,7 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
 
-  alias Jellyfish.{Client, Peer, Room}
+  alias Jellyfish.{Client, Notifier, Peer, Room}
 
   alias Jellyfish.PeerMessage
   alias Jellyfish.PeerMessage.AuthRequest
@@ -21,17 +21,88 @@ defmodule Jellyfish.NotifierTest do
     defstruct [:qwe, :rty]
   end
 
-  setup do
-    {:ok, notifier_pid} = Jellyfish.Notifier.start()
+  describe "connecting to the server" do
+    setup do
+      address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      token = Application.fetch_env!(:jellyfish_server_sdk, :server_api_token)
 
-    %{
-      client: Client.new(),
-      notifier_pid: notifier_pid
-    }
+      %{address: address, token: token}
+    end
+
+    test "when credentials are valid", %{address: address, token: token} do
+      assert {:ok, pid} = Notifier.start(server_address: address, server_api_token: token)
+      assert is_pid(pid)
+    end
+
+    test "when token is invalid", %{address: address} do
+      assert {:error, :invalid_token} =
+               Notifier.start(server_address: address, server_api_token: "invalid_token")
+    end
   end
 
-  describe "peer notifications" do
-    test "peer connects and then disconnects", %{client: client} do
+  describe "subscribing" do
+    setup do
+      {:ok, notifier} = Notifier.start_link()
+
+      on_exit(fn -> Notifier.unsubscribe(notifier) end)
+
+      %{
+        client: Client.new(),
+        notifier: notifier
+      }
+    end
+
+    test "for all notifications", %{client: client, notifier: notifier} do
+      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
+
+      trigger_notification(client, room_id)
+      refute_receive {:jellyfish, _msg}, 100
+
+      Notifier.subscribe(notifier)
+
+      trigger_notification(client, room_id)
+      assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
+
+      # different room
+      {:ok, %Jellyfish.Room{id: other_room_id}} = Room.create(client)
+      trigger_notification(client, other_room_id)
+      assert_receive {:jellyfish, %PeerConnected{room_id: ^other_room_id}}
+    end
+
+    test "for specific room notifications only", %{client: client, notifier: notifier} do
+      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
+
+      Notifier.subscribe(notifier, room_id: room_id)
+      trigger_notification(client, room_id)
+      assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
+
+      {:ok, %Jellyfish.Room{id: other_room_id}} = Room.create(client)
+      trigger_notification(client, other_room_id)
+      refute_receive {:jellyfish, _msg}, 100
+    end
+
+    test "and later unsubscribing", %{client: client, notifier: notifier} do
+      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
+
+      Notifier.subscribe(notifier)
+      trigger_notification(client, room_id)
+      assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
+
+      Notifier.unsubscribe(notifier)
+      trigger_notification(client, room_id)
+      refute_receive {:jellyfish, _msg}, 100
+    end
+  end
+
+  describe "receiving notifications" do
+    setup do
+      {:ok, notifier} = Notifier.start_link()
+      :ok = Notifier.subscribe(notifier)
+
+      %{client: Client.new()}
+    end
+
+    test "when peer connects and then disconnects", %{client: client} do
       {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, max_peers: @max_peers)
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
@@ -50,5 +121,15 @@ defmodule Jellyfish.NotifierTest do
 
       assert_receive {:jellyfish, %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}}
     end
+  end
+
+  defp trigger_notification(client, room_id) do
+    {:ok, %Jellyfish.Peer{}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
+
+    address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+    {:ok, peer_ws} = WS.start_link("ws://#{address}/socket/peer/websocket")
+
+    auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
+    :ok = WS.send_frame(peer_ws, auth_request)
   end
 end
