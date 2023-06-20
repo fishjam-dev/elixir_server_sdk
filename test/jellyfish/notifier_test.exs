@@ -17,26 +17,14 @@ defmodule Jellyfish.NotifierTest do
 
   @max_peers 10
 
-  defmodule InvalidPeerOpts do
-    defstruct [:qwe, :rty]
-  end
-
   describe "connecting to the server" do
-    setup do
-      address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
-      token = Application.fetch_env!(:jellyfish_server_sdk, :server_api_token)
-
-      %{address: address, token: token}
-    end
-
-    test "when credentials are valid", %{address: address, token: token} do
-      assert {:ok, pid} = Notifier.start(server_address: address, server_api_token: token)
+    test "when credentials are valid" do
+      assert {:ok, pid} = Notifier.start_link()
       assert is_pid(pid)
     end
 
-    test "when token is invalid", %{address: address} do
-      assert {:error, :invalid_token} =
-               Notifier.start(server_address: address, server_api_token: "invalid_token")
+    test "when token is invalid" do
+      assert {:error, :invalid_token} = Notifier.start_link(server_api_token: "invalid_token")
     end
   end
 
