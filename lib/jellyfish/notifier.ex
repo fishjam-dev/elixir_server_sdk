@@ -4,8 +4,9 @@ defmodule Jellyfish.Notifier do
   WebSocket connection and receiving notifications form Jellyfish server.
 
   ```
-  iex> {:ok, pid} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
+  iex> {:ok, notifier} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
   {:ok, #PID<0.301.0>}
+  iex> :ok = Jellyfish.Notifier.subscribe(notifier, :all)
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
   # you should receive a notification after the peer established connection
@@ -24,7 +25,7 @@ defmodule Jellyfish.Notifier do
   require Logger
 
   alias Jellyfish.{Client, Room, Utils}
-  alias Jellyfish.ServerMessage
+  alias Jellyfish.{Notification, ServerMessage}
 
   alias Jellyfish.ServerMessage.{
     Authenticated,
@@ -32,6 +33,11 @@ defmodule Jellyfish.Notifier do
   }
 
   @auth_timeout 2000
+
+  @typedoc """
+  The reference to the `Notifier` process.
+  """
+  @type notifier() :: GenServer.server()
 
   @doc """
   Starts the Notifier process and connects to Jellyfish.
@@ -57,30 +63,23 @@ defmodule Jellyfish.Notifier do
     connect(:start, opts)
   end
 
-  @typedoc """
-  Option values for `subscribe/2`.
-
-  * `:process` - pid of the process that will receive notifications, `self()` by default.
-  * `:room_id` - id of the room. By default notifications about all of the rooms are received,
-  if this parameter is passed, notifications will be filtered only to this specific room.
-  """
-  @type subscribe_options :: [process: Process.dest(), room_id: Room.id()]
-
   @doc """
-  Subscribes the process to receive server notifications.
+  Subscribes the process to receive server notifications about room with `room_id`.
+
+  If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
-  where `msg` is one of the structs defined in `lib/proto/jellyfish/server_notifications.pb.ex`,
-  for example `{:jellyfish, %Jellyfish.ServerMessage.RoomCrashed{room_id: "some_id"}}`.
+  whete message is one of structs defined as submodules of `Jellyfish.Notification`,
+  for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
 
-  For information about options, see `t:subscribe_options/0`.
+  Options:
+
+  * `:process` - pid of the process that will receive notifications, `self()` by default.
   """
-  @spec subscribe(GenServer.server(), subscribe_options()) :: :ok
-  def subscribe(notifier, opts \\ []) do
+  @spec subscribe(notifier(), Room.id() | :all, process: Process.dest()) :: :ok
+  def subscribe(notifier, room_id, opts \\ []) do
     process = Keyword.get(opts, :process, self())
-    room = Keyword.get(opts, :room_id, :all)
-
-    WebSockex.cast(notifier, {:subscribe, process, room})
+    WebSockex.cast(notifier, {:subscribe, process, room_id})
   end
 
   @doc """
@@ -88,7 +87,7 @@ defmodule Jellyfish.Notifier do
 
   Stops the `Notifier` from sending any notifications to `process`.
   """
-  @spec unsubscribe(GenServer.server(), Process.dest()) :: :ok
+  @spec unsubscribe(notifier(), Process.dest()) :: :ok
   def unsubscribe(notifier, process \\ self()) do
     WebSockex.cast(notifier, {:unsubscribe, process})
   end
@@ -104,10 +103,10 @@ defmodule Jellyfish.Notifier do
   @impl true
   def handle_cast({:subscribe, pid, room_id}, state) do
     state =
-      state.subscriptions
-      |> Map.get(room_id, MapSet.new())
-      |> MapSet.put(pid)
-      |> then(&put_in(state, [:subscriptions, room_id], &1))
+      update_in(state.subscriptions[room_id], fn
+        nil -> MapSet.new([pid])
+        set -> MapSet.put(set, pid)
+      end)
 
     {:ok, state}
   end
@@ -115,9 +114,9 @@ defmodule Jellyfish.Notifier do
   @impl true
   def handle_cast({:unsubscribe, pid}, state) do
     state =
-      state.subscriptions
-      |> Map.new(fn {id, pids} -> {id, MapSet.delete(pids, pid)} end)
-      |> then(&Map.put(state, :subscriptions, &1))
+      Map.update!(state, :subscriptions, fn subs ->
+        Map.new(subs, fn {id, pids} -> {id, MapSet.delete(pids, pid)} end)
+      end)
 
     {:ok, state}
   end
@@ -165,11 +164,11 @@ defmodule Jellyfish.Notifier do
     send(state.caller_pid, {:jellyfish, :authenticated})
   end
 
-  defp handle_notification(%{room_id: room_id} = notification, state) do
+  defp handle_notification(%{room_id: room_id} = message, state) do
     state.subscriptions
     |> Map.take([:all, room_id])
     |> Map.values()
     |> Enum.reduce(fn pids, acc -> MapSet.union(pids, acc) end)
-    |> Enum.each(&send(&1, {:jellyfish, notification}))
+    |> Enum.each(&send(&1, {:jellyfish, Notification.to_notification(message)}))
   end
 end

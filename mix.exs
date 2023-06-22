@@ -97,7 +97,8 @@ defmodule Membrane.Template.Mixfile do
       extras: ["README.md", "LICENSE"],
       formatters: ["html"],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Jellyfish, Jellyfish.Exception]
+      nest_modules_by_prefix: [Jellyfish, Jellyfish.Exception, Jellyfish.Notification],
+      groups_for_modules: [Notifications: ~r/^Jellyfish\.Notification\.[a-zA-Z]*$/]
     ]
   end
 

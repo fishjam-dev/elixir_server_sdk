@@ -6,7 +6,7 @@ defmodule Jellyfish.NotifierTest do
   alias Jellyfish.PeerMessage
   alias Jellyfish.PeerMessage.AuthRequest
 
-  alias Jellyfish.ServerMessage.{
+  alias Jellyfish.Notification.{
     PeerConnected,
     PeerDisconnected
   }
@@ -46,7 +46,7 @@ defmodule Jellyfish.NotifierTest do
       trigger_notification(client, room_id)
       refute_receive {:jellyfish, _msg}, 100
 
-      Notifier.subscribe(notifier)
+      Notifier.subscribe(notifier, :all)
 
       trigger_notification(client, room_id)
       assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
@@ -60,7 +60,7 @@ defmodule Jellyfish.NotifierTest do
     test "for specific room notifications only", %{client: client, notifier: notifier} do
       {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
 
-      Notifier.subscribe(notifier, room_id: room_id)
+      Notifier.subscribe(notifier, room_id)
       trigger_notification(client, room_id)
       assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
 
@@ -72,7 +72,7 @@ defmodule Jellyfish.NotifierTest do
     test "and later unsubscribing", %{client: client, notifier: notifier} do
       {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
 
-      Notifier.subscribe(notifier)
+      Notifier.subscribe(notifier, :all)
       trigger_notification(client, room_id)
       assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
 
@@ -85,7 +85,7 @@ defmodule Jellyfish.NotifierTest do
   describe "receiving notifications" do
     setup do
       {:ok, notifier} = Notifier.start_link()
-      :ok = Notifier.subscribe(notifier)
+      :ok = Notifier.subscribe(notifier, :all)
 
       %{client: Client.new()}
     end
