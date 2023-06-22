@@ -12,7 +12,7 @@ defmodule Jellyfish.Notifier do
   # you should receive a notification after the peer established connection
 
   iex> flush()
-  {:jellyfish, %Jellyfish.ServerMessage.PeerConnected{
+  {:jellyfish, %Jellyfish.Notification.PeerConnected{
     room_id: "21604fbe-8ac8-44e6-8474-98b5f50f1863",
     peer_id: "ae07f94e-0887-44c3-81d5-bfa9eac96252"
   }}
@@ -69,7 +69,7 @@ defmodule Jellyfish.Notifier do
   If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
-  whete message is one of structs defined as submodules of `Jellyfish.Notification`,
+  where `msg` is one of structs defined as submodules of `Jellyfish.Notification`,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
 
   Options:
