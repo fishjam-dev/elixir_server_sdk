@@ -69,7 +69,7 @@ defmodule Jellyfish.Notifier do
   If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
-  where `msg` is one of structs defined as submodules of `Jellyfish.Notification`,
+  where `msg` is one of structs defined under "Notifications" section in the docs,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
 
   Options:

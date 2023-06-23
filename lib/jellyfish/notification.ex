@@ -1,65 +1,64 @@
 defmodule Jellyfish.Notification do
-  @moduledoc """
-  Submodules of this module represent Jellyfish server notifications.
-  See `Jellyfish.Notifier` for more information.
-  """
+  @moduledoc false
+
+  alias Jellyfish.{Component, Peer, Room}
 
   defmodule RoomCrashed do
-    @moduledoc "Defines `t:Jellyfish.Notification.RoomCrashed.t/0`."
+    @moduledoc nil
 
     @enforce_keys [:room_id]
     defstruct @enforce_keys
 
     @type t :: %__MODULE__{
-            room_id: String.t()
+            room_id: Room.id()
           }
   end
 
   defmodule PeerConnected do
-    @moduledoc "Defines `t:Jellyfish.Notification.PeerConnected.t/0`."
+    @moduledoc nil
 
     @enforce_keys [:room_id, :peer_id]
     defstruct @enforce_keys
 
     @type t :: %__MODULE__{
-            room_id: String.t(),
-            peer_id: String.t()
+            room_id: Room.id(),
+            peer_id: Peer.id()
           }
   end
 
   defmodule PeerDisconnected do
-    @moduledoc "Defines `t:Jellyfish.Notification.PeerDisconnected.t/0`."
+    @moduledoc nil
 
     @enforce_keys [:room_id, :peer_id]
     defstruct @enforce_keys
 
     @type t :: %__MODULE__{
-            room_id: String.t(),
-            peer_id: String.t()
+            room_id: Room.id(),
+            peer_id: Peer.id()
           }
   end
 
   defmodule PeerCrashed do
-    @moduledoc "Defines `t:Jellyfish.Notification.PeerCrashed.t/0`."
+    @moduledoc nil
 
     @enforce_keys [:room_id, :peer_id]
     defstruct @enforce_keys
 
     @type t :: %__MODULE__{
-            room_id: String.t(),
-            peer_id: String.t()
+            room_id: Room.id(),
+            peer_id: Peer.id()
           }
   end
 
   defmodule ComponentCrashed do
-    @moduledoc "Defines `t:Jellyfish.Notification.ComponentCrashed.t/0`."
+    @moduledoc nil
 
     @enforce_keys [:room_id, :component_id]
     defstruct @enforce_keys
 
     @type t :: %__MODULE__{
-            room_id: String.t(),
-            component_id: String.t()
+            room_id: Room.id(),
+            component_id: Component.id()
           }
   end
 
