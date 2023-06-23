@@ -102,6 +102,8 @@ defmodule Jellyfish.Notifier do
 
   @impl true
   def handle_cast({:subscribe, pid, room_id}, state) do
+    Process.monitor(pid)
+
     state =
       update_in(state.subscriptions[room_id], fn
         nil -> MapSet.new([pid])
@@ -113,11 +115,13 @@ defmodule Jellyfish.Notifier do
 
   @impl true
   def handle_cast({:unsubscribe, pid}, state) do
-    state =
-      Map.update!(state, :subscriptions, fn subs ->
-        Map.new(subs, fn {id, pids} -> {id, MapSet.delete(pids, pid)} end)
-      end)
+    state = remove_subscription(pid, state)
+    {:ok, state}
+  end
 
+  @impl true
+  def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
+    state = remove_subscription(pid, state)
     {:ok, state}
   end
 
@@ -129,6 +133,12 @@ defmodule Jellyfish.Notifier do
   @impl true
   def terminate(_reason, _state) do
     :ok
+  end
+
+  defp remove_subscription(pid, state) do
+    Map.update!(state, :subscriptions, fn subs ->
+      Map.new(subs, fn {id, pids} -> {id, MapSet.delete(pids, pid)} end)
+    end)
   end
 
   defp connect(fun, opts) do
