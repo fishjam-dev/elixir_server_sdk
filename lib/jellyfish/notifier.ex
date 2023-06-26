@@ -22,17 +22,22 @@ defmodule Jellyfish.Notifier do
 
   use WebSockex
 
-  require Logger
-
+  alias Jellyfish.{Component, Peer}
+  alias Jellyfish.Peer.WebRTC
+  alias Jellyfish.Component.{HLS, RTSP}
   alias Jellyfish.{Client, Room, Utils}
   alias Jellyfish.{Notification, ServerMessage}
 
   alias Jellyfish.ServerMessage.{
     Authenticated,
-    AuthRequest
+    AuthRequest,
+    RoomStateRequest,
+    RoomState,
+    RoomNotFound
   }
 
   @auth_timeout 2000
+  @subscribe_timeout 5000
 
   @typedoc """
   The reference to the `Notifier` process.
@@ -71,57 +76,47 @@ defmodule Jellyfish.Notifier do
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
   where `msg` is one of structs defined under "Notifications" section in the docs,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
-
-  Options:
-
-  * `:process` - pid of the process that will receive notifications, `self()` by default.
   """
-  @spec subscribe(notifier(), Room.id() | :all, process: Process.dest()) :: :ok
+  @spec subscribe(notifier(), Room.id() | :all) :: {:ok, Room.t()} | {:error, atom()}
   def subscribe(notifier, room_id, opts \\ []) do
     process = Keyword.get(opts, :process, self())
     WebSockex.cast(notifier, {:subscribe, process, room_id})
-  end
 
-  @doc """
-  Unsubscribe from receiving notifications requested by calling `subscribe/2`.
+    # TODO what about :all ?
 
-  Stops the `Notifier` from sending any notifications to `process`.
-  """
-  @spec unsubscribe(notifier(), Process.dest()) :: :ok
-  def unsubscribe(notifier, process \\ self()) do
-    WebSockex.cast(notifier, {:unsubscribe, process})
+    receive do
+      {:jellyfish, {:subscribe_answer, answer}} -> answer
+    after
+      @subscribe_timeout -> {:error, :timeout}
+    end
   end
 
   @impl true
   def handle_frame({:binary, msg}, state) do
     %ServerMessage{content: {_type, notification}} = ServerMessage.decode(msg)
-    handle_notification(notification, state)
+    state = handle_notification(notification, state)
 
     {:ok, state}
   end
 
   @impl true
   def handle_cast({:subscribe, pid, room_id}, state) do
-    Process.monitor(pid)
+    state = put_in(state.pending_subscriptions[room_id], pid)
 
-    state =
-      update_in(state.subscriptions[room_id], fn
-        nil -> MapSet.new([pid])
-        set -> MapSet.put(set, pid)
-      end)
+    msg =
+      %ServerMessage{content: {:room_state_request, %RoomStateRequest{id: room_id}}}
+      |> ServerMessage.encode()
 
-    {:ok, state}
-  end
-
-  @impl true
-  def handle_cast({:unsubscribe, pid}, state) do
-    state = remove_subscription(pid, state)
-    {:ok, state}
+    {:reply, {:binary, msg}, state}
   end
 
   @impl true
   def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
-    state = remove_subscription(pid, state)
+    state =
+      Map.update!(state, :subscriptions, fn subs ->
+        Map.new(subs, fn {id, pids} -> {id, MapSet.delete(pids, pid)} end)
+      end)
+
     {:ok, state}
   end
 
@@ -135,16 +130,15 @@ defmodule Jellyfish.Notifier do
     :ok
   end
 
-  defp remove_subscription(pid, state) do
-    Map.update!(state, :subscriptions, fn subs ->
-      Map.new(subs, fn {id, pids} -> {id, MapSet.delete(pids, pid)} end)
-    end)
-  end
-
   defp connect(fun, opts) do
     {address, api_token, secure?} = Utils.get_options_or_defaults(opts)
     address = if secure?, do: "wss://#{address}", else: "ws://#{address}"
-    state = %{caller_pid: self(), subscriptions: %{all: MapSet.new()}}
+
+    state = %{
+      caller_pid: self(),
+      subscriptions: %{all: MapSet.new()},
+      pending_subscriptions: %{}
+    }
 
     auth_msg =
       %ServerMessage{content: {:auth_request, %AuthRequest{token: api_token}}}
@@ -172,6 +166,32 @@ defmodule Jellyfish.Notifier do
 
   defp handle_notification(%Authenticated{}, state) do
     send(state.caller_pid, {:jellyfish, :authenticated})
+    state
+  end
+
+  defp handle_notification(%RoomNotFound{id: id}, state) do
+    {pid, state} = pop_in(state.pending_subscriptions, id)
+
+    send(pid, {:jellyfish, {:subscribe_answer, {:error, :room_not_found}}})
+
+    state
+  end
+
+  defp handle_notification(%RoomState{} = room, state) do
+    {pid, state} = pop_in(state.pending_subscriptions[room.id])
+    room = from_room_state_message(room) |> IO.inspect(label: :SIEMA)
+
+    Process.monitor(pid)
+
+    state =
+      update_in(state.subscriptions[room.id], fn
+        nil -> MapSet.new([pid])
+        set -> MapSet.put(set, pid)
+      end)
+
+    send(pid, {:jellyfish, {:subscribe_answer, {:ok, room}}})
+
+    state
   end
 
   defp handle_notification(%{room_id: room_id} = message, state) do
@@ -180,5 +200,33 @@ defmodule Jellyfish.Notifier do
     |> Map.values()
     |> Enum.reduce(fn pids, acc -> MapSet.union(pids, acc) end)
     |> Enum.each(&send(&1, {:jellyfish, Notification.to_notification(message)}))
+
+    state
   end
+
+  defp from_room_state_message(msg) do
+    peers =
+      msg.peers
+      |> Enum.map(
+        &%Peer{id: &1.id, type: from_proto_type(&1.type), status: from_proto_status(&1.status)}
+      )
+
+    components =
+      msg.components
+      |> Enum.map(&%Component{id: &1.id, type: from_proto_type(&1.type)})
+
+    config =
+      msg.config
+      |> Map.from_struct()
+      |> Map.reject(fn {k, _v} -> k == :__unknown_fields__ end)
+
+    %Room{id: msg.id, config: config, components: components, peers: peers}
+  end
+
+  defp from_proto_type(:WEBRTC), do: WebRTC
+  defp from_proto_type(:HLS), do: HLS
+  defp from_proto_type(:RTSP), do: RTSP
+
+  defp from_proto_status(:DISCONNECTED), do: :disconnected
+  defp from_proto_status(:CONNECTED), do: :connected
 end
