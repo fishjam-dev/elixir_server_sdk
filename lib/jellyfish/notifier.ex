@@ -6,7 +6,7 @@ defmodule Jellyfish.Notifier do
   ```
   iex> {:ok, notifier} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
   {:ok, #PID<0.301.0>}
-  iex> :ok = Jellyfish.Notifier.subscribe(notifier, :all)
+  iex> {:ok, _rooms} = Jellyfish.Notifier.subscribe(notifier, :all)
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
   # you should receive a notification after the peer established connection
@@ -31,9 +31,10 @@ defmodule Jellyfish.Notifier do
   alias Jellyfish.ServerMessage.{
     Authenticated,
     AuthRequest,
-    RoomStateRequest,
+    RoomNotFound,
+    RoomsState,
     RoomState,
-    RoomNotFound
+    RoomStateRequest
   }
 
   @auth_timeout 2000
@@ -69,20 +70,19 @@ defmodule Jellyfish.Notifier do
   end
 
   @doc """
-  Subscribes the process to receive server notifications about room with `room_id`.
+  Subscribes the process to receive server notifications about room with `room_id` and returns
+  current state of the room.
 
-  If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent.
+  If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent and
+  list with states of all of the rooms is returned.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
   where `msg` is one of structs defined under "Notifications" section in the docs,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
   """
   @spec subscribe(notifier(), Room.id() | :all) :: {:ok, Room.t()} | {:error, atom()}
-  def subscribe(notifier, room_id, opts \\ []) do
-    process = Keyword.get(opts, :process, self())
-    WebSockex.cast(notifier, {:subscribe, process, room_id})
-
-    # TODO what about :all ?
+  def subscribe(notifier, room_id) do
+    WebSockex.cast(notifier, {:subscribe, self(), room_id})
 
     receive do
       {:jellyfish, {:subscribe_answer, answer}} -> answer
@@ -103,8 +103,14 @@ defmodule Jellyfish.Notifier do
   def handle_cast({:subscribe, pid, room_id}, state) do
     state = put_in(state.pending_subscriptions[room_id], pid)
 
+    room_request =
+      case room_id do
+        :all -> {:option, :ALL}
+        id -> {:id, id}
+      end
+
     msg =
-      %ServerMessage{content: {:room_state_request, %RoomStateRequest{id: room_id}}}
+      %ServerMessage{content: {:room_state_request, %RoomStateRequest{content: room_request}}}
       |> ServerMessage.encode()
 
     {:reply, {:binary, msg}, state}
@@ -173,24 +179,27 @@ defmodule Jellyfish.Notifier do
     {pid, state} = pop_in(state.pending_subscriptions, id)
 
     send(pid, {:jellyfish, {:subscribe_answer, {:error, :room_not_found}}})
-
     state
   end
 
-  defp handle_notification(%RoomState{} = room, state) do
-    {pid, state} = pop_in(state.pending_subscriptions[room.id])
-    room = from_room_state_message(room) |> IO.inspect(label: :SIEMA)
+  defp handle_notification(%mod{} = room, state) when mod in [RoomState, RoomsState] do
+    {room_id, room} =
+      case mod do
+        RoomState -> {room.id, from_room_state_message(room)}
+        RoomsState -> {:all, Enum.map(room.rooms, &from_room_state_message/1)}
+      end
+
+    {pid, state} = pop_in(state.pending_subscriptions[room_id])
 
     Process.monitor(pid)
 
     state =
-      update_in(state.subscriptions[room.id], fn
+      update_in(state.subscriptions[room_id], fn
         nil -> MapSet.new([pid])
         set -> MapSet.put(set, pid)
       end)
 
     send(pid, {:jellyfish, {:subscribe_answer, {:ok, room}}})
-
     state
   end
 
