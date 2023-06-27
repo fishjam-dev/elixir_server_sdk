@@ -74,13 +74,13 @@ defmodule Jellyfish.Notifier do
   current state of the room.
 
   If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent and
-  list with states of all of the rooms is returned.
+  list of all of the room's states is returned.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
   where `msg` is one of structs defined under "Notifications" section in the docs,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
   """
-  @spec subscribe(notifier(), Room.id() | :all) :: {:ok, Room.t()} | {:error, atom()}
+  @spec subscribe(notifier(), Room.id() | :all) :: {:ok, Room.t() | [Room.t()]} | {:error, atom()}
   def subscribe(notifier, room_id) do
     WebSockex.cast(notifier, {:subscribe, self(), room_id})
 
@@ -176,7 +176,7 @@ defmodule Jellyfish.Notifier do
   end
 
   defp handle_notification(%RoomNotFound{id: id}, state) do
-    {pid, state} = pop_in(state.pending_subscriptions, id)
+    {pid, state} = pop_in(state.pending_subscriptions[id])
 
     send(pid, {:jellyfish, {:subscribe_answer, {:error, :room_not_found}}})
     state

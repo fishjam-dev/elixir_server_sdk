@@ -31,7 +31,7 @@ and receive server notifications:
 ```elixir
 # start process responsible for receiving notifications
 {:ok, notifier} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
-:ok = Jellyfish.Notifier.subscribe(notifier, :all)
+{:ok, _rooms} = Jellyfish.Notifier.subscribe(notifier, :all)
 
 # create HTTP client instance
 client = Jellyfish.Client.new(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
