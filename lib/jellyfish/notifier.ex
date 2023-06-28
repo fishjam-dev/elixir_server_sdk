@@ -22,9 +22,6 @@ defmodule Jellyfish.Notifier do
 
   use WebSockex
 
-  alias Jellyfish.{Component, Peer}
-  alias Jellyfish.Peer.WebRTC
-  alias Jellyfish.Component.{HLS, RTSP}
   alias Jellyfish.{Client, Room, Utils}
   alias Jellyfish.{Notification, ServerMessage}
 
@@ -185,8 +182,8 @@ defmodule Jellyfish.Notifier do
   defp handle_notification(%mod{} = room, state) when mod in [RoomState, RoomsState] do
     {room_id, room} =
       case mod do
-        RoomState -> {room.id, from_room_state_message(room)}
-        RoomsState -> {:all, Enum.map(room.rooms, &from_room_state_message/1)}
+        RoomState -> {room.id, Room.from_proto(room)}
+        RoomsState -> {:all, Enum.map(room.rooms, &Room.from_proto/1)}
       end
 
     {pid, state} = pop_in(state.pending_subscriptions[room_id])
@@ -212,30 +209,4 @@ defmodule Jellyfish.Notifier do
 
     state
   end
-
-  defp from_room_state_message(msg) do
-    peers =
-      msg.peers
-      |> Enum.map(
-        &%Peer{id: &1.id, type: from_proto_type(&1.type), status: from_proto_status(&1.status)}
-      )
-
-    components =
-      msg.components
-      |> Enum.map(&%Component{id: &1.id, type: from_proto_type(&1.type)})
-
-    config =
-      msg.config
-      |> Map.from_struct()
-      |> Map.reject(fn {k, _v} -> k == :__unknown_fields__ end)
-
-    %Room{id: msg.id, config: config, components: components, peers: peers}
-  end
-
-  defp from_proto_type(:WEBRTC), do: WebRTC
-  defp from_proto_type(:HLS), do: HLS
-  defp from_proto_type(:RTSP), do: RTSP
-
-  defp from_proto_status(:DISCONNECTED), do: :disconnected
-  defp from_proto_status(:CONNECTED), do: :connected
 end

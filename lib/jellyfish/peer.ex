@@ -9,6 +9,7 @@ defmodule Jellyfish.Peer do
 
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Peer.WebRTC
+  alias Jellyfish.ServerMessage.RoomState
 
   @enforce_keys [
     :id,
@@ -84,4 +85,35 @@ defmodule Jellyfish.Peer do
     do: String.to_atom(status)
 
   def status_from_string(_status), do: raise("Invalid peer status string")
+
+  @doc false
+  @spec from_proto(RoomState.Peer.t()) :: t()
+  def from_proto(response) do
+    case response do
+      %RoomState.Peer{
+        id: id,
+        type: type,
+        status: status
+      } ->
+        %__MODULE__{
+          id: id,
+          type: type_from_proto(type),
+          status: status_from_proto(status)
+        }
+
+      _other ->
+        raise StructureError
+    end
+  end
+
+  @doc false
+  @spec type_from_proto(atom()) :: type()
+  def type_from_proto(:WEBRTC), do: WebRTC
+  def type_from_proto(_type), do: raise("Invalid peer type value")
+
+  @doc false
+  @spec status_from_proto(atom()) :: status()
+  def status_from_proto(:CONNECTED), do: :connected
+  def status_from_proto(:DISCONNECTED), do: :disconnected
+  def status_from_proto(_status), do: raise("Invalid peer status value")
 end

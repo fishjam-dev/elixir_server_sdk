@@ -29,6 +29,7 @@ defmodule Jellyfish.Room do
   alias Tesla.Env
   alias Jellyfish.{Client, Component, Peer}
   alias Jellyfish.Exception.StructureError
+  alias Jellyfish.ServerMessage.RoomState
 
   @enforce_keys [
     :id,
@@ -222,6 +223,33 @@ defmodule Jellyfish.Room do
           config: %{max_peers: max_peers},
           components: Enum.map(components, &Component.from_json/1),
           peers: Enum.map(peers, &Peer.from_json/1)
+        }
+
+      _other ->
+        raise StructureError
+    end
+  end
+
+  @doc false
+  @spec from_proto(RoomState.t()) :: t()
+  def from_proto(response) do
+    case response do
+      %RoomState{
+        id: id,
+        config: config,
+        components: components,
+        peers: peers
+      } ->
+        config =
+          config
+          |> Map.from_struct()
+          |> Map.drop([:__unknown_fields__])
+
+        %__MODULE__{
+          id: id,
+          config: config,
+          peers: Enum.map(peers, &Peer.from_proto/1),
+          components: Enum.map(components, &Component.from_proto/1)
         }
 
       _other ->

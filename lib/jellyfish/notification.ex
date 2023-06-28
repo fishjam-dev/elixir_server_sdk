@@ -74,7 +74,7 @@ defmodule Jellyfish.Notification do
 
     message
     |> Map.from_struct()
-    |> Enum.reject(fn {k, _v} -> k in @discarded_fields end)
+    |> Map.drop(@discarded_fields)
     |> then(&struct!(notification_module, &1))
   end
 end
