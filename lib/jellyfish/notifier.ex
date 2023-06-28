@@ -98,7 +98,11 @@ defmodule Jellyfish.Notifier do
 
   @impl true
   def handle_cast({:subscribe, pid, room_id}, state) do
-    state = put_in(state.pending_subscriptions[room_id], pid)
+    state =
+      update_in(state.pending_subscriptions[room_id], fn
+        nil -> [pid]
+        pids -> [pid | pids]
+      end)
 
     room_request =
       case room_id do
@@ -173,7 +177,8 @@ defmodule Jellyfish.Notifier do
   end
 
   defp handle_notification(%RoomNotFound{id: id}, state) do
-    {pid, state} = pop_in(state.pending_subscriptions[id])
+    {pid, pids} = List.pop_at(state.pending_subscriptions[id], -1)
+    state = put_in(state.pending_subscriptions[id], pids)
 
     send(pid, {:jellyfish, {:subscribe_answer, {:error, :room_not_found}}})
     state
@@ -186,7 +191,8 @@ defmodule Jellyfish.Notifier do
         RoomsState -> {:all, Enum.map(room.rooms, &Room.from_proto/1)}
       end
 
-    {pid, state} = pop_in(state.pending_subscriptions[room_id])
+    {pid, pids} = List.pop_at(state.pending_subscriptions[room_id], -1)
+    state = put_in(state.pending_subscriptions[room_id], pids)
 
     Process.monitor(pid)
 
