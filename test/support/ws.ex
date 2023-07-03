@@ -13,10 +13,6 @@ defmodule Jellyfish.WS do
     WebSockex.send_frame(ws, {:binary, PeerMessage.encode(msg)})
   end
 
-  def send_frame_raw(ws, msg) do
-    WebSockex.send_frame(ws, {:binary, msg})
-  end
-
   @impl true
   def handle_frame({:binary, msg}, state) do
     msg = PeerMessage.decode(msg)

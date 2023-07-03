@@ -30,7 +30,8 @@ and receive server notifications:
 
 ```elixir
 # start process responsible for receiving notifications
-{:ok, _pid} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
+{:ok, notifier} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
+{:ok, _rooms} = Jellyfish.Notifier.subscribe(notifier, :all)
 
 # create HTTP client instance
 client = Jellyfish.Client.new(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
@@ -45,7 +46,7 @@ room_id
 {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Jellyfish.Room.add_peer(client, room_id, Jellyfish.Peer.WebRTC)
 
 receive do
-  {:jellyfish, %Jellyfish.ServerMessage.PeerConnected{room_id: ^room_id, peer_id: ^peer_id}} ->
+  {:jellyfish, %Jellyfish.Notification.PeerConnected{room_id: ^room_id, peer_id: ^peer_id}} ->
     # handle the notification
 end
 
