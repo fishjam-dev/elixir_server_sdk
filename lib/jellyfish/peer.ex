@@ -70,23 +70,6 @@ defmodule Jellyfish.Peer do
   end
 
   @doc false
-  @spec type_from_string(String.t()) :: type()
-  def type_from_string("webrtc"), do: WebRTC
-  def type_from_string(_type), do: raise("Invalid peer type string")
-
-  @doc false
-  @spec string_from_options(struct()) :: String.t()
-  def string_from_options(%WebRTC{}), do: "webrtc"
-  def string_from_options(_struct), do: raise("Invalid peer options struct")
-
-  @doc false
-  @spec status_from_string(String.t()) :: status()
-  def status_from_string(status) when status in @valid_status_strings,
-    do: String.to_atom(status)
-
-  def status_from_string(_status), do: raise("Invalid peer status string")
-
-  @doc false
   @spec from_proto(RoomState.Peer.t()) :: t()
   def from_proto(response) do
     case response do
@@ -107,13 +90,16 @@ defmodule Jellyfish.Peer do
   end
 
   @doc false
-  @spec type_from_proto(atom()) :: type()
-  def type_from_proto(:WEBRTC), do: WebRTC
-  def type_from_proto(_type), do: raise("Invalid peer type value")
+  @spec string_from_options(struct()) :: String.t()
+  def string_from_options(%WebRTC{}), do: "webrtc"
 
-  @doc false
-  @spec status_from_proto(atom()) :: status()
-  def status_from_proto(:CONNECTED), do: :connected
-  def status_from_proto(:DISCONNECTED), do: :disconnected
-  def status_from_proto(_status), do: raise("Invalid peer status value")
+  defp type_from_string("webrtc"), do: WebRTC
+
+  def status_from_string(status) when status in @valid_status_strings,
+    do: String.to_atom(status)
+
+  defp type_from_proto(:WEBRTC), do: WebRTC
+
+  defp status_from_proto(:CONNECTED), do: :connected
+  defp status_from_proto(:DISCONNECTED), do: :disconnected
 end

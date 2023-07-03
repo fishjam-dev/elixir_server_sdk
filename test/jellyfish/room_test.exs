@@ -120,11 +120,11 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid", %{client: client} do
-      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+      assert_raise FunctionClauseError, fn ->
         Room.add_component(client, @room_id, %InvalidComponentOpts{})
       end
 
-      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+      assert_raise FunctionClauseError, fn ->
         Room.add_component(client, @room_id, InvalidComponentOpts)
       end
     end
@@ -155,11 +155,11 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid", %{client: client} do
-      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+      assert_raise FunctionClauseError, fn ->
         Room.add_peer(client, @room_id, %InvalidPeerOpts{})
       end
 
-      assert_raise RuntimeError, ~r/invalid.*options/i, fn ->
+      assert_raise FunctionClauseError, fn ->
         Room.add_peer(client, @room_id, InvalidPeerOpts)
       end
     end

@@ -58,18 +58,6 @@ defmodule Jellyfish.Component do
   end
 
   @doc false
-  @spec type_from_string(String.t()) :: type()
-  def type_from_string("hls"), do: HLS
-  def type_from_string("rtsp"), do: RTSP
-  def type_from_string(_type), do: raise("Invalid component type string")
-
-  @doc false
-  @spec string_from_options(struct()) :: String.t()
-  def string_from_options(%HLS{}), do: "hls"
-  def string_from_options(%RTSP{}), do: "rtsp"
-  def string_from_options(_struct), do: raise("Invalid component options struct")
-
-  @doc false
   @spec from_proto(RoomState.Component.t()) :: t()
   def from_proto(response) do
     case response do
@@ -88,8 +76,13 @@ defmodule Jellyfish.Component do
   end
 
   @doc false
-  @spec type_from_proto(atom()) :: type()
-  def type_from_proto(:HLS), do: HLS
-  def type_from_proto(:RTSP), do: RTSP
-  def type_from_proto(_type), do: raise("Invalid component type value")
+  @spec string_from_options(struct()) :: String.t()
+  def string_from_options(%HLS{}), do: "hls"
+  def string_from_options(%RTSP{}), do: "rtsp"
+
+  defp type_from_string("hls"), do: HLS
+  defp type_from_string("rtsp"), do: RTSP
+
+  defp type_from_proto(:HLS), do: HLS
+  defp type_from_proto(:RTSP), do: RTSP
 end

@@ -98,6 +98,10 @@ defmodule Jellyfish.Notifier do
 
   @impl true
   def handle_cast({:subscribe, pid, room_id}, state) do
+    # we use simple FIFO queue to keep track of different
+    # processes wanting to subscribe to the same room's notifications
+    # is assumes that the WebSocket ensures transport order as well as
+    # the Jellyfish ensures processing order
     state =
       update_in(state.pending_subscriptions[room_id], fn
         nil -> [pid]
