@@ -98,8 +98,8 @@ defmodule Jellyfish.Peer do
   def status_from_string(status) when status in @valid_status_strings,
     do: String.to_atom(status)
 
-  defp type_from_proto(:WEBRTC), do: WebRTC
+  defp type_from_proto(:TYPE_WEBRTC), do: WebRTC
 
-  defp status_from_proto(:CONNECTED), do: :connected
-  defp status_from_proto(:DISCONNECTED), do: :disconnected
+  defp status_from_proto(:STATUS_CONNECTED), do: :connected
+  defp status_from_proto(:STATUS_DISCONNECTED), do: :disconnected
 end
