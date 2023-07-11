@@ -26,18 +26,11 @@ defmodule Jellyfish.NotifierTest do
     test "when token is invalid" do
       assert {:error, :invalid_token} = Notifier.start_link(server_api_token: "invalid_token")
     end
-
-    test "fails to subscribe for an undeclared event type" do
-      assert {:ok, pid} = Notifier.start_link(events: [])
-
-      assert {:error, :unsupported_event_type} =
-               Notifier.subscribe(pid, :server_notification, :all)
-    end
   end
 
   describe "subscribing for server notifications" do
     setup do
-      {:ok, notifier} = Notifier.start_link(events: [:server_notification])
+      {:ok, notifier} = Notifier.start_link()
 
       on_exit(fn -> Process.exit(notifier, :normal) end)
 
@@ -77,6 +70,7 @@ defmodule Jellyfish.NotifierTest do
       assert_receive {:jellyfish, %PeerConnected{room_id: ^other_room_id}}
     end
 
+    @tag :this
     test "for specific room notifications only", %{client: client, notifier: notifier} do
       {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
 

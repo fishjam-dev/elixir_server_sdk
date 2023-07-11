@@ -53,6 +53,7 @@ defmodule Membrane.Template.Mixfile do
       {:mint, "~> 1.0"},
       {:jason, "~> 1.4"},
       {:websockex, "~> 0.4.3"},
+      {:elixir_uuid, "~> 1.2"},
 
       # protobuf deps
       {:protobuf, "~> 0.12.0"},

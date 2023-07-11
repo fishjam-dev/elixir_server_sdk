@@ -8,7 +8,7 @@ defmodule Jellyfish.Component do
 
   alias Jellyfish.Component.{HLS, RTSP}
   alias Jellyfish.Exception.StructureError
-  alias Jellyfish.ServerMessage.RoomState
+  alias Jellyfish.ServerMessage.SubscriptionResponse.RoomState
 
   @enforce_keys [
     :id,
