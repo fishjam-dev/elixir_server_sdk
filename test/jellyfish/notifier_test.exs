@@ -70,7 +70,6 @@ defmodule Jellyfish.NotifierTest do
       assert_receive {:jellyfish, %PeerConnected{room_id: ^other_room_id}}
     end
 
-    @tag :this
     test "for specific room notifications only", %{client: client, notifier: notifier} do
       {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
 

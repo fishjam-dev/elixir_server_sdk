@@ -1,7 +1,7 @@
 defmodule Jellyfish.Notifier do
   @moduledoc """
   Module defining a process responsible for establishing
-  WebSocket connection and receiving notifications form Jellyfish server.
+  WebSocket connection and receiving notifications from Jellyfish server.
 
   Define the connection configuration in the mix config
   ``` config.exs
