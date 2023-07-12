@@ -3,6 +3,28 @@ defmodule Jellyfish.Notification do
 
   alias Jellyfish.{Component, Peer, Room}
 
+  defmodule RoomCreated do
+    @moduledoc nil
+
+    @enforce_keys [:room_id]
+    defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            room_id: Room.id()
+          }
+  end
+
+  defmodule RoomDeleted do
+    @moduledoc nil
+
+    @enforce_keys [:room_id]
+    defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            room_id: Room.id()
+          }
+  end
+
   defmodule RoomCrashed do
     @moduledoc nil
 
