@@ -8,7 +8,7 @@ defmodule Jellyfish.Component do
 
   alias Jellyfish.Component.{HLS, RTSP}
   alias Jellyfish.Exception.StructureError
-  alias Jellyfish.ServerMessage.RoomState
+  alias Jellyfish.ServerMessage.SubscriptionResponse.RoomState
 
   @enforce_keys [
     :id,
@@ -83,6 +83,6 @@ defmodule Jellyfish.Component do
   defp type_from_string("hls"), do: HLS
   defp type_from_string("rtsp"), do: RTSP
 
-  defp type_from_proto(:HLS), do: HLS
-  defp type_from_proto(:RTSP), do: RTSP
+  defp type_from_proto(:TYPE_HLS), do: HLS
+  defp type_from_proto(:TYPE_RTSP), do: RTSP
 end

@@ -29,7 +29,7 @@ defmodule Jellyfish.Room do
   alias Tesla.Env
   alias Jellyfish.{Client, Component, Peer}
   alias Jellyfish.Exception.StructureError
-  alias Jellyfish.ServerMessage.RoomState
+  alias Jellyfish.ServerMessage.SubscriptionResponse.RoomState
 
   @enforce_keys [
     :id,
