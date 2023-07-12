@@ -60,6 +60,11 @@ defmodule Jellyfish.Notifier do
   """
   @type notifier() :: GenServer.server()
 
+  @typedoc """
+  A type of event, for which a process can subscribe using `subscribe/3`.
+  """
+  @type event_type() :: :server_notification
+
   @doc """
   Starts the Notifier process and connects to Jellyfish.
 
@@ -97,7 +102,7 @@ defmodule Jellyfish.Notifier do
   where `msg` is one of structs defined under "Notifications" section in the docs,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
   """
-  @spec subscribe(notifier(), :server_notification, Room.id() | :all) ::
+  @spec subscribe(notifier(), event_type(), Room.id() | :all) ::
           {:ok, Room.t() | [Room.t()]} | {:error, atom()}
   def subscribe(notifier, event_type, room_id) when event_type in @valid_events do
     WebSockex.cast(notifier, {:subscribe, self(), event_type, room_id})
