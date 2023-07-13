@@ -1,6 +1,7 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
 
+  alias Jellyfish.Notification.RoomDeleted
   alias Jellyfish.{Client, Notifier, Peer, Room}
 
   alias Jellyfish.PeerMessage
@@ -8,7 +9,9 @@ defmodule Jellyfish.NotifierTest do
 
   alias Jellyfish.Notification.{
     PeerConnected,
-    PeerDisconnected
+    PeerDisconnected,
+    RoomCreated,
+    RoomDeleted
   }
 
   alias Jellyfish.WS
@@ -89,6 +92,16 @@ defmodule Jellyfish.NotifierTest do
       {:ok, _rooms} = Notifier.subscribe(notifier, :server_notification, :all)
 
       %{client: Client.new()}
+    end
+
+    test "when room gets created and then deleted", %{client: client} do
+      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, max_peers: @max_peers)
+
+      assert_receive {:jellyfish, %RoomCreated{room_id: ^room_id}}
+
+      :ok = Room.delete(client, room_id)
+
+      assert_receive {:jellyfish, %RoomDeleted{room_id: ^room_id}}
     end
 
     test "when peer connects and then disconnects", %{client: client} do
