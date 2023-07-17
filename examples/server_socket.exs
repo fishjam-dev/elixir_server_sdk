@@ -12,7 +12,7 @@ server_api_token = "development"
   Jellyfish.Notifier.start(server_address: server_address, server_api_token: server_api_token)
 
 {:ok, _rooms} = Jellyfish.Notifier.subscribe_server_notifications(notifier, :all)
-{:ok, :all} = Jellyfish.Notifier.subscribe_metrics(notifier)
+:ok = Jellyfish.Notifier.subscribe_metrics(notifier)
 
 receive_notification = fn receive_notification ->
   receive do

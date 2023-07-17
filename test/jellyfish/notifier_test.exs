@@ -13,7 +13,7 @@ defmodule Jellyfish.NotifierTest do
     RoomDeleted
   }
 
-  alias Jellyfish.Metrics.MetricsReport
+  alias Jellyfish.MetricsReport
 
   alias Jellyfish.WS
 

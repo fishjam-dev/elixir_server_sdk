@@ -93,7 +93,7 @@ defmodule Jellyfish.Notifier do
   list of all of the room's states is returned.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
-  where `msg` is one of structs defined under `Jellyfish.Notification` section in the docs,
+  where `msg` is one of structs defined under "Jellyfish.Notification" section in the docs,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
   """
   @spec subscribe_server_notifications(notifier(), Room.id() | :all) ::
@@ -113,7 +113,7 @@ defmodule Jellyfish.Notifier do
   Subscribes the process to the WebRTC metrics from all the rooms.
 
   Metrics are periodically sent to the process in a form of `{:jellyfish, metrics_report}`,
-  where `metrics_report` is the `Jellyfish.Metrics.MetricsReport` struct.
+  where `metrics_report` is the `Jellyfish.MetricsReport` struct.
   """
 
   @spec subscribe_metrics(notifier()) :: :ok | {:error, :timeout}
@@ -261,7 +261,7 @@ defmodule Jellyfish.Notifier do
   end
 
   defp handle_notification(%MetricsReport{metrics: metrics}, state) do
-    notification = %Jellyfish.Metrics.MetricsReport{metrics: Jason.decode!(metrics)}
+    notification = %Jellyfish.MetricsReport{metrics: Jason.decode!(metrics)}
 
     state.subscriptions.metrics
     |> Enum.each(fn pid ->

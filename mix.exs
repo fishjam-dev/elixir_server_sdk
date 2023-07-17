@@ -101,10 +101,11 @@ defmodule Membrane.Template.Mixfile do
       nest_modules_by_prefix: [
         Jellyfish,
         Jellyfish.Exception,
-        Jellyfish.Notification,
-        Jellyfish.Metrics
+        Jellyfish.Notification
       ],
-      groups_for_modules: [Events: ~r/^Jellyfish\.((\bMetrics)|(\bNotification))\.[a-zA-Z]*$/]
+      groups_for_modules: [
+        Events: ~r/^Jellyfish\.((\bNotification\.[a-zA-Z]*$)|(\bMetricsReport))/
+      ]
     ]
   end
 

@@ -54,7 +54,7 @@ end
 :ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)
 ```
 
-List of structs representing events can be found in [generated Protobuf file](lib/protos/jellyfish/server_notifications.pb.ex).
+List of structs representing events can be found in the [docs](https://hexdocs.pm/jellyfish_server_sdk).
 
 ## Testing
 
