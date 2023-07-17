@@ -226,7 +226,7 @@ defmodule Jellyfish.Room do
       } ->
         %__MODULE__{
           id: id,
-          config: %{max_peers: max_peers, video_codec: video_codec},
+          config: %{max_peers: max_peers, video_codec: codec_to_atom(video_codec)},
           components: Enum.map(components, &Component.from_json/1),
           peers: Enum.map(peers, &Peer.from_json/1)
         }
@@ -274,4 +274,8 @@ defmodule Jellyfish.Room do
     rest = rest |> Enum.map(&String.capitalize/1)
     Enum.join([first | rest])
   end
+
+  defp codec_to_atom("h264"), do: :h264
+  defp codec_to_atom("vp8"), do: :vp8
+  defp codec_to_atom(nil), do: nil
 end

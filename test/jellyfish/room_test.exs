@@ -39,7 +39,7 @@ defmodule Jellyfish.RoomTest do
 
       assert %Jellyfish.Room{
                components: [],
-               config: %{max_peers: 10, video_codec: "h264"},
+               config: %{max_peers: 10, video_codec: @video_codec},
                id: _id,
                peers: []
              } = room
