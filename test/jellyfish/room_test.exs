@@ -13,9 +13,11 @@ defmodule Jellyfish.RoomTest do
   @room_id "mock_room_id"
 
   @max_peers 10
+  @video_codec :h264
 
   @invalid_room_id "invalid_mock_room_id"
   @invalid_max_peers "abc"
+  @invalid_video_codec :opus
 
   @invalid_peer_id "invalid_peer_id"
   defmodule InvalidPeerOpts do
@@ -33,11 +35,11 @@ defmodule Jellyfish.RoomTest do
 
   describe "auth" do
     test "correct token", %{client: client} do
-      assert {:ok, room} = Room.create(client, max_peers: @max_peers)
+      assert {:ok, room} = Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
       assert %Jellyfish.Room{
                components: [],
-               config: %{max_peers: 10},
+               config: %{max_peers: 10, video_codec: "h264"},
                id: _id,
                peers: []
              } = room
@@ -61,9 +63,14 @@ defmodule Jellyfish.RoomTest do
              } = room
     end
 
-    test "when request is invalid", %{client: client} do
+    test "when request is invalid, max peers", %{client: client} do
       assert {:error, "Request failed: maxPeers must be a number"} =
                Room.create(client, max_peers: @invalid_max_peers)
+    end
+
+    test "when request is invalid, video codec", %{client: client} do
+      assert {:error, "Request failed: videoCodec must be 'h264' or 'vp8'"} =
+               Room.create(client, video_codec: @invalid_video_codec)
     end
   end
 
@@ -96,7 +103,7 @@ defmodule Jellyfish.RoomTest do
       assert {:ok,
               %Jellyfish.Room{
                 components: [],
-                config: %{max_peers: @max_peers},
+                config: %{max_peers: @max_peers, video_codec: @video_codec},
                 id: ^room_id,
                 peers: []
               }} = Room.get(client, room_id)
@@ -179,7 +186,8 @@ defmodule Jellyfish.RoomTest do
   end
 
   defp create_room(state) do
-    assert {:ok, %Jellyfish.Room{id: id}} = Room.create(state.client, max_peers: @max_peers)
+    assert {:ok, %Jellyfish.Room{id: id}} =
+             Room.create(state.client, max_peers: @max_peers, video_codec: @video_codec)
 
     %{room_id: id}
   end

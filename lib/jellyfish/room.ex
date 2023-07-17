@@ -54,8 +54,11 @@ defmodule Jellyfish.Room do
 
     * `:max_peers` - maximum number of peers present in a room simultaneously.
       If set to `nil` or unspecified, the number of peers is unlimited.
+    * `:video_codec` - enforces specific video codec for each peer in the room.
+      If set to `nil` or unspecified, any codec will be accepted.
+      To start HLS component video codec has to be `:h264`.
   """
-  @type options :: [max_peers: non_neg_integer() | nil]
+  @type options :: [max_peers: non_neg_integer() | nil, video_codec: :h264 | :vp8 | nil]
 
   @typedoc """
   Stores information about the room.
@@ -107,7 +110,10 @@ defmodule Jellyfish.Room do
            Tesla.post(
              client.http_client,
              "/room",
-             %{"maxPeers" => Keyword.get(opts, :max_peers)}
+             %{
+               "maxPeers" => Keyword.get(opts, :max_peers),
+               "videoCodec" => Keyword.get(opts, :video_codec)
+             }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
          result <- from_json(data) do
@@ -214,13 +220,13 @@ defmodule Jellyfish.Room do
     case response do
       %{
         "id" => id,
-        "config" => %{"maxPeers" => max_peers},
+        "config" => %{"maxPeers" => max_peers, "videoCodec" => video_codec},
         "components" => components,
         "peers" => peers
       } ->
         %__MODULE__{
           id: id,
-          config: %{max_peers: max_peers},
+          config: %{max_peers: max_peers, video_codec: video_codec},
           components: Enum.map(components, &Component.from_json/1),
           peers: Enum.map(peers, &Peer.from_json/1)
         }
