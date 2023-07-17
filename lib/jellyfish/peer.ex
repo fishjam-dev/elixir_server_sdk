@@ -9,7 +9,7 @@ defmodule Jellyfish.Peer do
 
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Peer.WebRTC
-  alias Jellyfish.ServerMessage.SubscriptionResponse.RoomState
+  alias Jellyfish.ServerMessage.SubscribeResponse.RoomState
 
   @enforce_keys [
     :id,

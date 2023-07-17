@@ -1,7 +1,6 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
 
-  alias Jellyfish.Notification.RoomDeleted
   alias Jellyfish.{Client, Notifier, Peer, Room}
 
   alias Jellyfish.PeerMessage
@@ -13,6 +12,8 @@ defmodule Jellyfish.NotifierTest do
     RoomCreated,
     RoomDeleted
   }
+
+  alias Jellyfish.Metrics.MetricsReport
 
   alias Jellyfish.WS
 
@@ -45,7 +46,7 @@ defmodule Jellyfish.NotifierTest do
 
     test "returns error if room does not exist", %{notifier: notifier} do
       assert {:error, :room_not_found} =
-               Notifier.subscribe(notifier, :server_notification, "fake_room_id")
+               Notifier.subscribe_server_notifications(notifier, "fake_room_id")
     end
 
     test "returns initial state of the room", %{client: client, notifier: notifier} do
@@ -53,7 +54,7 @@ defmodule Jellyfish.NotifierTest do
       {:ok, %Jellyfish.Peer{id: peer_id}, _token} = Room.add_peer(client, room_id, Peer.WebRTC)
 
       assert {:ok, %Room{id: ^room_id, peers: [%Peer{id: ^peer_id}]}} =
-               Notifier.subscribe(notifier, :server_notification, room_id)
+               Notifier.subscribe_server_notifications(notifier, room_id)
     end
 
     test "for all notifications", %{client: client, notifier: notifier} do
@@ -62,7 +63,7 @@ defmodule Jellyfish.NotifierTest do
       trigger_notification(client, room_id)
       refute_receive {:jellyfish, _msg}, 100
 
-      assert {:ok, _rooms} = Notifier.subscribe(notifier, :server_notification, :all)
+      assert {:ok, _rooms} = Notifier.subscribe_server_notifications(notifier, :all)
 
       trigger_notification(client, room_id)
       assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
@@ -76,7 +77,7 @@ defmodule Jellyfish.NotifierTest do
     test "for specific room notifications only", %{client: client, notifier: notifier} do
       {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
 
-      assert {:ok, _room} = Notifier.subscribe(notifier, :server_notification, room_id)
+      assert {:ok, _room} = Notifier.subscribe_server_notifications(notifier, room_id)
       trigger_notification(client, room_id)
       assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
 
@@ -89,7 +90,7 @@ defmodule Jellyfish.NotifierTest do
   describe "receiving notifications" do
     setup do
       {:ok, notifier} = Notifier.start_link()
-      {:ok, _rooms} = Notifier.subscribe(notifier, :server_notification, :all)
+      {:ok, _rooms} = Notifier.subscribe_server_notifications(notifier, :all)
 
       %{client: Client.new()}
     end
@@ -122,6 +123,31 @@ defmodule Jellyfish.NotifierTest do
       :ok = Room.delete_peer(client, room_id, peer_id)
 
       assert_receive {:jellyfish, %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}}
+    end
+  end
+
+  describe "receiving metrics" do
+    setup do
+      {:ok, notifier} = Notifier.start_link()
+      {:ok, _rooms} = Notifier.subscribe_server_notifications(notifier, :all)
+      :ok = Notifier.subscribe_metrics(notifier)
+
+      %{client: Client.new()}
+    end
+
+    test "with one peer", %{client: client} do
+      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, max_peers: @max_peers)
+      {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
+
+      url = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      {:ok, peer_ws} = WS.start_link("ws://#{url}/socket/peer/websocket")
+
+      auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
+      :ok = WS.send_frame(peer_ws, auth_request)
+
+      assert_receive {:jellyfish, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}
+
+      assert_receive {:jellyfish, %MetricsReport{metrics: metrics}} when metrics != %{}, 1500
     end
   end
 

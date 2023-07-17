@@ -9,7 +9,7 @@ Elixir server SDK for [Jellyfish](https://github.com/jellyfish-dev/jellyfish).
 Currently it allows for:
 
 - making API calls to Jellyfish server (QoL wrapper for HTTP requests)
-- listening to Jellyfish server notifications via WebSocket
+- listening to Jellyfish server events via WebSocket
 
 ## Installation
 
@@ -26,12 +26,12 @@ end
 ## Usage
 
 Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication))
-and receive server notifications:
+and receive server events:
 
 ```elixir
-# start process responsible for receiving notifications
+# start process responsible for receiving events
 {:ok, notifier} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
-{:ok, _rooms} = Jellyfish.Notifier.subscribe(notifier, :all)
+{:ok, _rooms} = Jellyfish.Notifier.subscribe_server_notifications(notifier, :all)
 
 # create HTTP client instance
 client = Jellyfish.Client.new(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
@@ -54,7 +54,7 @@ end
 :ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)
 ```
 
-List of structs representing server notifications can be found in [generated Protobuf file](lib/protos/jellyfish/server_notifications.pb.ex).
+List of structs representing events can be found in [generated Protobuf file](lib/protos/jellyfish/server_notifications.pb.ex).
 
 ## Testing
 
