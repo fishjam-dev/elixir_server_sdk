@@ -56,7 +56,7 @@ defmodule Jellyfish.Room do
       If set to `nil` or unspecified, the number of peers is unlimited.
     * `:video_codec` - enforces specific video codec for each peer in the room.
       If set to `nil` or unspecified, any codec will be accepted.
-      To start HLS component video codec has to be `:h264`.
+      To use HLS component video codec has to be `:h264`.
   """
   @type options :: [max_peers: non_neg_integer() | nil, video_codec: :h264 | :vp8 | nil]
 
