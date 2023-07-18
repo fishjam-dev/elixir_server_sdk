@@ -1,7 +1,7 @@
 defmodule Jellyfish.Notifier do
   @moduledoc """
   Module defining a process responsible for establishing
-  WebSocket connection and receiving notifications from Jellyfish server.
+  WebSocket connection and receiving events from Jellyfish server.
 
   Define the connection configuration in the mix config
   ``` config.exs
@@ -21,8 +21,8 @@ defmodule Jellyfish.Notifier do
   ```
 
   ```
-  # Subscribe current process to all server notifications.
-  iex> {:ok, _rooms} = Jellyfish.Notifier.subscribe(notifier, :server_notifications, :all)
+  # Subscribe current process to server notifications from all rooms.
+  iex> {:ok, _rooms} = Jellyfish.Notifier.subscribe_server_notifications(notifier, :all)
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
   # you should receive a notification after the peer established connection
@@ -44,26 +44,22 @@ defmodule Jellyfish.Notifier do
   alias Jellyfish.ServerMessage.{
     Authenticated,
     AuthRequest,
+    MetricsReport,
     SubscribeRequest,
-    SubscriptionResponse
+    SubscribeResponse
   }
 
-  alias Jellyfish.ServerMessage.SubscribeRequest.ServerNotification
-  alias Jellyfish.ServerMessage.SubscriptionResponse.{RoomNotFound, RoomsState, RoomState}
+  alias Jellyfish.ServerMessage.SubscribeRequest.{Metrics, ServerNotification}
+
+  alias Jellyfish.ServerMessage.SubscribeResponse.{RoomNotFound, RoomsState, RoomState}
 
   @auth_timeout 2000
   @subscribe_timeout 5000
-  @valid_events [:server_notification]
 
   @typedoc """
   The reference to the `Notifier` process.
   """
   @type notifier() :: GenServer.server()
-
-  @typedoc """
-  A type of event, for which a process can subscribe using `subscribe/3`.
-  """
-  @type event_type() :: :server_notification
 
   @doc """
   Starts the Notifier process and connects to Jellyfish.
@@ -90,22 +86,20 @@ defmodule Jellyfish.Notifier do
   end
 
   @doc """
-  Subscribes the process to receive events of `event_type` from room with `room_id` and returns
+  Subscribes the process to receive server notifications from room with `room_id` and returns
   current state of the room.
-
-  Currently supported event is `:server_notification`.
 
   If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent and
   list of all of the room's states is returned.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
-  where `msg` is one of structs defined under "Notifications" section in the docs,
+  where `msg` is one of structs defined under "Jellyfish.Notification" section in the docs,
   for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
   """
-  @spec subscribe(notifier(), event_type(), Room.id() | :all) ::
+  @spec subscribe_server_notifications(notifier(), Room.id() | :all) ::
           {:ok, Room.t() | [Room.t()]} | {:error, atom()}
-  def subscribe(notifier, event_type, room_id) when event_type in @valid_events do
-    WebSockex.cast(notifier, {:subscribe, self(), event_type, room_id})
+  def subscribe_server_notifications(notifier, room_id) do
+    WebSockex.cast(notifier, {:subscribe_server_notifications, self(), room_id})
 
     receive do
       {:jellyfish, {:subscribe_answer, answer}} -> answer
@@ -115,12 +109,26 @@ defmodule Jellyfish.Notifier do
     end
   end
 
-  def subscribe(_notifier, _event_type, _room_id) do
-    {:error, :invalid_event_type}
+  @doc """
+  Subscribes the process to the WebRTC metrics from all the rooms.
+
+  Metrics are periodically sent to the process in a form of `{:jellyfish, metrics_report}`,
+  where `metrics_report` is the `Jellyfish.MetricsReport` struct.
+  """
+
+  @spec subscribe_metrics(notifier()) :: :ok | {:error, :timeout}
+  def subscribe_metrics(notifier) do
+    WebSockex.cast(notifier, {:subscribe_metrics, self()})
+
+    receive do
+      {:jellyfish, {:subscribe_answer, :ok}} -> :ok
+    after
+      @subscribe_timeout -> {:error, :timeout}
+    end
   end
 
   @impl true
-  def handle_cast({:subscribe, pid, :server_notification, room_id}, state) do
+  def handle_cast({:subscribe_server_notifications, pid, room_id}, state) do
     proto_room_id =
       case room_id do
         :all -> {:option, :OPTION_ALL}
@@ -144,7 +152,23 @@ defmodule Jellyfish.Notifier do
       }
       |> ServerMessage.encode()
 
-    state = put_in(state.pending_subscriptions[request_id], pid)
+    state = put_in(state.pending_subscriptions[request_id], {:server_notification, pid})
+
+    {:reply, {:binary, request}, state}
+  end
+
+  def handle_cast({:subscribe_metrics, pid}, state) do
+    request_id = UUID.uuid4()
+
+    request =
+      %ServerMessage{
+        content:
+          {:subscribe_request,
+           %SubscribeRequest{id: request_id, event_type: {:metrics, %Metrics{}}}}
+      }
+      |> ServerMessage.encode()
+
+    state = put_in(state.pending_subscriptions[request_id], {:metrics, pid})
 
     {:reply, {:binary, request}, state}
   end
@@ -160,9 +184,10 @@ defmodule Jellyfish.Notifier do
   @impl true
   def handle_info({:DOWN, _ref, :process, pid, _reason}, state) do
     state =
-      Map.update!(state, :subscriptions, fn subs ->
+      update_in(state.subscriptions.server_notification, fn subs ->
         Map.new(subs, fn {id, pids} -> {id, MapSet.delete(pids, pid)} end)
       end)
+      |> update_in([:subscriptions, :metrics], &MapSet.delete(&1, pid))
 
     {:ok, state}
   end
@@ -183,7 +208,10 @@ defmodule Jellyfish.Notifier do
 
     state = %{
       caller_pid: self(),
-      subscriptions: %{all: MapSet.new()},
+      subscriptions: %{
+        server_notification: %{all: MapSet.new()},
+        metrics: MapSet.new()
+      },
       pending_subscriptions: %{}
     }
 
@@ -216,14 +244,14 @@ defmodule Jellyfish.Notifier do
     state
   end
 
-  defp handle_notification(%SubscriptionResponse{id: id, content: {_type, response}}, state) do
-    {pid, state} = pop_in(state.pending_subscriptions[id])
+  defp handle_notification(%SubscribeResponse{id: id, content: content}, state) do
+    {{event_type, pid}, state} = pop_in(state.pending_subscriptions[id])
 
-    handle_subscription_response(pid, response, state)
+    handle_subscription_response(event_type, pid, content, state)
   end
 
   defp handle_notification(%{room_id: room_id} = message, state) do
-    state.subscriptions
+    state.subscriptions.server_notification
     |> Map.take([:all, room_id])
     |> Map.values()
     |> Enum.reduce(fn pids, acc -> MapSet.union(pids, acc) end)
@@ -232,12 +260,23 @@ defmodule Jellyfish.Notifier do
     state
   end
 
-  defp handle_subscription_response(pid, %RoomNotFound{}, state) do
+  defp handle_notification(%MetricsReport{metrics: metrics}, state) do
+    notification = %Jellyfish.MetricsReport{metrics: Jason.decode!(metrics)}
+
+    state.subscriptions.metrics
+    |> Enum.each(fn pid ->
+      send(pid, {:jellyfish, notification})
+    end)
+
+    state
+  end
+
+  defp handle_subscription_response(:server_notification, pid, {_type, %RoomNotFound{}}, state) do
     send(pid, {:jellyfish, {:subscribe_answer, {:error, :room_not_found}}})
     state
   end
 
-  defp handle_subscription_response(pid, %mod{} = room, state)
+  defp handle_subscription_response(:server_notification, pid, {_type, %mod{} = room}, state)
        when mod in [RoomState, RoomsState] do
     {room_id, room} =
       case mod do
@@ -248,12 +287,21 @@ defmodule Jellyfish.Notifier do
     Process.monitor(pid)
 
     state =
-      update_in(state.subscriptions[room_id], fn
+      update_in(state.subscriptions.server_notification[room_id], fn
         nil -> MapSet.new([pid])
         set -> MapSet.put(set, pid)
       end)
 
     send(pid, {:jellyfish, {:subscribe_answer, {:ok, room}}})
+    state
+  end
+
+  defp handle_subscription_response(:metrics, pid, nil, state) do
+    Process.monitor(pid)
+
+    state = update_in(state.subscriptions.metrics, &MapSet.put(&1, pid))
+
+    send(pid, {:jellyfish, {:subscribe_answer, :ok}})
     state
   end
 end
