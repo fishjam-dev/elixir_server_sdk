@@ -20,6 +20,7 @@ defmodule Jellyfish.NotifierTest do
   @peer_opts %Peer.WebRTC{}
 
   @max_peers 10
+  @video_codec :vp8
 
   describe "connecting to the server and subcribing for events" do
     test "when credentials are valid" do
@@ -96,7 +97,8 @@ defmodule Jellyfish.NotifierTest do
     end
 
     test "when room gets created and then deleted", %{client: client} do
-      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, max_peers: @max_peers)
+      {:ok, %Jellyfish.Room{id: room_id}} =
+        Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
       assert_receive {:jellyfish, %RoomCreated{room_id: ^room_id}}
 
@@ -106,7 +108,8 @@ defmodule Jellyfish.NotifierTest do
     end
 
     test "when peer connects and then disconnects", %{client: client} do
-      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, max_peers: @max_peers)
+      {:ok, %Jellyfish.Room{id: room_id}} =
+        Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
 
