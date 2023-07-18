@@ -3,21 +3,12 @@ defmodule Jellyfish.Notifier do
   Module defining a process responsible for establishing
   WebSocket connection and receiving events from Jellyfish server.
 
-  Define the connection configuration in the mix config
-  ``` config.exs
-  config :jellyfish_server_sdk,
-    server_address: "localhost:5002",
-    server_api_token: "your-jellyfish-token",
-    secure?: true
-  ```
+  First, [configure the connection options](https://hexdocs.pm/jellyfish_server_sdk/readme.html#jellyfish-connection-configuration).
 
   ```
   # Start the Notifier
   iex> {:ok, notifier} = Jellyfish.Notifier.start()
   {:ok, #PID<0.301.0>}
-
-  # Optionally, you can provide connection options instead of using config:
-  {:ok, notifier} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
   ```
 
   ```
@@ -34,11 +25,17 @@ defmodule Jellyfish.Notifier do
   }}
   :ok
   ```
+
+  When starting the Notifier, you can provide the name under which the process will be registered.
+  ```
+  iex> {:ok, notifier} = Jellyfish.Notifier.start_link(name: Jellyfish.Notifier)
+  ```
+
   """
 
   use WebSockex
 
-  alias Jellyfish.{Client, Room, Utils}
+  alias Jellyfish.{Room, Utils}
   alias Jellyfish.{Notification, ServerMessage}
 
   alias Jellyfish.ServerMessage.{
@@ -61,6 +58,16 @@ defmodule Jellyfish.Notifier do
   """
   @type notifier() :: GenServer.server()
 
+  @typedoc """
+  Connection options used to connect to Jellyfish server.
+  """
+  @type options() :: [
+          server_address: String.t(),
+          server_api_token: String.t(),
+          secure?: boolean(),
+          name: GenServer.name()
+        ]
+
   @doc """
   Starts the Notifier process and connects to Jellyfish.
 
@@ -68,7 +75,8 @@ defmodule Jellyfish.Notifier do
 
   See `start/1` for more information.
   """
-  @spec start_link(Client.connection_options()) :: {:ok, pid()} | {:error, term()}
+  @spec start_link(options()) ::
+          {:ok, pid()} | {:error, term()}
   def start_link(opts \\ []) do
     connect(:start_link, opts)
   end
@@ -80,7 +88,8 @@ defmodule Jellyfish.Notifier do
 
   For information about options, see `t:Jellyfish.Client.connection_options/0`.
   """
-  @spec start(Client.connection_options()) :: {:ok, pid()} | {:error, term()}
+  @spec start(options()) ::
+          {:ok, pid()} | {:error, term()}
   def start(opts \\ []) do
     connect(:start, opts)
   end
@@ -219,8 +228,15 @@ defmodule Jellyfish.Notifier do
       %ServerMessage{content: {:auth_request, %AuthRequest{token: api_token}}}
       |> ServerMessage.encode()
 
+    websockex_opts = Keyword.take(opts, [:name])
+
     with {:ok, ws} <-
-           apply(WebSockex, fun, ["#{address}/socket/server/websocket", __MODULE__, state]),
+           apply(WebSockex, fun, [
+             "#{address}/socket/server/websocket",
+             __MODULE__,
+             state,
+             websockex_opts
+           ]),
          :ok <- WebSockex.send_frame(ws, {:binary, auth_msg}) do
       receive do
         {:jellyfish, :authenticated} ->
