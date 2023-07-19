@@ -23,18 +23,42 @@ def deps do
 end
 ```
 
+## Jellyfish connection configuration
+
+Define the connection configuration in the mix config,
+specifying server address and authentication token
+(for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication))
+``` config.exs
+config :jellyfish_server_sdk,
+  server_address: "localhost:5002",
+  server_api_token: "your-jellyfish-token",
+  secure?: true
+```
+
+Alternatively, the connection options can be provided when creating a `Jellyfish.Client` or starting `Jellyfish.Notifier`:
+
+```
+client =
+    Jellyfish.Client.new(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
+
+{:ok, notifier} =
+    Jellyfish.Notifier.start(
+      server_address: "localhost:5002",
+      server_api_token: "your-jellyfish-token"
+    )
+```
+
 ## Usage
 
-Make API calls to Jellyfish (authentication required, for more information see [Jellyfish docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication))
-and receive server events:
+Make API calls to Jellyfish and receive server events:
 
 ```elixir
 # start process responsible for receiving events
-{:ok, notifier} = Jellyfish.Notifier.start(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
+{:ok, notifier} = Jellyfish.Notifier.start()
 {:ok, _rooms} = Jellyfish.Notifier.subscribe_server_notifications(notifier, :all)
 
 # create HTTP client instance
-client = Jellyfish.Client.new(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
+client = Jellyfish.Client.new()
 
 # Create room
 {:ok, %Jellyfish.Room{id: room_id}} = Jellyfish.Room.create(client, max_peers: 10)
@@ -43,7 +67,8 @@ room_id
 # => "8878cd13-99a6-40d6-8d7e-8da23d803dab"
 
 # Add peer
-{:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Jellyfish.Room.add_peer(client, room_id, Jellyfish.Peer.WebRTC)
+{:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = 
+    Jellyfish.Room.add_peer(client, room_id, Jellyfish.Peer.WebRTC)
 
 receive do
   {:jellyfish, %Jellyfish.Notification.PeerConnected{room_id: ^room_id, peer_id: ^peer_id}} ->
@@ -58,7 +83,8 @@ List of structs representing events can be found in the [docs](https://hexdocs.p
 
 ## Testing
 
-When calling `mix test` it will automatically start the Jellyfish container under the hood. But tests on CI are run with the use of docker-compose, to run it locally in the same way as on CI you can use command `mix integration_test`.
+When calling `mix test` it will automatically start the Jellyfish container under the hood. 
+Tests on CI are run with the use of docker-compose, to run it locally in the same way as on CI run `mix integration_test`.
 
 ## Copyright and License
 
