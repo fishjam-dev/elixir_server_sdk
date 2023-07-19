@@ -35,7 +35,7 @@ config :jellyfish_server_sdk,
   secure?: true
 ```
 
-Alternatively, the connection options can be provided when creating a `Jellyfish.Client` or starting `Jellyfish.Notifier` instead of using config:
+Alternatively, the connection options can be provided when creating a `Jellyfish.Client` or starting `Jellyfish.Notifier`:
 
 ```
 client =

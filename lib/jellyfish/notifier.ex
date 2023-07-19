@@ -3,7 +3,7 @@ defmodule Jellyfish.Notifier do
   Module defining a process responsible for establishing
   WebSocket connection and receiving events from Jellyfish server.
 
-  First, [configure the connection options](https://hexdocs.pm/jellyfish_server_sdk/readme.html#jellyfish-connection-configuration).
+  First, [configure the connection options](README.md#jellyfish-connection-configuration).
 
   ```
   # Start the Notifier
@@ -75,8 +75,7 @@ defmodule Jellyfish.Notifier do
 
   See `start/1` for more information.
   """
-  @spec start_link(options()) ::
-          {:ok, pid()} | {:error, term()}
+  @spec start_link(options()) :: {:ok, pid()} | {:error, term()}
   def start_link(opts \\ []) do
     connect(:start_link, opts)
   end
@@ -88,8 +87,7 @@ defmodule Jellyfish.Notifier do
 
   For information about options, see `t:Jellyfish.Client.connection_options/0`.
   """
-  @spec start(options()) ::
-          {:ok, pid()} | {:error, term()}
+  @spec start(options()) :: {:ok, pid()} | {:error, term()}
   def start(opts \\ []) do
     connect(:start, opts)
   end
