@@ -6,7 +6,7 @@ defmodule Jellyfish.Component.HLS do
   documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/hls).
   """
 
-  @behaviour Jellyfish.Component
+  @behaviour Jellyfish.Component.Deserializer
   @enforce_keys []
   defstruct @enforce_keys ++ []
 

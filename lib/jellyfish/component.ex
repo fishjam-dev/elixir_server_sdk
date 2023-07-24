@@ -10,9 +10,6 @@ defmodule Jellyfish.Component do
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.ServerMessage.SubscribeResponse.RoomState
 
-  @callback from_json(map()) :: map()
-  @callback from_proto(map()) :: map()
-
   @enforce_keys [
     :id,
     :type,
@@ -33,7 +30,7 @@ defmodule Jellyfish.Component do
   @typedoc """
   Component-specific options.
   """
- @type options :: HLS.t() | RTSP.t()
+  @type options :: HLS.t() | RTSP.t()
 
   @typedoc """
   Stores information about the component.

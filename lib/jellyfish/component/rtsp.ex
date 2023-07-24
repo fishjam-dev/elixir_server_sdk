@@ -6,7 +6,7 @@ defmodule Jellyfish.Component.RTSP do
   documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/rtsp).
   """
 
-  @behaviour Jellyfish.Component
+  @behaviour Jellyfish.Component.Deserializer
 
   @enforce_keys [:source_uri]
   defstruct @enforce_keys ++
@@ -25,7 +25,7 @@ defmodule Jellyfish.Component.RTSP do
           pierce_nat: boolean()
         }
   @impl true
-  def from_json(_metadata), do: %{}
+  def from_json(_component), do: %{}
   @impl true
-  def from_proto(_metadata), do: %{}
+  def from_proto(_component), do: %{}
 end
