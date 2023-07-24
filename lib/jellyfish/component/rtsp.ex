@@ -6,6 +6,8 @@ defmodule Jellyfish.Component.RTSP do
   documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/rtsp).
   """
 
+  @behaviour Jellyfish.Component
+
   @enforce_keys [:source_uri]
   defstruct @enforce_keys ++
               [
@@ -22,4 +24,8 @@ defmodule Jellyfish.Component.RTSP do
           keep_alive_interval: non_neg_integer(),
           pierce_nat: boolean()
         }
+  @impl true
+  def from_json(_metadata), do: %{}
+  @impl true
+  def from_proto(_metadata), do: %{}
 end
