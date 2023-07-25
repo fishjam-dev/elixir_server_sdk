@@ -55,7 +55,7 @@ defmodule Jellyfish.Component do
         %__MODULE__{
           id: id,
           type: type,
-          metadata: type.from_json(metadata)
+          metadata: type.metadata_from_json(metadata)
         }
 
       _other ->
@@ -76,7 +76,7 @@ defmodule Jellyfish.Component do
         %__MODULE__{
           id: id,
           type: type,
-          metadata: type.from_proto(component)
+          metadata: type.metadata_from_proto(component)
         }
 
       _other ->

@@ -13,12 +13,12 @@ defmodule Jellyfish.Component.HLS do
   @type t :: %__MODULE__{}
 
   @impl true
-  def from_json(%{"playable" => playable}) do
+  def metadata_from_json(%{"playable" => playable}) do
     %{playable: playable}
   end
 
   @impl true
-  def from_proto(%{playable: playable}) do
+  def metadata_from_proto(%{playable: playable}) do
     %{playable: playable}
   end
 end

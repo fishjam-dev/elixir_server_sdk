@@ -25,7 +25,7 @@ defmodule Jellyfish.Component.RTSP do
           pierce_nat: boolean()
         }
   @impl true
-  def from_json(_component), do: %{}
+  def metadata_from_json(_metadata), do: %{}
   @impl true
-  def from_proto(_component), do: %{}
+  def metadata_from_proto(_metadata), do: %{}
 end
