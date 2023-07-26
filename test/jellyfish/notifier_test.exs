@@ -1,6 +1,7 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
 
+  alias Jellyfish.Component.HLS
   alias Jellyfish.{Client, Notifier, Peer, Room}
 
   alias Jellyfish.PeerMessage
@@ -56,6 +57,17 @@ defmodule Jellyfish.NotifierTest do
 
       assert {:ok, %Room{id: ^room_id, peers: [%Peer{id: ^peer_id}]}} =
                Notifier.subscribe_server_notifications(notifier, room_id)
+    end
+
+    test "returns state of the room with hls", %{client: client, notifier: notifier} do
+      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, video_codec: :h264)
+      {:ok, %Jellyfish.Component{id: component_id}} = Room.add_component(client, room_id, HLS)
+
+      assert {:ok, %Room{id: ^room_id, components: [component]}} =
+               Notifier.subscribe_server_notifications(notifier, room_id)
+
+      assert %Jellyfish.Component{id: ^component_id, type: HLS, metadata: %{playable: false}} =
+               component
     end
 
     test "for all notifications", %{client: client, notifier: notifier} do

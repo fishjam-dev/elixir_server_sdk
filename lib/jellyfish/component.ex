@@ -12,7 +12,8 @@ defmodule Jellyfish.Component do
 
   @enforce_keys [
     :id,
-    :type
+    :type,
+    :metadata
   ]
   defstruct @enforce_keys
 
@@ -36,7 +37,8 @@ defmodule Jellyfish.Component do
   """
   @type t :: %__MODULE__{
           id: id(),
-          type: type()
+          type: type(),
+          metadata: map()
         }
 
   @doc false
@@ -45,11 +47,15 @@ defmodule Jellyfish.Component do
     case response do
       %{
         "id" => id,
-        "type" => type_str
+        "type" => type_str,
+        "metadata" => metadata
       } ->
+        type = type_from_string(type_str)
+
         %__MODULE__{
           id: id,
-          type: type_from_string(type_str)
+          type: type,
+          metadata: type.metadata_from_json(metadata)
         }
 
       _other ->
@@ -63,11 +69,14 @@ defmodule Jellyfish.Component do
     case response do
       %RoomState.Component{
         id: id,
-        type: type
+        component: {_type, component}
       } ->
+        type = type_from_proto(component)
+
         %__MODULE__{
           id: id,
-          type: type_from_proto(type)
+          type: type,
+          metadata: type.metadata_from_proto(component)
         }
 
       _other ->
@@ -83,6 +92,6 @@ defmodule Jellyfish.Component do
   defp type_from_string("hls"), do: HLS
   defp type_from_string("rtsp"), do: RTSP
 
-  defp type_from_proto(:TYPE_HLS), do: HLS
-  defp type_from_proto(:TYPE_RTSP), do: RTSP
+  defp type_from_proto(%RoomState.Component.Hls{}), do: HLS
+  defp type_from_proto(%RoomState.Component.Rtsp{}), do: RTSP
 end

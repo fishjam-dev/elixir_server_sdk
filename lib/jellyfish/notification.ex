@@ -84,6 +84,18 @@ defmodule Jellyfish.Notification do
           }
   end
 
+  defmodule HlsPlayable do
+    @moduledoc nil
+
+    @enforce_keys [:room_id, :component_id]
+    defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            room_id: Room.id(),
+            component_id: Component.id()
+          }
+  end
+
   @discarded_fields [:__unknown_fields__]
 
   @doc false
