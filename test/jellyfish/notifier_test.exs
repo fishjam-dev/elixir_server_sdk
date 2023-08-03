@@ -76,7 +76,7 @@ defmodule Jellyfish.NotifierTest do
       trigger_notification(client, room_id)
       refute_receive {:jellyfish, _msg}, 100
 
-      assert {:ok, _rooms} = Notifier.subscribe_server_notifications(notifier, :all)
+      assert :ok = Notifier.subscribe_server_notifications(notifier, :all)
 
       trigger_notification(client, room_id)
       assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
@@ -103,7 +103,7 @@ defmodule Jellyfish.NotifierTest do
   describe "receiving notifications" do
     setup do
       {:ok, notifier} = Notifier.start_link()
-      {:ok, _rooms} = Notifier.subscribe_server_notifications(notifier, :all)
+      :ok = Notifier.subscribe_server_notifications(notifier, :all)
 
       %{client: Client.new()}
     end
@@ -144,7 +144,7 @@ defmodule Jellyfish.NotifierTest do
   describe "receiving metrics" do
     setup do
       {:ok, notifier} = Notifier.start_link()
-      {:ok, _rooms} = Notifier.subscribe_server_notifications(notifier, :all)
+      :ok = Notifier.subscribe_server_notifications(notifier, :all)
       :ok = Notifier.subscribe_metrics(notifier)
 
       %{client: Client.new()}
@@ -152,6 +152,7 @@ defmodule Jellyfish.NotifierTest do
 
     test "with one peer", %{client: client} do
       {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, max_peers: @max_peers)
+
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
 
       url = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
