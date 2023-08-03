@@ -96,7 +96,7 @@ defmodule Jellyfish.Notifier do
   current state of the room.
 
   If `:all` is passed in place of `room_id`, notifications about all of the rooms will be sent and
-  list of all of the room's states is returned.
+  `:ok` is returned.
 
   Notifications are sent to the process in a form of `{:jellyfish, msg}`,
   where `msg` is one of structs defined under "Jellyfish.Notification" section in the docs,
