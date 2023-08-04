@@ -25,6 +25,7 @@ defmodule Jellyfish.Room do
   :ok
   ```
   """
+  use Bunch.Access
 
   alias Tesla.Env
   alias Jellyfish.{Client, Component, Peer}

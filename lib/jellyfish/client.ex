@@ -16,6 +16,7 @@ defmodule Jellyfish.Client do
   ```
   For the list of supported Tesla adapters refer to [Tesla docs](https://hexdocs.pm/tesla/readme.html#adapters).
   """
+  use Bunch.Access
 
   alias Jellyfish.Utils
 

@@ -6,6 +6,7 @@ defmodule Jellyfish.Peer do
   to tracks published by components and other peers.
   For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
   """
+  use Bunch.Access
 
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Peer.WebRTC

@@ -49,6 +49,7 @@ defmodule Membrane.Template.Mixfile do
 
   defp deps do
     [
+      {:bunch, "~> 1.6"},
       {:tesla, "~> 1.5"},
       {:mint, "~> 1.0"},
       {:jason, "~> 1.4"},

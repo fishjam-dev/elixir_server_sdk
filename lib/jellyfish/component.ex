@@ -5,6 +5,7 @@ defmodule Jellyfish.Component do
   Component is a server-side entity that can publish, subscribe to and process tracks.
   For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
   """
+  use Bunch.Access
 
   alias Jellyfish.Component.{HLS, RTSP}
   alias Jellyfish.Exception.StructureError
