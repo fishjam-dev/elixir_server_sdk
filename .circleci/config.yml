@@ -12,11 +12,22 @@ executors:
      platform: "linux/amd64"
 
 jobs:
-  test:
+  test_load_balancing:
     executor: machine_executor_amd64
     steps:
       - checkout
-      - run: docker compose -f docker-compose-integration.yaml run test
+      - run: docker compose run test
+    
+  test:
+    docker:
+      - image: membraneframeworklabs/docker_membrane:latest
+        environment:
+          MIX_ENV: test
+
+    steps:
+      - checkout
+      - run: mix deps.get
+      - run: mix coveralls.json --warnings-as-errors
       - codecov/upload
 
 workflows:
@@ -24,25 +35,9 @@ workflows:
   build:
     jobs:
       - elixir/build_test:
-          filters: &filters
-            tags:
-              only: /v.*/
-      - test:
-          filters:
-            <<: *filters
+          cache-version: 3
+      - test
+      - test_load_balancing
       - elixir/lint:
-          filters:
-            <<: *filters
-      - elixir/hex_publish:
-          requires:
-            - elixir/build_test
-            - test
-            - elixir/lint
-          context:
-            - Deployment
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /v.*/
-
+          cache-version: 3
+          docs: false
