@@ -8,7 +8,6 @@ defmodule Jellyfish.Component do
 
   alias Jellyfish.Component.{HLS, RTSP}
   alias Jellyfish.Exception.StructureError
-  alias Jellyfish.ServerMessage.RoomState
 
   @enforce_keys [
     :id,
@@ -64,34 +63,10 @@ defmodule Jellyfish.Component do
   end
 
   @doc false
-  @spec from_proto(RoomState.Component.t()) :: t()
-  def from_proto(response) do
-    case response do
-      %RoomState.Component{
-        id: id,
-        component: {_type, component}
-      } ->
-        type = type_from_proto(component)
-
-        %__MODULE__{
-          id: id,
-          type: type,
-          metadata: type.metadata_from_proto(component)
-        }
-
-      _other ->
-        raise StructureError
-    end
-  end
-
-  @doc false
   @spec string_from_options(struct()) :: String.t()
   def string_from_options(%HLS{}), do: "hls"
   def string_from_options(%RTSP{}), do: "rtsp"
 
   defp type_from_string("hls"), do: HLS
   defp type_from_string("rtsp"), do: RTSP
-
-  defp type_from_proto(%RoomState.Component.Hls{}), do: HLS
-  defp type_from_proto(%RoomState.Component.Rtsp{}), do: RTSP
 end

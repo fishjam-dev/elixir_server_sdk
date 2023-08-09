@@ -1,7 +1,6 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
 
-  alias Jellyfish.Component.HLS
   alias Jellyfish.{Client, Notifier, Peer, Room}
 
   alias Jellyfish.PeerMessage
@@ -34,76 +33,10 @@ defmodule Jellyfish.NotifierTest do
     end
   end
 
-  describe "subscribing for server notifications" do
-    setup do
-      {:ok, notifier} = Notifier.start_link()
-
-      on_exit(fn -> Process.exit(notifier, :normal) end)
-
-      %{
-        client: Client.new(),
-        notifier: notifier
-      }
-    end
-
-    test "returns error if room does not exist", %{notifier: notifier} do
-      assert {:error, :room_not_found} =
-               Notifier.subscribe_server_notifications(notifier, "fake_room_id")
-    end
-
-    test "returns initial state of the room", %{client: client, notifier: notifier} do
-      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
-      {:ok, %Jellyfish.Peer{id: peer_id}, _token} = Room.add_peer(client, room_id, Peer.WebRTC)
-
-      assert {:ok, %Room{id: ^room_id, peers: [%Peer{id: ^peer_id}]}} =
-               Notifier.subscribe_server_notifications(notifier, room_id)
-    end
-
-    test "returns state of the room with hls", %{client: client, notifier: notifier} do
-      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, video_codec: :h264)
-      {:ok, %Jellyfish.Component{id: component_id}} = Room.add_component(client, room_id, HLS)
-
-      assert {:ok, %Room{id: ^room_id, components: [component]}} =
-               Notifier.subscribe_server_notifications(notifier, room_id)
-
-      assert %Jellyfish.Component{id: ^component_id, type: HLS, metadata: %{playable: false}} =
-               component
-    end
-
-    test "for all notifications", %{client: client, notifier: notifier} do
-      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
-
-      trigger_notification(client, room_id)
-      refute_receive {:jellyfish, _msg}, 100
-
-      assert :ok = Notifier.subscribe_server_notifications(notifier, :all)
-
-      trigger_notification(client, room_id)
-      assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
-
-      # different room
-      {:ok, %Jellyfish.Room{id: other_room_id}} = Room.create(client)
-      trigger_notification(client, other_room_id)
-      assert_receive {:jellyfish, %PeerConnected{room_id: ^other_room_id}}
-    end
-
-    test "for specific room notifications only", %{client: client, notifier: notifier} do
-      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client)
-
-      assert {:ok, _room} = Notifier.subscribe_server_notifications(notifier, room_id)
-      trigger_notification(client, room_id)
-      assert_receive {:jellyfish, %PeerConnected{room_id: ^room_id}}
-
-      {:ok, %Jellyfish.Room{id: other_room_id}} = Room.create(client)
-      trigger_notification(client, other_room_id)
-      refute_receive {:jellyfish, _msg}, 100
-    end
-  end
-
   describe "receiving notifications" do
     setup do
       {:ok, notifier} = Notifier.start_link()
-      :ok = Notifier.subscribe_server_notifications(notifier, :all)
+      :ok = Notifier.subscribe_server_notifications(notifier)
 
       %{client: Client.new()}
     end
@@ -144,7 +77,7 @@ defmodule Jellyfish.NotifierTest do
   describe "receiving metrics" do
     setup do
       {:ok, notifier} = Notifier.start_link()
-      :ok = Notifier.subscribe_server_notifications(notifier, :all)
+      :ok = Notifier.subscribe_server_notifications(notifier)
       :ok = Notifier.subscribe_metrics(notifier)
 
       %{client: Client.new()}
@@ -165,15 +98,5 @@ defmodule Jellyfish.NotifierTest do
 
       assert_receive {:jellyfish, %MetricsReport{metrics: metrics}} when metrics != %{}, 1500
     end
-  end
-
-  defp trigger_notification(client, room_id) do
-    {:ok, %Jellyfish.Peer{}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
-
-    address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
-    {:ok, peer_ws} = WS.start_link("ws://#{address}/socket/peer/websocket")
-
-    auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
-    :ok = WS.send_frame(peer_ws, auth_request)
   end
 end
