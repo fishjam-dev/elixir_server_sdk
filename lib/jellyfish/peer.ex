@@ -73,6 +73,7 @@ defmodule Jellyfish.Peer do
   def string_from_options(%WebRTC{}), do: "webrtc"
 
   defp type_from_string("webrtc"), do: WebRTC
+
   def status_from_string(status) when status in @valid_status_strings,
     do: String.to_atom(status)
 end
