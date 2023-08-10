@@ -12,7 +12,9 @@ defmodule Jellyfish.RoomTest do
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter"
   }
 
-  @peer_opts %Peer.WebRTC{}
+  @peer_opts %Peer.WebRTC{
+    enable_simulcast: false
+  }
   @peer_opts_module Peer.WebRTC
 
   @room_id "mock_room_id"

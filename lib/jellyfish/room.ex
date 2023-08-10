@@ -146,7 +146,12 @@ defmodule Jellyfish.Room do
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/peer",
-             %{"type" => Peer.string_from_options(peer)}
+             %{
+               "type" => Peer.string_from_options(peer),
+               "options" =>
+                 Map.from_struct(peer)
+                 |> Map.new(fn {k, v} -> {snake_case_to_camel_case(k), v} end)
+             }
            ),
          {:ok, %{"peer" => peer, "token" => token}} <- Map.fetch(body, "data"),
          result <- Peer.from_json(peer) do

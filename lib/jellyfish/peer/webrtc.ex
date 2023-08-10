@@ -7,7 +7,12 @@ defmodule Jellyfish.Peer.WebRTC do
   """
 
   @enforce_keys []
-  defstruct @enforce_keys ++ []
+  defstruct @enforce_keys ++
+              [
+                enable_simulcast: true
+              ]
 
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+          enable_simulcast: boolean()
+        }
 end
