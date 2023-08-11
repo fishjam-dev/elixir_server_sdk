@@ -9,7 +9,6 @@ defmodule Jellyfish.Peer do
 
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Peer.WebRTC
-  alias Jellyfish.ServerMessage.SubscribeResponse.RoomState
 
   @enforce_keys [
     :id,
@@ -70,26 +69,6 @@ defmodule Jellyfish.Peer do
   end
 
   @doc false
-  @spec from_proto(RoomState.Peer.t()) :: t()
-  def from_proto(response) do
-    case response do
-      %RoomState.Peer{
-        id: id,
-        type: type,
-        status: status
-      } ->
-        %__MODULE__{
-          id: id,
-          type: type_from_proto(type),
-          status: status_from_proto(status)
-        }
-
-      _other ->
-        raise StructureError
-    end
-  end
-
-  @doc false
   @spec string_from_options(struct()) :: String.t()
   def string_from_options(%WebRTC{}), do: "webrtc"
 
@@ -97,9 +76,4 @@ defmodule Jellyfish.Peer do
 
   def status_from_string(status) when status in @valid_status_strings,
     do: String.to_atom(status)
-
-  defp type_from_proto(:TYPE_WEBRTC), do: WebRTC
-
-  defp status_from_proto(:STATUS_CONNECTED), do: :connected
-  defp status_from_proto(:STATUS_DISCONNECTED), do: :disconnected
 end
