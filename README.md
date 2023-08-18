@@ -39,7 +39,7 @@ Alternatively, the connection options can be provided when creating a `Jellyfish
 
 ```
 client =
-    Jellyfish.Client.new(server_address: "localhost:5002", server_api_key: "your-jellyfish-token")
+    Jellyfish.Client.new(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
 
 {:ok, notifier} =
     Jellyfish.Notifier.start(
@@ -67,7 +67,7 @@ room_id
 # => "8878cd13-99a6-40d6-8d7e-8da23d803dab"
 
 # Add peer
-{:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = 
+{:ok, %Jellyfish.Peer{id: peer_id}, peer_token} =
     Jellyfish.Room.add_peer(client, room_id, Jellyfish.Peer.WebRTC)
 
 receive do
@@ -83,7 +83,7 @@ List of structs representing events can be found in the [docs](https://hexdocs.p
 
 ## Testing
 
-When calling `mix test` it will automatically start the Jellyfish container under the hood. 
+When calling `mix test` it will automatically start the Jellyfish container under the hood.
 Tests on CI are run with the use of docker-compose, to run it locally in the same way as on CI run `mix integration_test`.
 
 ## Copyright and License
