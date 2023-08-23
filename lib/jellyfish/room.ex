@@ -103,7 +103,7 @@ defmodule Jellyfish.Room do
   @doc """
   Create a room.
   """
-  @spec create(Client.t(), options()) :: {:ok, t()} | {:error, atom() | String.t()}
+  @spec create(Client.t(), options()) :: {:ok, t(), String.t()} | {:error, atom() | String.t()}
   def create(client, opts \\ []) do
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
@@ -115,8 +115,9 @@ defmodule Jellyfish.Room do
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
+         {:ok, jellyfish_address} <- Map.fetch(body, "jellyfish_address"),
          result <- from_json(data) do
-      {:ok, result}
+      {:ok, result, jellyfish_address}
     else
       :error -> raise StructureError
       error -> handle_response_error(error)

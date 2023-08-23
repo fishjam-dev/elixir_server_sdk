@@ -42,7 +42,7 @@ defmodule Jellyfish.NotifierTest do
     end
 
     test "when room gets created and then deleted", %{client: client} do
-      {:ok, %Jellyfish.Room{id: room_id}} =
+      {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
         Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
       assert_receive {:jellyfish, %RoomCreated{room_id: ^room_id}}
@@ -53,14 +53,12 @@ defmodule Jellyfish.NotifierTest do
     end
 
     test "when peer connects and then disconnects", %{client: client} do
-      {:ok, %Jellyfish.Room{id: room_id}} =
+      {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
         Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
 
-      url = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
-
-      {:ok, peer_ws} = WS.start_link("ws://#{url}/socket/peer/websocket")
+      {:ok, peer_ws} = WS.start_link("ws://#{jellyfish_address}/socket/peer/websocket")
 
       auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
 
@@ -84,12 +82,12 @@ defmodule Jellyfish.NotifierTest do
     end
 
     test "with one peer", %{client: client} do
-      {:ok, %Jellyfish.Room{id: room_id}} = Room.create(client, max_peers: @max_peers)
+      {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
+        Room.create(client, max_peers: @max_peers)
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
 
-      url = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
-      {:ok, peer_ws} = WS.start_link("ws://#{url}/socket/peer/websocket")
+      {:ok, peer_ws} = WS.start_link("ws://#{jellyfish_address}/socket/peer/websocket")
 
       auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
       :ok = WS.send_frame(peer_ws, auth_request)
