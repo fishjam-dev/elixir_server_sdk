@@ -1,6 +1,6 @@
 defmodule Jellyfish.RoomTest do
   use ExUnit.Case
-
+  doctest Jellyfish.Room
   alias Jellyfish.{Client, Component, Peer, Room}
 
   @server_api_token "development"
