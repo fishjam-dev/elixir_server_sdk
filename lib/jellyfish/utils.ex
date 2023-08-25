@@ -18,8 +18,13 @@ defmodule Jellyfish.Utils do
     secure? =
       Keyword.get(opts, :secure?, Application.get_env(:jellyfish_server_sdk, :secure?, false))
 
-    if String.starts_with?(server_address, @protocol_prefixes), do: raise(ProtocolPrefixError)
+    check_prefixes(server_address)
 
     {server_address, server_api_token, secure?}
+  end
+
+  @spec check_prefixes(String.t()) :: nil
+  def check_prefixes(server_address) do
+    if String.starts_with?(server_address, @protocol_prefixes), do: raise(ProtocolPrefixError)
   end
 end

@@ -72,4 +72,24 @@ defmodule Jellyfish.Client do
 
     %__MODULE__{http_client: http_client}
   end
+
+  @spec update_address(t(), String.t()) :: t()
+  def update_address(client, new_address) do
+    Utils.check_prefixes(new_address)
+
+    Map.update!(
+      client,
+      :http_client,
+      &Map.update!(&1, :pre, fn pre_list ->
+        Enum.map(pre_list, fn
+          {Tesla.Middleware.BaseUrl, :call, [old_address]} ->
+            [protocol | _] = String.split(old_address, ":")
+            {Tesla.Middleware.BaseUrl, :call, ["#{protocol}://#{new_address}"]}
+
+          other ->
+            other
+        end)
+      end)
+    )
+  end
 end
