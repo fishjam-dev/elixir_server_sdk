@@ -135,15 +135,17 @@ defmodule Jellyfish.RoomTest do
   describe "Room.add_component/3" do
     setup [:create_room]
 
-    test "when request is valid", %{client: client, room_id: room_id} do
+    test "when request is valid with opts", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts)
-      assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
-
-      assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
       assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
 
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
       assert %Component{type: Component.RTSP, metadata: %{}} = component
+    end
+
+    test "when request is valid with opts module", %{client: client, room_id: room_id} do
+      assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
+      assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
     end
 
     test "when request is invalid", %{client: client} do

@@ -61,7 +61,7 @@ Make API calls to Jellyfish and receive server events:
 client = Jellyfish.Client.new()
 
 # Create room
-{:ok, %Jellyfish.Room{id: room_id}} = Jellyfish.Room.create(client, max_peers: 10)
+{:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} = Jellyfish.Room.create(client, max_peers: 10)
 
 room_id
 # => "8878cd13-99a6-40d6-8d7e-8da23d803dab"

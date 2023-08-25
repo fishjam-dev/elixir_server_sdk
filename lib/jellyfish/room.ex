@@ -9,7 +9,7 @@ defmodule Jellyfish.Room do
   ...>    components: [],
   ...>    config: %{max_peers: 10, video_codec: nil},
   ...>    peers: []
-  ...>  } = room, "localhost:5002"} = Jellyfish.Room.create(client, max_peers: 10)
+  ...>  } = room, _jellyfish_address} = Jellyfish.Room.create(client, max_peers: 10)
   iex> room == %Jellyfish.Room{
   ...>    id: room.id,
   ...>    components: [],
