@@ -1,6 +1,6 @@
 defmodule Jellyfish.RoomTest do
   use ExUnit.Case
-
+  doctest Jellyfish.Room
   alias Jellyfish.{Client, Component, Peer, Room}
 
   @server_api_token "development"
@@ -42,7 +42,8 @@ defmodule Jellyfish.RoomTest do
 
   describe "auth" do
     test "correct token", %{client: client} do
-      assert {:ok, room} = Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
+      assert {:ok, room, jellyfish_address} =
+               Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
       assert %Jellyfish.Room{
                components: [],
@@ -50,6 +51,9 @@ defmodule Jellyfish.RoomTest do
                id: _id,
                peers: []
              } = room
+
+      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      assert ^server_address = jellyfish_address
     end
 
     test "invalid token" do
@@ -60,7 +64,7 @@ defmodule Jellyfish.RoomTest do
 
   describe "Room.create/2" do
     test "when request is valid", %{client: client} do
-      assert {:ok, room} = Room.create(client, max_peers: @max_peers)
+      assert {:ok, room, jellyfish_address} = Room.create(client, max_peers: @max_peers)
 
       assert %Jellyfish.Room{
                components: [],
@@ -68,6 +72,9 @@ defmodule Jellyfish.RoomTest do
                id: _id,
                peers: []
              } = room
+
+      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      assert ^server_address = jellyfish_address
     end
 
     test "when request is invalid, max peers", %{client: client} do
@@ -128,15 +135,17 @@ defmodule Jellyfish.RoomTest do
   describe "Room.add_component/3" do
     setup [:create_room]
 
-    test "when request is valid", %{client: client, room_id: room_id} do
+    test "when request is valid with opts", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts)
-      assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
-
-      assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
       assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
 
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
       assert %Component{type: Component.RTSP, metadata: %{}} = component
+    end
+
+    test "when request is valid with opts module", %{client: client, room_id: room_id} do
+      assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
+      assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
     end
 
     test "when request is invalid", %{client: client} do
@@ -199,7 +208,7 @@ defmodule Jellyfish.RoomTest do
   end
 
   defp create_room(state) do
-    assert {:ok, %Jellyfish.Room{id: id}} =
+    assert {:ok, %Jellyfish.Room{id: id}, _jellyfish_address} =
              Room.create(state.client, max_peers: @max_peers, video_codec: @video_codec)
 
     %{room_id: id}

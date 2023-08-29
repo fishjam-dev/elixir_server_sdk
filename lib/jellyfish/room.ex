@@ -4,23 +4,27 @@ defmodule Jellyfish.Room do
 
   ## Examples
   ```
-  iex> {:ok, room} = Jellyfish.Room.create(client, max_peers: 10)
-  {:ok,
-    %Jellyfish.Room{
-      components: [],
-      config: %{max_peers: 10},
-      id: "d3af274a-c975-4876-9e1c-4714da0249b8",
-      peers: []
-  }}
-
-  iex> {:ok, peer, peer_token} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
-   {:ok,
-    %Jellyfish.Peer{
-      id: "5a731f2e-f49f-4d58-8f64-16a5c09b520e",
-      status: :disconnected,
-      type: Jellyfish.Peer.WebRTC
-    }, "3LTQ3ZDEtYTRjNy0yZDQyZjU1MDAxY2FkAAdyb29tX2lkbQAAACQ0M"}
-
+  iex> client = Jellyfish.Client.new()
+  iex> assert {:ok, %Jellyfish.Room{
+  ...>    components: [],
+  ...>    config: %{max_peers: 10, video_codec: nil},
+  ...>    peers: []
+  ...>  } = room, _jellyfish_address} = Jellyfish.Room.create(client, max_peers: 10)
+  iex> room == %Jellyfish.Room{
+  ...>    id: room.id,
+  ...>    components: [],
+  ...>    config: %{max_peers: 10, video_codec: nil},
+  ...>    peers: []}
+  true
+  iex> assert {:ok,%Jellyfish.Peer{
+  ...>    status: :disconnected,
+  ...>    type: Jellyfish.Peer.WebRTC
+  ...> } = peer, _peer_token} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
+  iex> %Jellyfish.Peer{
+  ...>    id: peer.id,
+  ...>    status: :disconnected,
+  ...>    type: Jellyfish.Peer.WebRTC} == peer
+  true
   iex> :ok = Jellyfish.Room.delete(client, room.id)
   :ok
   ```
@@ -103,7 +107,7 @@ defmodule Jellyfish.Room do
   @doc """
   Create a room.
   """
-  @spec create(Client.t(), options()) :: {:ok, t()} | {:error, atom() | String.t()}
+  @spec create(Client.t(), options()) :: {:ok, t(), String.t()} | {:error, atom() | String.t()}
   def create(client, opts \\ []) do
     with {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
@@ -115,8 +119,9 @@ defmodule Jellyfish.Room do
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
+         {:ok, jellyfish_address} <- Map.fetch(body, "jellyfish_address"),
          result <- from_json(data) do
-      {:ok, result}
+      {:ok, result, jellyfish_address}
     else
       :error -> raise StructureError
       error -> handle_response_error(error)

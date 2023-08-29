@@ -82,4 +82,42 @@ defmodule Jellyfish.ClientTest do
       )
     end
   end
+
+  test "update client address" do
+    client =
+      Client.new(
+        server_address: @server_address,
+        server_api_token: @server_api_token,
+        secure?: true
+      )
+
+    addres_with_prefix = "https://#{@server_address}"
+
+    assert %Client{
+             http_client: %Tesla.Client{
+               adapter: {Tesla.Adapter.Mint, :call, [[]]},
+               pre: [
+                 {Tesla.Middleware.BaseUrl, :call, [^addres_with_prefix]},
+                 {Tesla.Middleware.BearerAuth, :call, [[token: @server_api_token]]},
+                 {Tesla.Middleware.JSON, :call, [[]]}
+               ]
+             }
+           } = client
+
+    new_address = "jellyfish2:5005"
+    addres_with_prefix = "https://#{new_address}"
+
+    client = Client.update_address(client, new_address)
+
+    assert %Client{
+             http_client: %Tesla.Client{
+               adapter: {Tesla.Adapter.Mint, :call, [[]]},
+               pre: [
+                 {Tesla.Middleware.BaseUrl, :call, [^addres_with_prefix]},
+                 {Tesla.Middleware.BearerAuth, :call, [[token: @server_api_token]]},
+                 {Tesla.Middleware.JSON, :call, [[]]}
+               ]
+             }
+           } = client
+  end
 end

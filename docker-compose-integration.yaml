@@ -17,6 +17,8 @@ services:
     extends:
       file: docker-compose-dev.yaml
       service: jellyfish
+    environment:
+      - VIRTUAL_HOST=jellyfish
     networks:
       - network
 
