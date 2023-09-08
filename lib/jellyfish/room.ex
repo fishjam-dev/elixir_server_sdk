@@ -119,8 +119,9 @@ defmodule Jellyfish.Room do
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
-         {:ok, jellyfish_address} <- Map.fetch(body, "jellyfish_address"),
-         result <- from_json(data) do
+         {:ok, room_json} <- Map.fetch(data, "room"),
+         {:ok, jellyfish_address} <- Map.fetch(data, "jellyfish_address"),
+         result <- from_json(room_json) do
       {:ok, result, jellyfish_address}
     else
       :error -> raise StructureError
