@@ -7,10 +7,16 @@ defmodule Jellyfish.Component.HLS do
   """
 
   @behaviour Jellyfish.Component.Deserializer
-  @enforce_keys []
-  defstruct @enforce_keys ++ []
 
-  @type t :: %__MODULE__{}
+  @enforce_keys []
+  defstruct @enforce_keys ++
+              [
+                low_latency: false
+              ]
+
+  @type t :: %__MODULE__{
+          low_latency: boolean()
+        }
 
   @impl true
   def metadata_from_json(%{"playable" => playable}) do
