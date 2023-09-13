@@ -61,7 +61,11 @@ defmodule Jellyfish.Room do
       If set to `nil` or unspecified, any codec will be accepted.
       To use HLS component video codec has to be `:h264`.
   """
-  @type options :: [max_peers: non_neg_integer() | nil, video_codec: :h264 | :vp8 | nil, id: id() | nil]
+  @type options :: [
+          max_peers: non_neg_integer() | nil,
+          video_codec: :h264 | :vp8 | nil,
+          id: id() | nil
+        ]
 
   @typedoc """
   Stores information about the room.
