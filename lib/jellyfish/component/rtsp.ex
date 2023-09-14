@@ -24,8 +24,7 @@ defmodule Jellyfish.Component.RTSP do
           keep_alive_interval: non_neg_integer(),
           pierce_nat: boolean()
         }
+
   @impl true
   def metadata_from_json(_metadata), do: %{}
-  @impl true
-  def metadata_from_proto(_metadata), do: %{}
 end
