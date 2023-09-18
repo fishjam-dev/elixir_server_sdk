@@ -55,7 +55,7 @@ Make API calls to Jellyfish and receive server events:
 ```elixir
 # start process responsible for receiving events
 {:ok, notifier} = Jellyfish.Notifier.start()
-{:ok, _rooms} = Jellyfish.Notifier.subscribe_server_notifications(notifier, :all)
+:ok = Jellyfish.Notifier.subscribe_server_notifications(notifier)
 
 # create HTTP client instance
 client = Jellyfish.Client.new()
