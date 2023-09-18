@@ -54,6 +54,7 @@ defmodule Membrane.Template.Mixfile do
       {:jason, "~> 1.4"},
       {:websockex, "~> 0.4.3"},
       {:elixir_uuid, "~> 1.2"},
+      {:castore, "~> 1.0"},
 
       # protobuf deps
       {:protobuf, "~> 0.12.0"},
