@@ -19,7 +19,7 @@ services:
       file: docker-compose-dev.yaml
       service: jellyfish
     environment:
-      - VIRTUAL_HOST=jellyfish
+      - JF_HOST=jellyfish:5002
     networks:
       - network
 
