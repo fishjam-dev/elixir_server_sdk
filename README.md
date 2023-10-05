@@ -18,7 +18,7 @@ The package can be installed by adding `jellyfish_server_sdk` to your list of de
 ```elixir
 def deps do
   [
-    {:jellyfish_server_sdk, "~> 0.1.1"}
+    {:jellyfish_server_sdk, "~> 0.2.0"}
   ]
 end
 ```
@@ -37,7 +37,7 @@ config :jellyfish_server_sdk,
 
 Alternatively, the connection options can be provided when creating a `Jellyfish.Client` or starting `Jellyfish.Notifier`:
 
-```
+```elixir
 client =
     Jellyfish.Client.new(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
 
