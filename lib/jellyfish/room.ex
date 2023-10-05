@@ -74,7 +74,7 @@ defmodule Jellyfish.Room do
         }
 
   @doc """
-  List metadata of all of the rooms.
+  Lists metadata of all of the rooms.
   """
   @spec get_all(Client.t()) :: {:ok, [t()]} | {:error, atom() | String.t()}
   def get_all(client) do
@@ -89,7 +89,7 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Get metadata of the room with `room_id`.
+  Gets metadata of the room with `room_id`.
   """
   @spec get(Client.t(), id()) :: {:ok, t()} | {:error, atom() | String.t()}
   def get(client, room_id) do
@@ -105,7 +105,13 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Create a room.
+  Creates a new room.
+
+  Returns an address of Jellyfish where the room was created.
+  When running Jellyfish in a cluster, this address might be different
+  than the one used in the initial call.
+  Therefore, it is important to call `Jellyfish.Client.update_address/2`
+  before subsequent operations like adding peers or components.
   """
   @spec create(Client.t(), options()) :: {:ok, t(), String.t()} | {:error, atom() | String.t()}
   def create(client, opts \\ []) do
@@ -130,7 +136,7 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Delete the room with `room_id`.
+  Deletes the room with `room_id`.
   """
   @spec delete(Client.t(), id()) :: :ok | {:error, atom() | String.t()}
   def delete(client, room_id) do
@@ -141,7 +147,7 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Add a peer to the room with `room_id`.
+  Adds a peer to the room with `room_id`.
   """
   @spec add_peer(Client.t(), id(), Peer.options() | Peer.type()) ::
           {:ok, Peer.t(), peer_token()} | {:error, atom() | String.t()}
@@ -169,7 +175,7 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Delete the peer with `peer_id` from the room with `room_id`.
+  Deletes the peer with `peer_id` from the room with `room_id`.
   """
   @spec delete_peer(Client.t(), id(), Peer.id()) :: :ok | {:error, atom() | String.t()}
   def delete_peer(client, room_id, peer_id) do
@@ -183,7 +189,7 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Add component to the room with `room_id`.
+  Adds a component to the room with `room_id`.
   """
   @spec add_component(Client.t(), id(), Component.options() | Component.type()) ::
           {:ok, Component.t()} | {:error, atom() | String.t()}
@@ -211,7 +217,7 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Delete the component with `component_id` from the room with `room_id`.
+  Deletes the component with `component_id` from the room with `room_id`.
   """
   @spec delete_component(Client.t(), id(), Component.id()) :: :ok | {:error, atom() | String.t()}
   def delete_component(client, room_id, component_id) do

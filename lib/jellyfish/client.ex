@@ -73,6 +73,13 @@ defmodule Jellyfish.Client do
     %__MODULE__{http_client: http_client}
   end
 
+  @doc """
+  Updates Jellyfish address.
+
+  When running Jellyfish in a cluster, user has to 
+  manually update Jellyfish address after creating a room.
+  See also `Jellyfish.Room.create/2`.
+  """
   @spec update_address(t(), String.t()) :: t()
   def update_address(client, new_address) do
     Utils.check_prefixes(new_address)
