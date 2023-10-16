@@ -164,6 +164,16 @@ defmodule Jellyfish.Notifier do
     :ok
   end
 
+  @spec handle_json(term()) :: struct()
+  def handle_json(json) do
+    %ServerMessage{content: {_type, notification}} =
+      json
+      |> Map.get("notification")
+      |> ServerMessage.decode()
+
+    Notification.to_notification(notification)
+  end
+
   defp connect(fun, opts) do
     {address, api_token, secure?} = Utils.get_options_or_defaults(opts)
     address = if secure?, do: "wss://#{address}", else: "ws://#{address}"

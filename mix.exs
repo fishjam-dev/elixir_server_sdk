@@ -58,14 +58,16 @@ defmodule Membrane.Template.Mixfile do
 
       # protobuf deps
       {:protobuf, "~> 0.12.0"},
-      # Tests
-      {:divo, "~> 1.3.1", only: [:test]},
 
       # Docs, credo, test coverage, dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false},
-      {:excoveralls, ">= 0.0.0", only: [:test, :integration_test], runtime: false}
+      {:excoveralls, ">= 0.0.0", only: [:test, :integration_test], runtime: false},
+
+      # Test deps
+      {:plug_cowboy, "~> 2.5", only: [:test, :integration_test]},
+      {:phoenix_pubsub, "~> 2.1", only: [:test, :integration_test]}
     ]
   end
 
@@ -113,7 +115,7 @@ defmodule Membrane.Template.Mixfile do
   def aliases do
     [
       integration_test: [
-        "cmd docker compose -f docker-compose-integration.yaml pull",
+        # "cmd docker compose -f docker-compose-integration.yaml pull",
         "cmd docker compose -f docker-compose-integration.yaml run test"
       ]
     ]

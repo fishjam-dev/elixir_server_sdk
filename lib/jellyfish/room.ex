@@ -121,7 +121,8 @@ defmodule Jellyfish.Room do
              "/room",
              %{
                "maxPeers" => Keyword.get(opts, :max_peers),
-               "videoCodec" => Keyword.get(opts, :video_codec)
+               "videoCodec" => Keyword.get(opts, :video_codec),
+               "webhookUrl" => Keyword.get(opts, :webhook_url)
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),

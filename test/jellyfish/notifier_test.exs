@@ -16,11 +16,38 @@ defmodule Jellyfish.NotifierTest do
   alias Jellyfish.MetricsReport
 
   alias Jellyfish.WS
+  alias Phoenix.PubSub
 
   @peer_opts %Peer.WebRTC{}
 
   @max_peers 10
   @video_codec :vp8
+  @webhook_port 4000
+  @webhook_url "http://172.28.0.2:#{@webhook_port}/"
+  @pubsub Jellyfish.PubSub
+
+  setup_all do
+    children = [
+      {Plug.Cowboy,
+       plug: WebHookPlug, scheme: :http, options: [port: @webhook_port, ip: {0, 0, 0, 0}]},
+      {Phoenix.PubSub, name: Jellyfish.PubSub}
+    ]
+
+    {:ok, _pid} =
+      Supervisor.start_link(children,
+        strategy: :one_for_one
+      )
+
+    :ok
+  end
+
+  setup do
+    :ok = PubSub.subscribe(@pubsub, "webhook")
+
+    on_exit(fn ->
+      :ok = PubSub.unsubscribe(@pubsub, "webhook")
+    end)
+  end
 
   describe "connecting to the server and subcribing for events" do
     test "when credentials are valid" do
@@ -43,18 +70,28 @@ defmodule Jellyfish.NotifierTest do
 
     test "when room gets created and then deleted", %{client: client} do
       {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
-        Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
+        Room.create(client,
+          max_peers: @max_peers,
+          video_codec: @video_codec,
+          webhook_url: @webhook_url
+        )
 
       assert_receive {:jellyfish, %RoomCreated{room_id: ^room_id}}
+      assert_receive %RoomCreated{room_id: ^room_id}, 2_500
 
       :ok = Room.delete(client, room_id)
 
       assert_receive {:jellyfish, %RoomDeleted{room_id: ^room_id}}
+      assert_receive %RoomDeleted{room_id: ^room_id}, 2_500
     end
 
     test "when peer connects and then disconnects", %{client: client} do
       {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
-        Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
+        Room.create(client,
+          max_peers: @max_peers,
+          video_codec: @video_codec,
+          webhook_url: @webhook_url
+        )
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
 
@@ -65,10 +102,12 @@ defmodule Jellyfish.NotifierTest do
       :ok = WS.send_frame(peer_ws, auth_request)
 
       assert_receive {:jellyfish, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}
+      assert_receive %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}, 2_500
 
       :ok = Room.delete_peer(client, room_id, peer_id)
 
       assert_receive {:jellyfish, %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}}
+      assert_receive %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}, 2_500
     end
   end
 
@@ -83,7 +122,10 @@ defmodule Jellyfish.NotifierTest do
 
     test "with one peer", %{client: client} do
       {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
-        Room.create(client, max_peers: @max_peers)
+        Room.create(client,
+          max_peers: @max_peers,
+          webhook_url: @webhook_url
+        )
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
 
@@ -93,6 +135,7 @@ defmodule Jellyfish.NotifierTest do
       :ok = WS.send_frame(peer_ws, auth_request)
 
       assert_receive {:jellyfish, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}
+      assert_receive %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}, 2_500
 
       assert_receive {:jellyfish, %MetricsReport{metrics: metrics}} when metrics != %{}, 1500
     end
