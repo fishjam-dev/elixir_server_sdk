@@ -9,8 +9,6 @@ defmodule WebHookPlug do
   def init(opts) do
     # initialize options
 
-    IO.inspect("START WebHookPlug")
-
     opts
   end
 

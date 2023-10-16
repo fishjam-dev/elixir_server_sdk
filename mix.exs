@@ -114,10 +114,47 @@ defmodule Membrane.Template.Mixfile do
 
   def aliases do
     [
-      integration_test: [
-        # "cmd docker compose -f docker-compose-integration.yaml pull",
-        "cmd docker compose -f docker-compose-integration.yaml run test"
-      ]
+      test: &test_or_docker/1
     ]
+  end
+
+  defp test_or_docker(_) do
+    if System.find_executable("docker") do
+      IO.puts("Running tests using Docker...")
+      docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-integration.yaml"]
+      # {output, _exit_status} = System.cmd("docker", docker_compose_prefix ++ ["pull"])
+      # stream_command(docker_compose_prefix ++ ["pull"])
+      stream_command(docker_compose_prefix ++ ["run", "test"])
+    else
+      IO.puts("Running tests locally...")
+      Mix.Task.run("test")
+    end
+  end
+
+  defp stream_command(cmd) do
+    port =
+      Port.open({:spawn, Enum.join(cmd, " ")}, [
+        {:line, 1024},
+        :use_stdio,
+        :stderr_to_stdout,
+        :exit_status
+      ])
+
+    receive_and_print(port)
+  end
+
+  defp receive_and_print(port) do
+    receive do
+      {^port, {:data, {:eol, line}}} ->
+        IO.puts(line)
+        receive_and_print(port)
+
+      {^port, {:data, data}} ->
+        IO.puts(data)
+        receive_and_print(port)
+
+      {^port, {:exit_status, exit_status}} ->
+        IO.puts("Docker command exited with status code: #{exit_status}")
+    end
   end
 end
