@@ -11,15 +11,29 @@ defmodule Jellyfish.Component.HLS do
   @enforce_keys []
   defstruct @enforce_keys ++
               [
-                low_latency: false
+                low_latency: false,
+                persistent: false,
+                target_window_duration: nil
               ]
 
   @type t :: %__MODULE__{
-          low_latency: boolean()
+          low_latency: boolean(),
+          persistent: boolean(),
+          target_window_duration: pos_integer() | nil
         }
 
   @impl true
-  def metadata_from_json(%{"playable" => playable, "lowLatency" => low_latency}) do
-    %{playable: playable, low_latency: low_latency}
+  def metadata_from_json(%{
+        "playable" => playable,
+        "lowLatency" => low_latency,
+        "persistent" => persistent,
+        "targetWindowDuration" => target_window_duration
+      }) do
+    %{
+      playable: playable,
+      low_latency: low_latency,
+      persistent: persistent,
+      target_window_duration: target_window_duration
+    }
   end
 end
