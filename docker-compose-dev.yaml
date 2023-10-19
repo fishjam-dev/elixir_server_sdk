@@ -2,8 +2,7 @@ version: "3"
 
 services:
   jellyfish:
-    # image: "ghcr.io/jellyfish-dev/jellyfish:${TAG:-edge}"
-    image: "tmp"
+    image: "ghcr.io/jellyfish-dev/jellyfish:${TAG:-edge}"
     container_name: jellyfish
     restart: on-failure
     healthcheck:
