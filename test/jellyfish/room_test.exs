@@ -7,6 +7,12 @@ defmodule Jellyfish.RoomTest do
 
   @hls_component_opts %Component.HLS{}
   @hls_component_opts_module Component.HLS
+  @hls_metadata %{
+    playable: false,
+    low_latency: false,
+    persistent: false,
+    target_window_duration: nil
+  }
 
   @rtsp_component_opts %Component.RTSP{
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter"
@@ -137,7 +143,7 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid with opts", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts)
-      assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
+      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
 
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
       assert %Component{type: Component.RTSP, metadata: %{}} = component
@@ -145,7 +151,7 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid with opts module", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
-      assert %Component{type: Component.HLS, metadata: %{playable: false}} = component
+      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
     end
 
     test "when request is invalid", %{client: client} do
