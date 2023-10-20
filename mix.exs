@@ -118,13 +118,15 @@ defmodule Membrane.Template.Mixfile do
     ]
   end
 
-  defp test_or_docker(_) do
+  defp test_or_docker(_opts) do
     if System.find_executable("docker") do
       IO.puts("Running tests using Docker...")
-      docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-integration.yaml"]
-      # {output, _exit_status} = System.cmd("docker", docker_compose_prefix ++ ["pull"])
-      # stream_command(docker_compose_prefix ++ ["pull"])
-      stream_command(docker_compose_prefix ++ ["run", "test"])
+
+      docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-test.yaml"]
+
+      stream_command(["docker", "rm", "-f", "jellyfish"])
+      stream_command(docker_compose_prefix ++ ["pull"])
+      stream_command(docker_compose_prefix ++ ["run", "--remove-orphans", "test"])
     else
       IO.puts("Running tests locally...")
       Mix.Task.run("test")
