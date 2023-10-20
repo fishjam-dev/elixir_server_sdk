@@ -106,7 +106,7 @@ defmodule Jellyfish.NotifierTest do
 
       :ok = Room.delete_peer(client, room_id, peer_id)
 
-      assert_receive {:jellyfish, %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}}
+      assert_receive {:jellyfish, %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}}, 1_000
       assert_receive %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}, 2_500
     end
   end

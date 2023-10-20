@@ -84,12 +84,12 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid, max peers", %{client: client} do
-      assert {:error, "Request failed: maxPeers must be a number"} =
+      assert {:error, "Request failed: Expected maxPeers to be a number, got: abc"} =
                Room.create(client, max_peers: @invalid_max_peers)
     end
 
     test "when request is invalid, video codec", %{client: client} do
-      assert {:error, "Request failed: videoCodec must be 'h264' or 'vp8'"} =
+      assert {:error, "Request failed: Expected videoCodec to be 'h264' or 'vp8', got: opus"} =
                Room.create(client, video_codec: @invalid_video_codec)
     end
   end
