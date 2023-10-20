@@ -7,8 +7,6 @@ defmodule WebHookPlug do
   @pubsub Jellyfish.PubSub
 
   def init(opts) do
-    # initialize options
-
     opts
   end
 
@@ -16,12 +14,7 @@ defmodule WebHookPlug do
     {:ok, body, conn} = Plug.Conn.read_body(conn, [])
     notification = Jason.decode!(body)
 
-    notification =
-      if notification == %{} do
-        notification
-      else
-        Notifier.handle_json(notification)
-      end
+    notification = Notifier.handle_json(notification)
 
     :ok = PubSub.broadcast(@pubsub, "webhook", notification)
 
