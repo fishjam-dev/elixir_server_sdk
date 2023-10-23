@@ -46,19 +46,9 @@ defmodule Jellyfish.NotifierTest do
       :ok = PubSub.unsubscribe(@pubsub, "webhook")
     end)
 
-    webhook_address =
-      System.get_env(
-        "WEBHOOK_ADDRESS",
-        Application.fetch_env!(:jellyfish_server_sdk, :webhook_address)
-      )
+    webhook_address = Jellyfish.Test.Utils.read_webhook_address(@webhook_port)
 
-    webhook_address = "http://#{webhook_address}:#{@webhook_port}/"
-
-    server_address =
-      System.get_env(
-        "SERVER_ADDRESS",
-        Application.fetch_env!(:jellyfish_server_sdk, :server_address)
-      )
+    server_address = Jellyfish.Test.Utils.read_server_address()
 
     {:ok, %{webhook_address: webhook_address, server_address: server_address}}
   end

@@ -116,13 +116,13 @@ defmodule Membrane.Template.Mixfile do
   def aliases do
     [
       test: &test_in_docker/1,
-      test_without_docker: ["test --force"]
+      test_without_docker: ["test --without_docker"]
     ]
   end
 
   defp test_in_docker(opts) do
     cond do
-      List.last(opts) == "--force" ->
+      List.last(opts) == "--without_docker" ->
         IO.puts("Running tests locally (it requires setting up jellyfish without docker) ...")
 
         System.put_env("SERVER_ADDRESS", "127.0.0.1:5002")

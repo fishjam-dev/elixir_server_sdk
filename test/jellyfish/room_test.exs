@@ -43,11 +43,7 @@ defmodule Jellyfish.RoomTest do
   end
 
   setup do
-    server_address =
-      System.get_env(
-        "SERVER_ADDRESS",
-        Application.fetch_env!(:jellyfish_server_sdk, :server_address)
-      )
+    server_address = Jellyfish.Test.Utils.read_server_address()
 
     %{client: Client.new(server_address: server_address), server_address: server_address}
   end

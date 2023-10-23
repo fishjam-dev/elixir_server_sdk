@@ -4,7 +4,6 @@ defmodule Jellyfish.Room do
 
   ## Examples
   ```
-  iex>
   iex> client = Jellyfish.Client.new()
   iex> assert {:ok, %Jellyfish.Room{
   ...>    components: [],

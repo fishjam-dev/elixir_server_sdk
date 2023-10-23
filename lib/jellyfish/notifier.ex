@@ -7,7 +7,7 @@ defmodule Jellyfish.Notifier do
 
   ```
   # Start the Notifier
-  iex> {:ok, _notifier} = Jellyfish.Notifier.start()
+  iex> {:ok, notifier} = Jellyfish.Notifier.start()
   {:ok, #PID<0.301.0>}
   ```
 
@@ -165,7 +165,7 @@ defmodule Jellyfish.Notifier do
   end
 
   @doc """
-  Decode received webhook to `Jellyfish.Notification` structs.
+  Decode received webhook to notification structs.
 
   ```
   iex> %{
