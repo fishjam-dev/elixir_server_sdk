@@ -33,7 +33,8 @@ defmodule Membrane.Template.Mixfile do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
-        "coveralls.json": :test
+        "coveralls.json": :test,
+        test_without_docker: :test
       ]
     ]
   end
@@ -44,7 +45,7 @@ defmodule Membrane.Template.Mixfile do
     ]
   end
 
-  defp elixirc_paths(env) when env in [:test, :integration_test], do: ["lib", "test/support"]
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_env), do: ["lib"]
 
   defp deps do
@@ -63,11 +64,11 @@ defmodule Membrane.Template.Mixfile do
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false},
-      {:excoveralls, ">= 0.0.0", only: [:test, :integration_test], runtime: false},
+      {:excoveralls, ">= 0.0.0", only: :test, runtime: false},
 
       # Test deps
-      {:plug_cowboy, "~> 2.5", only: [:test, :integration_test]},
-      {:phoenix_pubsub, "~> 2.1", only: [:test, :integration_test]}
+      {:plug_cowboy, "~> 2.5", only: :test},
+      {:phoenix_pubsub, "~> 2.1", only: :test}
     ]
   end
 
@@ -114,22 +115,34 @@ defmodule Membrane.Template.Mixfile do
 
   def aliases do
     [
-      test: &test_or_docker/1
+      test: &test_in_docker/1,
+      test_without_docker: ["test --force"]
     ]
   end
 
-  defp test_or_docker(_opts) do
-    if System.find_executable("docker") do
-      IO.puts("Running tests using Docker...")
+  defp test_in_docker(opts) do
+    cond do
+      List.last(opts) == "--force" ->
+        IO.puts("Running tests locally (it requires setting up jellyfish without docker) ...")
 
-      docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-test.yaml"]
+        System.put_env("SERVER_ADDRESS", "127.0.0.1:5002")
+        System.put_env("WEBHOOK_ADDRESS", "127.0.0.1")
 
-      stream_command(["docker", "rm", "-f", "jellyfish"])
-      stream_command(docker_compose_prefix ++ ["pull"])
-      stream_command(docker_compose_prefix ++ ["run", "--remove-orphans", "test"])
-    else
-      IO.puts("Running tests locally...")
-      Mix.Task.run("test")
+        Mix.Task.run("test", ["--exclude", "doctest"])
+
+      System.find_executable("docker") ->
+        IO.puts("Running tests using Docker...")
+
+        docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-test.yaml"]
+
+        stream_command(["docker", "rm", "-f", "jellyfish"])
+        stream_command(docker_compose_prefix ++ ["pull"])
+        stream_command(docker_compose_prefix ++ ["run", "--remove-orphans", "test"])
+
+      true ->
+        IO.puts("Running tests inside docker container ...")
+
+        Mix.Task.run("test")
     end
   end
 

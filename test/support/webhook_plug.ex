@@ -14,9 +14,9 @@ defmodule WebHookPlug do
     {:ok, body, conn} = Plug.Conn.read_body(conn, [])
     notification = Jason.decode!(body)
 
-    notification = Notifier.handle_json(notification)
+    notification = Notifier.decode_webhook(notification)
 
-    :ok = PubSub.broadcast(@pubsub, "webhook", notification)
+    :ok = PubSub.broadcast(@pubsub, "webhook", {:webhook, notification})
 
     conn
     |> put_resp_content_type("text/plain")

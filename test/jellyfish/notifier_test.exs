@@ -1,6 +1,5 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
-
   alias Jellyfish.{Client, Notifier, Peer, Room}
 
   alias Jellyfish.PeerMessage
@@ -23,7 +22,6 @@ defmodule Jellyfish.NotifierTest do
   @max_peers 10
   @video_codec :vp8
   @webhook_port 4000
-  @webhook_url "http://172.28.0.2:#{@webhook_port}/"
   @pubsub Jellyfish.PubSub
 
   setup_all do
@@ -47,50 +45,76 @@ defmodule Jellyfish.NotifierTest do
     on_exit(fn ->
       :ok = PubSub.unsubscribe(@pubsub, "webhook")
     end)
+
+    webhook_address =
+      System.get_env(
+        "WEBHOOK_ADDRESS",
+        Application.fetch_env!(:jellyfish_server_sdk, :webhook_address)
+      )
+
+    webhook_address = "http://#{webhook_address}:#{@webhook_port}/"
+
+    server_address =
+      System.get_env(
+        "SERVER_ADDRESS",
+        Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      )
+
+    {:ok, %{webhook_address: webhook_address, server_address: server_address}}
   end
 
   describe "connecting to the server and subcribing for events" do
-    test "when credentials are valid" do
-      assert {:ok, pid} = Notifier.start_link()
+    test "when credentials are valid", %{server_address: server_address} do
+      assert {:ok, pid} = Notifier.start_link(server_address: server_address)
       assert is_pid(pid)
     end
 
-    test "when token is invalid" do
-      assert {:error, :invalid_token} = Notifier.start_link(server_api_token: "invalid_token")
+    test "when token is invalid", %{server_address: server_address} do
+      assert {:error, :invalid_token} =
+               Notifier.start_link(
+                 server_api_token: "invalid_token",
+                 server_address: server_address
+               )
     end
   end
 
   describe "receiving notifications" do
-    setup do
-      {:ok, notifier} = Notifier.start_link()
+    setup %{server_address: server_address, webhook_address: webhook_address} do
+      {:ok, notifier} = Notifier.start_link(server_address: server_address)
       :ok = Notifier.subscribe_server_notifications(notifier)
 
-      %{client: Client.new()}
+      %{client: Client.new(server_address: server_address), webhook_address: webhook_address}
     end
 
-    test "when room gets created and then deleted", %{client: client} do
+    test "when room gets created and then deleted", %{
+      client: client,
+      webhook_address: webhook_address
+    } do
       {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
         Room.create(client,
           max_peers: @max_peers,
           video_codec: @video_codec,
-          webhook_url: @webhook_url
+          webhook_url: webhook_address
         )
 
       assert_receive {:jellyfish, %RoomCreated{room_id: ^room_id}}
-      assert_receive %RoomCreated{room_id: ^room_id}, 2_500
+      assert_receive {:webhook, %RoomCreated{room_id: ^room_id}}, 2_500
 
       :ok = Room.delete(client, room_id)
 
       assert_receive {:jellyfish, %RoomDeleted{room_id: ^room_id}}
-      assert_receive %RoomDeleted{room_id: ^room_id}, 2_500
+      assert_receive {:webhook, %RoomDeleted{room_id: ^room_id}}, 2_500
     end
 
-    test "when peer connects and then disconnects", %{client: client} do
+    test "when peer connects and then disconnects", %{
+      client: client,
+      webhook_address: webhook_address
+    } do
       {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
         Room.create(client,
           max_peers: @max_peers,
           video_codec: @video_codec,
-          webhook_url: @webhook_url
+          webhook_url: webhook_address
         )
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
@@ -102,29 +126,29 @@ defmodule Jellyfish.NotifierTest do
       :ok = WS.send_frame(peer_ws, auth_request)
 
       assert_receive {:jellyfish, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}
-      assert_receive %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}, 2_500
+      assert_receive {:webhook, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}, 2_500
 
       :ok = Room.delete_peer(client, room_id, peer_id)
 
       assert_receive {:jellyfish, %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}}, 1_000
-      assert_receive %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}, 2_500
+      assert_receive {:webhook, %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id}}, 2_500
     end
   end
 
   describe "receiving metrics" do
-    setup do
-      {:ok, notifier} = Notifier.start_link()
+    setup %{server_address: server_address, webhook_address: webhook_address} do
+      {:ok, notifier} = Notifier.start_link(server_address: server_address)
       :ok = Notifier.subscribe_server_notifications(notifier)
       :ok = Notifier.subscribe_metrics(notifier)
 
-      %{client: Client.new()}
+      %{client: Client.new(server_address: server_address), webhook_address: webhook_address}
     end
 
-    test "with one peer", %{client: client} do
+    test "with one peer", %{client: client, webhook_address: webhook_address} do
       {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
         Room.create(client,
           max_peers: @max_peers,
-          webhook_url: @webhook_url
+          webhook_url: webhook_address
         )
 
       {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
@@ -135,7 +159,7 @@ defmodule Jellyfish.NotifierTest do
       :ok = WS.send_frame(peer_ws, auth_request)
 
       assert_receive {:jellyfish, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}
-      assert_receive %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}, 2_500
+      assert_receive {:webhook, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}, 2_500
 
       assert_receive {:jellyfish, %MetricsReport{metrics: metrics}} when metrics != %{}, 1500
     end

@@ -43,11 +43,17 @@ defmodule Jellyfish.RoomTest do
   end
 
   setup do
-    %{client: Client.new()}
+    server_address =
+      System.get_env(
+        "SERVER_ADDRESS",
+        Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      )
+
+    %{client: Client.new(server_address: server_address), server_address: server_address}
   end
 
   describe "auth" do
-    test "correct token", %{client: client} do
+    test "correct token", %{client: client, server_address: server_address} do
       assert {:ok, room, jellyfish_address} =
                Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
@@ -58,7 +64,6 @@ defmodule Jellyfish.RoomTest do
                peers: []
              } = room
 
-      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
       assert ^server_address = jellyfish_address
     end
 
@@ -69,7 +74,7 @@ defmodule Jellyfish.RoomTest do
   end
 
   describe "Room.create/2" do
-    test "when request is valid", %{client: client} do
+    test "when request is valid", %{client: client, server_address: server_address} do
       assert {:ok, room, jellyfish_address} = Room.create(client, max_peers: @max_peers)
 
       assert %Jellyfish.Room{
@@ -79,7 +84,6 @@ defmodule Jellyfish.RoomTest do
                peers: []
              } = room
 
-      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
       assert ^server_address = jellyfish_address
     end
 
