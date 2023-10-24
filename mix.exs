@@ -45,7 +45,7 @@ defmodule Membrane.Template.Mixfile do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(env) when env in [:test, :test_local], do: ["lib", "test/support"]
   defp elixirc_paths(_env), do: ["lib"]
 
   defp deps do
@@ -64,11 +64,11 @@ defmodule Membrane.Template.Mixfile do
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false},
-      {:excoveralls, ">= 0.0.0", only: :test, runtime: false},
+      {:excoveralls, ">= 0.0.0", only: [:test, :test_local], runtime: false},
 
       # Test deps
-      {:plug_cowboy, "~> 2.5", only: :test},
-      {:phoenix_pubsub, "~> 2.1", only: :test}
+      {:plug_cowboy, "~> 2.5", only: [:test, :test_local]},
+      {:phoenix_pubsub, "~> 2.1", only: [:test, :test_local]}
     ]
   end
 
@@ -116,7 +116,7 @@ defmodule Membrane.Template.Mixfile do
   def aliases do
     [
       test: &test_in_docker/1,
-      "test.local": ["test --without_docker"]
+      "test.local": ["cmd MIX_ENV=test_local mix test --without_docker"]
     ]
   end
 
@@ -125,10 +125,7 @@ defmodule Membrane.Template.Mixfile do
       List.last(opts) == "--without_docker" ->
         IO.puts("Running tests locally (it requires setting up jellyfish without docker) ...")
 
-        Application.put_env(:jellyfish_server_sdk, :local_server_address, "127.0.0.1:5002")
-        Application.put_env(:jellyfish_server_sdk, :local_webhook_address, "127.0.0.1")
-
-        Mix.Task.run("test", ["--exclude", "doctest"])
+        Mix.Task.run("test")
 
       System.find_executable("docker") ->
         IO.puts("Running tests using Docker...")
