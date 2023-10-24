@@ -1,6 +1,7 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
-  alias Jellyfish.{Client, Notifier, Peer, Room}
+  doctest Jellyfish.WebhookNotifier
+  alias Jellyfish.{Client, WSNotifier, Peer, Room}
 
   alias Jellyfish.PeerMessage
   alias Jellyfish.PeerMessage.AuthRequest
@@ -55,13 +56,13 @@ defmodule Jellyfish.NotifierTest do
 
   describe "connecting to the server and subcribing for events" do
     test "when credentials are valid", %{server_address: server_address} do
-      assert {:ok, pid} = Notifier.start_link(server_address: server_address)
+      assert {:ok, pid} = WSNotifier.start_link(server_address: server_address)
       assert is_pid(pid)
     end
 
     test "when token is invalid", %{server_address: server_address} do
       assert {:error, :invalid_token} =
-               Notifier.start_link(
+               WSNotifier.start_link(
                  server_api_token: "invalid_token",
                  server_address: server_address
                )
@@ -70,8 +71,8 @@ defmodule Jellyfish.NotifierTest do
 
   describe "receiving notifications" do
     setup %{server_address: server_address, webhook_address: webhook_address} do
-      {:ok, notifier} = Notifier.start_link(server_address: server_address)
-      :ok = Notifier.subscribe_server_notifications(notifier)
+      {:ok, notifier} = WSNotifier.start_link(server_address: server_address)
+      :ok = WSNotifier.subscribe_server_notifications(notifier)
 
       %{client: Client.new(server_address: server_address), webhook_address: webhook_address}
     end
@@ -127,9 +128,9 @@ defmodule Jellyfish.NotifierTest do
 
   describe "receiving metrics" do
     setup %{server_address: server_address, webhook_address: webhook_address} do
-      {:ok, notifier} = Notifier.start_link(server_address: server_address)
-      :ok = Notifier.subscribe_server_notifications(notifier)
-      :ok = Notifier.subscribe_metrics(notifier)
+      {:ok, notifier} = WSNotifier.start_link(server_address: server_address)
+      :ok = WSNotifier.subscribe_server_notifications(notifier)
+      :ok = WSNotifier.subscribe_metrics(notifier)
 
       %{client: Client.new(server_address: server_address), webhook_address: webhook_address}
     end

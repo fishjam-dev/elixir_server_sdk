@@ -1,4 +1,4 @@
-defmodule Jellyfish.Notifier do
+defmodule Jellyfish.WSNotifier do
   @moduledoc """
   Module defining a process responsible for establishing
   WebSocket connection and receiving events from Jellyfish server.
@@ -7,13 +7,13 @@ defmodule Jellyfish.Notifier do
 
   ```
   # Start the Notifier
-  iex> {:ok, notifier} = Jellyfish.Notifier.start()
+  iex> {:ok, notifier} = Jellyfish.WSNotifier.start()
   {:ok, #PID<0.301.0>}
   ```
 
   ```
   # Subscribe current process to server notifications.
-  iex> :ok = Jellyfish.Notifier.subscribe_server_notifications(notifier)
+  iex> :ok = Jellyfish.WSNotifier.subscribe_server_notifications(notifier)
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
   # you should receive a notification after the peer established connection
@@ -28,7 +28,7 @@ defmodule Jellyfish.Notifier do
 
   When starting the Notifier, you can provide the name under which the process will be registered.
   ```
-  iex> {:ok, notifier} = Jellyfish.Notifier.start_link(name: Jellyfish.Notifier)
+  iex> {:ok, notifier} = Jellyfish.WSNotifier.start_link(name: Jellyfish.WSNotifier)
   ```
 
   """
@@ -162,33 +162,6 @@ defmodule Jellyfish.Notifier do
   @impl true
   def terminate(_reason, _state) do
     :ok
-  end
-
-  @doc """
-  Decode received webhook to notification structs.
-
-  ```
-  iex> %{
-  "notification" => <<18, 76, 10, 36, 102, 98, 102, 52, 49, 57, 48, 99, 45, 53, 99, 55, 54, 45, 52,
-  49, 53, 99, 45, 56, 57, 51, 57, 45, 53, 50, 99, 54, 101, 100, 50, 48, 56, 54,
-  56, 98, 18, 36, 99, 55, 50, 51, 54, 53, 56, 55, 45, 53, 100, 102, 56, 45, 52,
-  98, 52, 49, 45, 98, 54, 101, 52, 45, 50, 54, 56, 101, 55, 49, 49, 51, 51, 101,
-  101, 50>>
-  } |> Jellyfish.Notifier.decode_webhook()
-  %Jellyfish.Notification.PeerConnected{
-  room_id: "fbf4190c-5c76-415c-8939-52c6ed20868b",
-  peer_id: "c7236587-5df8-4b41-b6e4-268e71133ee2"
-  }
-  ```
-  """
-  @spec decode_webhook(term()) :: struct()
-  def decode_webhook(json) do
-    %ServerMessage{content: {_type, notification}} =
-      json
-      |> Map.get("notification")
-      |> ServerMessage.decode()
-
-    Notification.to_notification(notification)
   end
 
   defp connect(fun, opts) do

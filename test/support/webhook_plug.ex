@@ -1,7 +1,7 @@
 defmodule WebHookPlug do
   @moduledoc false
   import Plug.Conn
-  alias Jellyfish.Notifier
+  alias Jellyfish.WebhookNotifier
   alias Phoenix.PubSub
 
   @pubsub Jellyfish.PubSub
@@ -14,7 +14,7 @@ defmodule WebHookPlug do
     {:ok, body, conn} = Plug.Conn.read_body(conn, [])
     notification = Jason.decode!(body)
 
-    notification = Notifier.decode_webhook(notification)
+    notification = WebhookNotifier.receive(notification)
 
     :ok = PubSub.broadcast(@pubsub, "webhook", {:webhook, notification})
 

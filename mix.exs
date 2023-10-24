@@ -34,7 +34,7 @@ defmodule Membrane.Template.Mixfile do
         "coveralls.post": :test,
         "coveralls.html": :test,
         "coveralls.json": :test,
-        test_without_docker: :test
+        "test.local": :test
       ]
     ]
   end
@@ -116,7 +116,7 @@ defmodule Membrane.Template.Mixfile do
   def aliases do
     [
       test: &test_in_docker/1,
-      test_without_docker: ["test --without_docker"]
+      "test.local": ["test --without_docker"]
     ]
   end
 
@@ -135,9 +135,9 @@ defmodule Membrane.Template.Mixfile do
 
         docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-test.yaml"]
 
-        stream_command(["docker", "rm", "-f", "jellyfish"])
         stream_command(docker_compose_prefix ++ ["pull"])
-        stream_command(docker_compose_prefix ++ ["run", "--remove-orphans", "test"])
+        stream_command(docker_compose_prefix ++ ["up", "--remove-orphans", "test"])
+        stream_command(docker_compose_prefix ++ ["down"])
 
       true ->
         IO.puts("Running tests inside docker container ...")
