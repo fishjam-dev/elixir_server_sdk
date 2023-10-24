@@ -1,6 +1,6 @@
 defmodule Jellyfish.WebhookNotifier do
   @moduledoc """
-  Module defining a function allowing decoding received webhook notificaiton from jellyfish to notification structs.
+  Module defining a function allowing decoding received webhook notification from jellyfish to notification structs.
   """
 
   @doc """
