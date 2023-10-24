@@ -125,8 +125,8 @@ defmodule Membrane.Template.Mixfile do
       List.last(opts) == "--without_docker" ->
         IO.puts("Running tests locally (it requires setting up jellyfish without docker) ...")
 
-        System.put_env("SERVER_ADDRESS", "127.0.0.1:5002")
-        System.put_env("WEBHOOK_ADDRESS", "127.0.0.1")
+        Application.put_env(:jellyfish_server_sdk, :local_server_address, "127.0.0.1:5002")
+        Application.put_env(:jellyfish_server_sdk, :local_webhook_address, "127.0.0.1")
 
         Mix.Task.run("test", ["--exclude", "doctest"])
 

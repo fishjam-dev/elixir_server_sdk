@@ -2,18 +2,20 @@ defmodule Jellyfish.Test.Utils do
   @moduledoc false
 
   def read_server_address() do
-    System.get_env(
-      "SERVER_ADDRESS",
-      Application.fetch_env!(:jellyfish_server_sdk, :server_address)
-    )
+    Application.fetch_env(:jellyfish_server_sdk, :local_server_address)
+    |> case do
+      {:ok, value} -> value
+      :error -> Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+    end
   end
 
   def read_webhook_address(webhook_port) do
     webhook_address =
-      System.get_env(
-        "WEBHOOK_ADDRESS",
-        Application.fetch_env!(:jellyfish_server_sdk, :webhook_address)
-      )
+      Application.fetch_env(:jellyfish_server_sdk, :local_webhook_address)
+      |> case do
+        {:ok, value} -> value
+        :error -> Application.fetch_env!(:jellyfish_server_sdk, :webhook_address)
+      end
 
     "http://#{webhook_address}:#{webhook_port}/"
   end

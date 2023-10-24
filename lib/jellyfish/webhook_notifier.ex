@@ -3,6 +3,8 @@ defmodule Jellyfish.WebhookNotifier do
   Module defining a function allowing decoding received webhook notification from jellyfish to notification structs.
   """
 
+  alias Jellyfish.{Notification, ServerMessage}
+
   @doc """
   Decode received webhook to notification structs.
 
@@ -20,9 +22,6 @@ defmodule Jellyfish.WebhookNotifier do
   }
   ```
   """
-
-  alias Jellyfish.{Notification, ServerMessage}
-
   @spec receive(term()) :: struct()
   def receive(json) do
     %ServerMessage{content: {_type, notification}} =
