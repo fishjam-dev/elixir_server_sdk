@@ -1,7 +1,7 @@
 defmodule Jellyfish.NotifierTest do
   use ExUnit.Case
   doctest Jellyfish.WebhookNotifier
-  alias Jellyfish.{Client, WSNotifier, Peer, Room}
+  alias Jellyfish.{Client, Peer, Room, WSNotifier}
 
   alias Jellyfish.PeerMessage
   alias Jellyfish.PeerMessage.AuthRequest
