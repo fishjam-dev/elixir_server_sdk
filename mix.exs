@@ -133,7 +133,11 @@ defmodule Membrane.Template.Mixfile do
         docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-test.yaml"]
 
         stream_command(docker_compose_prefix ++ ["pull"])
-        stream_command(docker_compose_prefix ++ ["run", "--remove-orphans", "test"])
+
+        stream_command(
+          docker_compose_prefix ++ ["up", "--remove-orphans", "test", "--exit-code-from", "test"]
+        )
+
         stream_command(docker_compose_prefix ++ ["down"])
 
       true ->

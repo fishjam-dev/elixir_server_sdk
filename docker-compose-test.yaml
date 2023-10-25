@@ -8,9 +8,6 @@ services:
       - .:/app
     ports:
       - "4000:4000"
-    networks:
-      test_network:
-        ipv4_address: 172.28.0.2
     depends_on:
       jellyfish:
         condition: service_healthy
@@ -21,12 +18,3 @@ services:
       service: jellyfish
     environment:
       - JF_HOST=jellyfish:5002
-    networks:
-      test_network:
-        ipv4_address: 172.28.0.3
-
-networks:
-  test_network:
-    ipam:
-      config:
-        - subnet: 172.28.0.0/24
