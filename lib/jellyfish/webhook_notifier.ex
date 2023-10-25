@@ -6,7 +6,7 @@ defmodule Jellyfish.WebhookNotifier do
   alias Jellyfish.{Notification, ServerMessage}
 
   @doc """
-  Decode received webhook to notification structs.
+  Decodes received webhook to notification structs.
 
   ```
   iex> %{
