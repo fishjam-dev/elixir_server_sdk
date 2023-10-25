@@ -128,7 +128,7 @@ defmodule Membrane.Template.Mixfile do
         Mix.Task.run("test")
 
       System.find_executable("docker") ->
-        IO.puts("Running tests using Docker...")
+        IO.puts("Running tests using Docker. To run tests without Docker call \"mix test.local\"")
 
         docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-test.yaml"]
 
