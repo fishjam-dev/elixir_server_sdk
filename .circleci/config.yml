@@ -16,7 +16,7 @@ jobs:
     executor: machine_executor_amd64
     steps:
       - checkout
-      - run: docker compose -f docker-compose-integration.yaml run test
+      - run: docker compose -f docker-compose-test.yaml up test --exit-code-from test
       - codecov/upload
 
 workflows:

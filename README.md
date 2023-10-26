@@ -35,14 +35,14 @@ config :jellyfish_server_sdk,
   secure?: true
 ```
 
-Alternatively, the connection options can be provided when creating a `Jellyfish.Client` or starting `Jellyfish.Notifier`:
+Alternatively, the connection options can be provided when creating a `Jellyfish.Client` or starting `Jellyfish.WSNotifier`:
 
 ```elixir
 client =
     Jellyfish.Client.new(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
 
 {:ok, notifier} =
-    Jellyfish.Notifier.start(
+    Jellyfish.WSNotifier.start(
       server_address: "localhost:5002",
       server_api_token: "your-jellyfish-token"
     )
@@ -54,8 +54,8 @@ Make API calls to Jellyfish and receive server events:
 
 ```elixir
 # start process responsible for receiving events
-{:ok, notifier} = Jellyfish.Notifier.start()
-:ok = Jellyfish.Notifier.subscribe_server_notifications(notifier)
+{:ok, notifier} = Jellyfish.WSNotifier.start()
+:ok = Jellyfish.WSNotifier.subscribe_server_notifications(notifier)
 
 # create HTTP client instance
 client = Jellyfish.Client.new()

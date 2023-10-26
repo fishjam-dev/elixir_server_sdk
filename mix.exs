@@ -33,7 +33,8 @@ defmodule Membrane.Template.Mixfile do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
-        "coveralls.json": :test
+        "coveralls.json": :test,
+        "test.local": :test
       ]
     ]
   end
@@ -44,7 +45,7 @@ defmodule Membrane.Template.Mixfile do
     ]
   end
 
-  defp elixirc_paths(env) when env in [:test, :integration_test], do: ["lib", "test/support"]
+  defp elixirc_paths(env) when env in [:test, :test_local], do: ["lib", "test/support"]
   defp elixirc_paths(_env), do: ["lib"]
 
   defp deps do
@@ -58,14 +59,16 @@ defmodule Membrane.Template.Mixfile do
 
       # protobuf deps
       {:protobuf, "~> 0.12.0"},
-      # Tests
-      {:divo, "~> 1.3.1", only: [:test]},
 
       # Docs, credo, test coverage, dialyzer
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false},
-      {:excoveralls, ">= 0.0.0", only: [:test, :integration_test], runtime: false}
+      {:excoveralls, ">= 0.0.0", only: [:test, :test_local], runtime: false},
+
+      # Test deps
+      {:plug_cowboy, "~> 2.5", only: [:test, :test_local]},
+      {:phoenix_pubsub, "~> 2.1", only: [:test, :test_local]}
     ]
   end
 
@@ -112,10 +115,62 @@ defmodule Membrane.Template.Mixfile do
 
   def aliases do
     [
-      integration_test: [
-        "cmd docker compose -f docker-compose-integration.yaml pull",
-        "cmd docker compose -f docker-compose-integration.yaml run test"
-      ]
+      test: &test_in_docker/1,
+      "test.local": ["cmd MIX_ENV=test_local mix test --without_docker"]
     ]
+  end
+
+  defp test_in_docker(opts) do
+    cond do
+      List.last(opts) == "--without_docker" ->
+        IO.puts("Running tests locally (it requires setting up jellyfish without docker) ...")
+
+        Mix.Task.run("test")
+
+      System.find_executable("docker") ->
+        IO.puts("Running tests using Docker. To run tests without Docker call \"mix test.local\"")
+
+        docker_compose_prefix = ["docker", "compose", "-f", "docker-compose-test.yaml"]
+
+        stream_command(docker_compose_prefix ++ ["pull"])
+
+        stream_command(
+          docker_compose_prefix ++ ["up", "--remove-orphans", "test", "--exit-code-from", "test"]
+        )
+
+        stream_command(docker_compose_prefix ++ ["down"])
+
+      true ->
+        IO.puts("Running tests inside docker container ...")
+
+        Mix.Task.run("test")
+    end
+  end
+
+  defp stream_command(cmd) do
+    port =
+      Port.open({:spawn, Enum.join(cmd, " ")}, [
+        {:line, 1024},
+        :use_stdio,
+        :stderr_to_stdout,
+        :exit_status
+      ])
+
+    receive_and_print(port)
+  end
+
+  defp receive_and_print(port) do
+    receive do
+      {^port, {:data, {:eol, line}}} ->
+        IO.puts(line)
+        receive_and_print(port)
+
+      {^port, {:data, data}} ->
+        IO.puts(data)
+        receive_and_print(port)
+
+      {^port, {:exit_status, exit_status}} ->
+        IO.puts("Docker command exited with status code: #{exit_status}")
+    end
   end
 end

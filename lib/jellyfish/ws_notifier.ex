@@ -1,4 +1,4 @@
-defmodule Jellyfish.Notifier do
+defmodule Jellyfish.WSNotifier do
   @moduledoc """
   Module defining a process responsible for establishing
   WebSocket connection and receiving events from Jellyfish server.
@@ -7,13 +7,13 @@ defmodule Jellyfish.Notifier do
 
   ```
   # Start the Notifier
-  iex> {:ok, notifier} = Jellyfish.Notifier.start()
+  iex> {:ok, notifier} = Jellyfish.WSNotifier.start()
   {:ok, #PID<0.301.0>}
   ```
 
   ```
   # Subscribe current process to server notifications.
-  iex> :ok = Jellyfish.Notifier.subscribe_server_notifications(notifier)
+  iex> :ok = Jellyfish.WSNotifier.subscribe_server_notifications(notifier)
 
   # here add a room and a peer using functions from `Jellyfish.Room` module
   # you should receive a notification after the peer established connection
@@ -28,7 +28,7 @@ defmodule Jellyfish.Notifier do
 
   When starting the Notifier, you can provide the name under which the process will be registered.
   ```
-  iex> {:ok, notifier} = Jellyfish.Notifier.start_link(name: Jellyfish.Notifier)
+  iex> {:ok, notifier} = Jellyfish.WSNotifier.start_link(name: Jellyfish.WSNotifier)
   ```
 
   """
