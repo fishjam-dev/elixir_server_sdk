@@ -7,6 +7,11 @@ defmodule Jellyfish.ClientTest do
   @server_api_token "valid-token"
 
   describe "creates client struct" do
+    setup do
+      env_state = Application.get_all_env(:jellyfish_server_sdk)
+      on_exit(fn -> Application.put_all_env([{:jellyfish_server_sdk, env_state}]) end)
+    end
+
     test "with connection options passed explictly" do
       address_with_prefix = "http://#{@server_address}"
 
@@ -30,8 +35,6 @@ defmodule Jellyfish.ClientTest do
     end
 
     test "with connection options from config" do
-      env_state = Application.get_all_env(:jellyfish_server_sdk)
-
       :ok =
         Application.put_all_env([
           {
@@ -58,7 +61,6 @@ defmodule Jellyfish.ClientTest do
                }
              } = client
 
-      Application.put_all_env([{:jellyfish_server_sdk, env_state}])
       Application.delete_env(:jellyfish_server_sdk, :secure?)
     end
 
@@ -74,8 +76,6 @@ defmodule Jellyfish.ClientTest do
     end
 
     test "when options are not passed and config is not set" do
-      env_state = Application.get_all_env(:jellyfish_server_sdk)
-
       :ok = Application.delete_env(:jellyfish_server_sdk, :server_address, [])
       :ok = Application.delete_env(:jellyfish_server_sdk, :server_api_token, [])
 
@@ -83,8 +83,6 @@ defmodule Jellyfish.ClientTest do
         ArgumentError,
         fn -> Client.new() end
       )
-
-      Application.put_all_env([{:jellyfish_server_sdk, env_state}])
     end
   end
 
