@@ -1,5 +1,5 @@
 defmodule Jellyfish.ClientTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   alias Jellyfish.Client
 
@@ -30,6 +30,8 @@ defmodule Jellyfish.ClientTest do
     end
 
     test "with connection options from config" do
+      env_state = Application.get_all_env(:jellyfish_server_sdk)
+
       :ok =
         Application.put_all_env([
           {
@@ -56,8 +58,7 @@ defmodule Jellyfish.ClientTest do
                }
              } = client
 
-      Application.delete_env(:jellyfish_server_sdk, :server_address)
-      Application.delete_env(:jellyfish_server_sdk, :server_api_token)
+      Application.put_all_env([{:jellyfish_server_sdk, env_state}])
       Application.delete_env(:jellyfish_server_sdk, :secure?)
     end
 
@@ -73,6 +74,8 @@ defmodule Jellyfish.ClientTest do
     end
 
     test "when options are not passed and config is not set" do
+      env_state = Application.get_all_env(:jellyfish_server_sdk)
+
       :ok = Application.delete_env(:jellyfish_server_sdk, :server_address, [])
       :ok = Application.delete_env(:jellyfish_server_sdk, :server_api_token, [])
 
@@ -80,6 +83,8 @@ defmodule Jellyfish.ClientTest do
         ArgumentError,
         fn -> Client.new() end
       )
+
+      Application.put_all_env([{:jellyfish_server_sdk, env_state}])
     end
   end
 
