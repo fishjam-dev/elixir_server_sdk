@@ -1,5 +1,5 @@
 defmodule Jellyfish.ClientTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   alias Jellyfish.Client
 
@@ -7,6 +7,11 @@ defmodule Jellyfish.ClientTest do
   @server_api_token "valid-token"
 
   describe "creates client struct" do
+    setup do
+      env_state = Application.get_all_env(:jellyfish_server_sdk)
+      on_exit(fn -> Application.put_all_env([{:jellyfish_server_sdk, env_state}]) end)
+    end
+
     test "with connection options passed explictly" do
       address_with_prefix = "http://#{@server_address}"
 
@@ -56,8 +61,6 @@ defmodule Jellyfish.ClientTest do
                }
              } = client
 
-      Application.delete_env(:jellyfish_server_sdk, :server_address)
-      Application.delete_env(:jellyfish_server_sdk, :server_api_token)
       Application.delete_env(:jellyfish_server_sdk, :secure?)
     end
 

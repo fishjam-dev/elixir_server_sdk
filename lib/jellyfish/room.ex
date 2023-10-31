@@ -31,7 +31,7 @@ defmodule Jellyfish.Room do
   """
 
   alias Tesla.Env
-  alias Jellyfish.{Client, Component, Peer}
+  alias Jellyfish.{Client, Component, Peer, Utils}
   alias Jellyfish.Exception.StructureError
 
   @enforce_keys [
@@ -84,7 +84,7 @@ defmodule Jellyfish.Room do
       {:ok, result}
     else
       :error -> raise StructureError
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -100,7 +100,7 @@ defmodule Jellyfish.Room do
       {:ok, result}
     else
       :error -> raise StructureError
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -132,7 +132,7 @@ defmodule Jellyfish.Room do
       {:ok, result, jellyfish_address}
     else
       :error -> raise StructureError
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -143,7 +143,7 @@ defmodule Jellyfish.Room do
   def delete(client, room_id) do
     case Tesla.delete(client.http_client, "/room/#{room_id}") do
       {:ok, %Env{status: 204}} -> :ok
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -171,7 +171,7 @@ defmodule Jellyfish.Room do
       {:ok, result, token}
     else
       :error -> raise StructureError
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -185,7 +185,7 @@ defmodule Jellyfish.Room do
            "/room/#{room_id}/peer/#{peer_id}"
          ) do
       {:ok, %Env{status: 204}} -> :ok
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -213,7 +213,7 @@ defmodule Jellyfish.Room do
       {:ok, result}
     else
       :error -> raise StructureError
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -227,7 +227,7 @@ defmodule Jellyfish.Room do
            "/room/#{room_id}/component/#{component_id}"
          ) do
       {:ok, %Env{status: 204}} -> :ok
-      error -> handle_response_error(error)
+      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -252,12 +252,6 @@ defmodule Jellyfish.Room do
         raise StructureError
     end
   end
-
-  defp handle_response_error({:ok, %Env{body: %{"errors" => error}}}),
-    do: {:error, "Request failed: #{error}"}
-
-  defp handle_response_error({:ok, %Env{body: _body}}), do: raise(StructureError)
-  defp handle_response_error({:error, reason}), do: {:error, reason}
 
   defp snake_case_to_camel_case(atom) do
     [first | rest] = Atom.to_string(atom) |> String.split("_")
