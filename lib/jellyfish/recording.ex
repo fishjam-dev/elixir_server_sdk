@@ -1,6 +1,6 @@
 defmodule Jellyfish.Recording do
   @moduledoc """
-  Utilites for manipulating the rooms.
+  Utilites for manipulating the recordings.
 
   ## Examples
   ```
