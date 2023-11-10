@@ -205,7 +205,7 @@ defmodule Jellyfish.Room do
                "type" => Component.string_from_options(component),
                "options" =>
                  Map.from_struct(component)
-                 |> Map.new(fn {k, v} -> {snake_case_to_camel_case(k), v} end)
+                 |> map_snake_case_to_camel_case()
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
@@ -252,6 +252,12 @@ defmodule Jellyfish.Room do
         raise StructureError
     end
   end
+
+  defp map_snake_case_to_camel_case(%{} = map),
+    do:
+      Map.new(map, fn {k, v} -> {snake_case_to_camel_case(k), map_snake_case_to_camel_case(v)} end)
+
+  defp map_snake_case_to_camel_case(value), do: value
 
   defp snake_case_to_camel_case(atom) do
     [first | rest] = Atom.to_string(atom) |> String.split("_")

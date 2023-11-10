@@ -8,18 +8,27 @@ defmodule Jellyfish.Component.HLS do
 
   @behaviour Jellyfish.Component.Deserializer
 
+  @type credentials :: %{
+          access_key_id: String.t(),
+          secret_access_key: String.t(),
+          region: String.t(),
+          bucket: String.t()
+        }
+
   @enforce_keys []
   defstruct @enforce_keys ++
               [
                 low_latency: false,
                 persistent: false,
-                target_window_duration: nil
+                target_window_duration: nil,
+                s3: nil
               ]
 
   @type t :: %__MODULE__{
           low_latency: boolean(),
           persistent: boolean(),
-          target_window_duration: pos_integer() | nil
+          target_window_duration: pos_integer() | nil,
+          s3: credentials() | nil
         }
 
   @impl true

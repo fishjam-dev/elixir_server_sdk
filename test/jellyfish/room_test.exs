@@ -14,6 +14,13 @@ defmodule Jellyfish.RoomTest do
     target_window_duration: nil
   }
 
+  @s3 %{
+    access_key_id: "access_key_id",
+    secret_access_key: "secret_access_key",
+    region: "region",
+    bucket: "bucket"
+  }
+
   @rtsp_component_opts %Component.RTSP{
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter"
   }
@@ -153,6 +160,13 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid with opts module", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
+      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+    end
+
+    test "when request is valid with s3 credentials", %{client: client, room_id: room_id} do
+      assert {:ok, component} =
+               Room.add_component(client, room_id, %{@hls_component_opts | s3: @s3})
+
       assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
     end
 
