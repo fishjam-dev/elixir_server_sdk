@@ -31,8 +31,11 @@ defmodule Jellyfish.Room do
   """
 
   alias Tesla.Env
+  alias Jellyfish.Component.{HLS, RTSP}
   alias Jellyfish.{Client, Component, Peer, Utils}
   alias Jellyfish.Exception.StructureError
+
+  @s3_kyes [:access_key_id, :secret_access_key, :region, :bucket]
 
   @enforce_keys [
     :id,
@@ -197,7 +200,8 @@ defmodule Jellyfish.Room do
   def add_component(client, room_id, component) do
     component = if is_atom(component), do: struct!(component), else: component
 
-    with {:ok, %Env{status: 201, body: body}} <-
+    with :ok <- validate_component(component),
+         {:ok, %Env{status: 201, body: body}} <-
            Tesla.post(
              client.http_client,
              "/room/#{room_id}/component",
@@ -251,6 +255,16 @@ defmodule Jellyfish.Room do
       _other ->
         raise StructureError
     end
+  end
+
+  defp validate_component(%RTSP{}), do: :ok
+  defp validate_component(%HLS{s3: nil}), do: :ok
+  defp validate_component(%HLS{s3: %{} = s3}), do: validate_s3_credentials(s3)
+  defp validate_component(_component), do: {:error, :component_validation}
+
+  defp validate_s3_credentials(credentials) do
+    keys = Map.keys(credentials)
+    if @s3_kyes -- keys == [] and keys -- @s3_kyes, do: :ok, else: {:error, :component_validation}
   end
 
   defp map_snake_case_to_camel_case(%{} = map),

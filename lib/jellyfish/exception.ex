@@ -28,4 +28,18 @@ defmodule Jellyfish.Exception do
       %__MODULE__{message: msg}
     end
   end
+
+  defmodule OptionsError do
+    defexception [:message]
+
+    @impl true
+    def exception(_opts) do
+      msg = """
+      Passed component options that doesn't match function spec.
+      Look closely on `Jellyfish.Room.add_component/3` spec.
+      """
+
+      %__MODULE__{message: msg}
+    end
+  end
 end
