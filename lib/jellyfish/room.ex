@@ -35,7 +35,7 @@ defmodule Jellyfish.Room do
   alias Jellyfish.{Client, Component, Peer, Utils}
   alias Jellyfish.Exception.StructureError
 
-  @s3_kyes [:access_key_id, :secret_access_key, :region, :bucket]
+  @s3_keys [:access_key_id, :secret_access_key, :region, :bucket]
 
   @enforce_keys [
     :id,
@@ -264,7 +264,10 @@ defmodule Jellyfish.Room do
 
   defp validate_s3_credentials(credentials) do
     keys = Map.keys(credentials)
-    if @s3_kyes -- keys == [] and keys -- @s3_kyes, do: :ok, else: {:error, :component_validation}
+
+    if @s3_keys -- keys == [] and keys -- @s3_keys == [],
+      do: :ok,
+      else: {:error, :component_validation}
   end
 
   defp map_snake_case_to_camel_case(%{} = map),
