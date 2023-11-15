@@ -2,7 +2,7 @@ defmodule Jellyfish.Utils do
   @moduledoc false
 
   alias Jellyfish.Client
-  alias Jellyfish.Exception.{ProtocolPrefixError, StructureError}
+  alias Jellyfish.Exception.{OptionsError, ProtocolPrefixError, StructureError}
   alias Tesla.Env
 
   @protocol_prefixes ["http://", "https://", "ws://", "wss://"]
@@ -36,5 +36,6 @@ defmodule Jellyfish.Utils do
     do: {:error, "Request failed: #{error}"}
 
   def handle_response_error({:ok, %Env{body: _body}}), do: raise(StructureError)
+  def handle_response_error({:error, :component_validation}), do: raise(OptionsError)
   def handle_response_error({:error, reason}), do: {:error, reason}
 end

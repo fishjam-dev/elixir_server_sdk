@@ -1,6 +1,7 @@
 defmodule Jellyfish.RoomTest do
   use ExUnit.Case
   doctest Jellyfish.Room
+  alias Jellyfish.Exception.OptionsError
   alias Jellyfish.{Client, Component, Peer, Room}
 
   @server_api_token "development"
@@ -12,6 +13,13 @@ defmodule Jellyfish.RoomTest do
     low_latency: false,
     persistent: false,
     target_window_duration: nil
+  }
+
+  @s3 %{
+    access_key_id: "access_key_id",
+    secret_access_key: "secret_access_key",
+    region: "region",
+    bucket: "bucket"
   }
 
   @rtsp_component_opts %Component.RTSP{
@@ -156,12 +164,32 @@ defmodule Jellyfish.RoomTest do
       assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
     end
 
+    test "when request is valid with s3 credentials", %{client: client, room_id: room_id} do
+      assert {:ok, component} =
+               Room.add_component(client, room_id, %{@hls_component_opts | s3: @s3})
+
+      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+    end
+
+    test "when request is invalid - wrong s3 credentials", %{client: client, room_id: room_id} do
+      assert_raise OptionsError, fn ->
+        Room.add_component(client, room_id, %{
+          @hls_component_opts
+          | s3: Map.delete(@s3, :bucket)
+        })
+      end
+
+      assert_raise OptionsError, fn ->
+        Room.add_component(client, room_id, %{@hls_component_opts | s3: []})
+      end
+    end
+
     test "when request is invalid", %{client: client} do
-      assert_raise FunctionClauseError, fn ->
+      assert_raise OptionsError, fn ->
         Room.add_component(client, @room_id, %InvalidComponentOpts{})
       end
 
-      assert_raise FunctionClauseError, fn ->
+      assert_raise OptionsError, fn ->
         Room.add_component(client, @room_id, InvalidComponentOpts)
       end
     end
