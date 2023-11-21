@@ -21,6 +21,7 @@ defmodule Jellyfish.Component.HLS do
                 low_latency: false,
                 persistent: false,
                 target_window_duration: nil,
+                subscribe_mode: :auto,
                 s3: nil
               ]
 
@@ -28,6 +29,7 @@ defmodule Jellyfish.Component.HLS do
           low_latency: boolean(),
           persistent: boolean(),
           target_window_duration: pos_integer() | nil,
+          subscribe_mode: :auto | :manual,
           s3: credentials() | nil
         }
 
@@ -36,13 +38,15 @@ defmodule Jellyfish.Component.HLS do
         "playable" => playable,
         "lowLatency" => low_latency,
         "persistent" => persistent,
-        "targetWindowDuration" => target_window_duration
+        "targetWindowDuration" => target_window_duration,
+        "subscribeMode" => subscribe_mode
       }) do
     %{
       playable: playable,
       low_latency: low_latency,
       persistent: persistent,
-      target_window_duration: target_window_duration
+      target_window_duration: target_window_duration,
+      subscribe_mode: subscribe_mode
     }
   end
 end

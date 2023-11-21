@@ -258,17 +258,31 @@ defmodule Jellyfish.Room do
   end
 
   defp validate_component(%RTSP{}), do: :ok
-  defp validate_component(%HLS{s3: nil}), do: :ok
-  defp validate_component(%HLS{s3: %{} = s3}), do: validate_s3_credentials(s3)
+
+  defp validate_component(%HLS{s3: s3, subscribe_mode: subscribe_mode}) do
+    with :ok <- validate_s3_credentials(s3),
+         :ok <- validate_subscribe_mode(subscribe_mode) do
+      :ok
+    else
+      :error -> {:error, :component_validation}
+    end
+  end
+
   defp validate_component(_component), do: {:error, :component_validation}
 
-  defp validate_s3_credentials(credentials) do
+  defp validate_s3_credentials(%{} = credentials) do
     keys = Map.keys(credentials)
 
     if @s3_keys -- keys == [] and keys -- @s3_keys == [],
       do: :ok,
-      else: {:error, :component_validation}
+      else: :error
   end
+
+  defp validate_s3_credentials(nil), do: :ok
+  defp validate_s3_credentials(_credentials), do: :error
+
+  defp validate_subscribe_mode(mode) when mode in [:auto, :manual], do: :ok
+  defp validate_subscribe_mode(_mode), do: :error
 
   defp map_snake_case_to_camel_case(%{} = map),
     do:
