@@ -36,6 +36,7 @@ defmodule Jellyfish.Room do
   alias Jellyfish.Exception.StructureError
 
   @s3_keys [:access_key_id, :secret_access_key, :region, :bucket]
+  @subscribe_modes [:auto, :manual]
 
   @enforce_keys [
     :id,
@@ -281,7 +282,7 @@ defmodule Jellyfish.Room do
   defp validate_s3_credentials(nil), do: :ok
   defp validate_s3_credentials(_credentials), do: :error
 
-  defp validate_subscribe_mode(mode) when mode in [:auto, :manual], do: :ok
+  defp validate_subscribe_mode(mode) when mode in @subscribe_modes, do: :ok
   defp validate_subscribe_mode(_mode), do: :error
 
   defp map_snake_case_to_camel_case(%{} = map),
