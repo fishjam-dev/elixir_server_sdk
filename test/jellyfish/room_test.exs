@@ -12,7 +12,8 @@ defmodule Jellyfish.RoomTest do
     playable: false,
     low_latency: false,
     persistent: false,
-    target_window_duration: nil
+    target_window_duration: nil,
+    subscribe_mode: "auto"
   }
 
   @s3 %{
@@ -181,6 +182,23 @@ defmodule Jellyfish.RoomTest do
 
       assert_raise OptionsError, fn ->
         Room.add_component(client, room_id, %{@hls_component_opts | s3: []})
+      end
+    end
+
+    test "when request is valid with manual subscribe mode", %{client: client, room_id: room_id} do
+      assert {:ok, component} =
+               Room.add_component(client, room_id, %{
+                 @hls_component_opts
+                 | subscribe_mode: :manual
+               })
+
+      hls_metadata = %{@hls_metadata | subscribe_mode: "manual"}
+      assert %Component{type: Component.HLS, metadata: ^hls_metadata} = component
+    end
+
+    test "when request is invalid - wrong subscribe mode", %{client: client, room_id: room_id} do
+      assert_raise OptionsError, fn ->
+        Room.add_component(client, room_id, %{@hls_component_opts | subscribe_mode: :wrong_mode})
       end
     end
 
