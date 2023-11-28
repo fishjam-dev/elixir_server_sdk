@@ -41,6 +41,9 @@ defmodule Jellyfish.RoomTest do
   @invalid_max_peers "abc"
   @invalid_video_codec :opus
 
+  @tracks ["track-id"]
+  @invalid_tracks %{id: "track-id"}
+
   @invalid_peer_id "invalid_peer_id"
   defmodule InvalidPeerOpts do
     defstruct [:qwe, :rty]
@@ -258,6 +261,42 @@ defmodule Jellyfish.RoomTest do
     test "when request is invalid", %{client: client, room_id: room_id} do
       assert {:error, "Request failed: Peer #{@invalid_peer_id} does not exist"} =
                Room.delete_peer(client, room_id, @invalid_peer_id)
+    end
+  end
+
+  describe "Room.hls_subscribe/3" do
+    setup [:create_room]
+
+    test "when request is valid", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{metadata: %{subscribe_mode: "manual"}}} =
+               Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
+
+      assert :ok = Room.hls_subscribe(client, room_id, @tracks)
+    end
+
+    test "when room doesn't exist", %{client: client} do
+      assert {:error, "Request failed: Room #{@invalid_room_id} does not exist"} =
+               Room.hls_subscribe(client, @invalid_room_id, @tracks)
+    end
+
+    test "when hls component doesn't exist", %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: HLS component does not exist"} =
+               Room.hls_subscribe(client, room_id, @tracks)
+    end
+
+    test "when hls component has subscribe mode :auto", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{metadata: %{subscribe_mode: "auto"}}} =
+               Room.add_component(client, room_id, %Jellyfish.Component.HLS{subscribe_mode: :auto})
+
+      assert {:error, "Request failed: HLS component option `subscribe_mode` is set to :auto"} =
+               Room.hls_subscribe(client, room_id, @tracks)
+    end
+
+    test "when request is invalid", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{metadata: %{subscribe_mode: "manual"}}} =
+               Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
+
+      assert {:error, :tracks_validation} = Room.hls_subscribe(client, room_id, @invalid_tracks)
     end
   end
 
