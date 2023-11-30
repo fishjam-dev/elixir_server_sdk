@@ -52,6 +52,11 @@ defmodule Jellyfish.Room do
   @type id :: String.t()
 
   @typedoc """
+  Id of the track, unique within Jellyfish instance.
+  """
+  @type track_id :: String.t()
+
+  @typedoc """
   Peer token, created by Jellyfish. Required by client application to open connection to Jellyfish.
   """
   @type peer_token :: String.t()
@@ -236,6 +241,20 @@ defmodule Jellyfish.Room do
     end
   end
 
+  @doc """
+  Adds tracks to hls component
+  """
+  @spec hls_subscribe(Client.t(), id(), [track_id()]) :: :ok | {:error, atom() | String.t()}
+  def hls_subscribe(client, room_id, tracks) do
+    with :ok <- validate_tracks(tracks),
+         {:ok, %Env{status: 201}} <-
+           Tesla.post(client.http_client, "/hls/#{room_id}/subscribe", %{tracks: tracks}) do
+      :ok
+    else
+      error -> Utils.handle_response_error(error)
+    end
+  end
+
   @doc false
   @spec from_json(map()) :: t()
   def from_json(response) do
@@ -284,6 +303,9 @@ defmodule Jellyfish.Room do
 
   defp validate_subscribe_mode(mode) when mode in @subscribe_modes, do: :ok
   defp validate_subscribe_mode(_mode), do: :error
+
+  defp validate_tracks(tracks) when is_list(tracks), do: :ok
+  defp validate_tracks(_tracks), do: {:error, :tracks_validation}
 
   defp map_snake_case_to_camel_case(%{} = map),
     do:
