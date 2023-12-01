@@ -31,7 +31,7 @@ defmodule Jellyfish.Room do
   """
 
   alias Tesla.Env
-  alias Jellyfish.Component.{HLS, RTSP}
+  alias Jellyfish.Component.{File, HLS, RTSP}
   alias Jellyfish.{Client, Component, Peer, Utils}
   alias Jellyfish.Exception.StructureError
 
@@ -83,7 +83,7 @@ defmodule Jellyfish.Room do
         }
 
   @doc """
-  Lists metadata of all of the rooms.
+  Lists properties of all of the rooms.
   """
   @spec get_all(Client.t()) :: {:ok, [t()]} | {:error, atom() | String.t()}
   def get_all(client) do
@@ -98,7 +98,7 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Gets metadata of the room with `room_id`.
+  Gets properties of the room with `room_id`.
   """
   @spec get(Client.t(), id()) :: {:ok, t()} | {:error, atom() | String.t()}
   def get(client, room_id) do
@@ -278,6 +278,8 @@ defmodule Jellyfish.Room do
   end
 
   defp validate_component(%RTSP{}), do: :ok
+
+  defp validate_component(%File{}), do: :ok
 
   defp validate_component(%HLS{s3: s3, subscribe_mode: subscribe_mode}) do
     with :ok <- validate_s3_credentials(s3),

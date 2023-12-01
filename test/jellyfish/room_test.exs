@@ -8,7 +8,7 @@ defmodule Jellyfish.RoomTest do
 
   @hls_component_opts %Component.HLS{}
   @hls_component_opts_module Component.HLS
-  @hls_metadata %{
+  @hls_properties %{
     playable: false,
     low_latency: false,
     persistent: false,
@@ -142,7 +142,7 @@ defmodule Jellyfish.RoomTest do
                 peers: []
               }} = Room.get(client, room_id)
 
-      assert %Component{id: ^component_id, type: Component.HLS, metadata: %{playable: false}} =
+      assert %Component{id: ^component_id, type: Component.HLS, properties: %{playable: false}} =
                component
     end
 
@@ -157,22 +157,22 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid with opts", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts)
-      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+      assert %Component{type: Component.HLS, properties: @hls_properties} = component
 
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
-      assert %Component{type: Component.RTSP, metadata: %{}} = component
+      assert %Component{type: Component.RTSP, properties: %{}} = component
     end
 
     test "when request is valid with opts module", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
-      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+      assert %Component{type: Component.HLS, properties: @hls_properties} = component
     end
 
     test "when request is valid with s3 credentials", %{client: client, room_id: room_id} do
       assert {:ok, component} =
                Room.add_component(client, room_id, %{@hls_component_opts | s3: @s3})
 
-      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+      assert %Component{type: Component.HLS, properties: @hls_properties} = component
     end
 
     test "when request is invalid - wrong s3 credentials", %{client: client, room_id: room_id} do
@@ -195,8 +195,8 @@ defmodule Jellyfish.RoomTest do
                  | subscribe_mode: :manual
                })
 
-      hls_metadata = %{@hls_metadata | subscribe_mode: "manual"}
-      assert %Component{type: Component.HLS, metadata: ^hls_metadata} = component
+      hls_properties = %{@hls_properties | subscribe_mode: "manual"}
+      assert %Component{type: Component.HLS, properties: ^hls_properties} = component
     end
 
     test "when request is invalid - wrong subscribe mode", %{client: client, room_id: room_id} do
