@@ -26,7 +26,7 @@ defmodule Jellyfish.Recording do
   def get_list(client) do
     with {:ok, %Env{status: 200, body: body}} <-
            Tesla.get(client.http_client, "/recording"),
-         {:ok, data} <- Map.fetch(body, "recordings") do
+         {:ok, data} <- Map.fetch(body, "data") do
       {:ok, data}
     else
       :error -> raise StructureError
