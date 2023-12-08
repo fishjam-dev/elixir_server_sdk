@@ -33,8 +33,6 @@ defmodule Jellyfish.RoomTest do
 
   @fixtures_path "test/fixtures"
   @video_filename "video.h264"
-  @file_component_sources_path "/app/jellyfish_resources/file_component_sources"
-  @jf_container_name "jellyfish"
 
   @peer_opts %Peer.WebRTC{
     enable_simulcast: false
@@ -61,10 +59,6 @@ defmodule Jellyfish.RoomTest do
   @invalid_component_id "invalid_component_id"
   defmodule InvalidComponentOpts do
     defstruct [:abc, :def]
-  end
-
-  setup_all do
-    if Mix.env() == :test, do: upload_file_to_jellyfish(@video_filename), else: :ok
   end
 
   setup do
@@ -311,7 +305,7 @@ defmodule Jellyfish.RoomTest do
     setup [:create_room]
 
     test "when request is valid", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{metadata: %{subscribe_mode: "manual"}}} =
+      assert {:ok, %Component{properties: %{subscribe_mode: "manual"}}} =
                Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
 
       assert :ok = Room.hls_subscribe(client, room_id, @tracks)
@@ -328,7 +322,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when hls component has subscribe mode :auto", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{metadata: %{subscribe_mode: "auto"}}} =
+      assert {:ok, %Component{properties: %{subscribe_mode: "auto"}}} =
                Room.add_component(client, room_id, %Jellyfish.Component.HLS{subscribe_mode: :auto})
 
       assert {:error, "Request failed: HLS component option `subscribe_mode` is set to :auto"} =
@@ -336,7 +330,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{metadata: %{subscribe_mode: "manual"}}} =
+      assert {:ok, %Component{properties: %{subscribe_mode: "manual"}}} =
                Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
 
       assert {:error, :tracks_validation} = Room.hls_subscribe(client, room_id, @invalid_tracks)
@@ -362,17 +356,5 @@ defmodule Jellyfish.RoomTest do
              Room.add_component(state.client, state.room_id, @hls_component_opts)
 
     %{component_id: id}
-  end
-
-  defp upload_file_to_jellyfish(filename) do
-    source = Path.join(@fixtures_path, filename)
-
-    destination =
-      [@file_component_sources_path, filename]
-      |> Path.join()
-      |> then(&"#{@jf_container_name}:#{&1}")
-
-    {_collectable, 0} = System.cmd("docker", ["cp", source, destination])
-    :ok
   end
 end
