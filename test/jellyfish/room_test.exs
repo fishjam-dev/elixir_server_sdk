@@ -27,6 +27,15 @@ defmodule Jellyfish.RoomTest do
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter"
   }
 
+  @file_component_opts %Component.File{
+    file_path: "video.h264"
+  }
+
+  @fixtures_path "test/fixtures"
+  @video_filename "video.h264"
+  @file_component_sources_path "/app/jellyfish_resources/file_component_sources"
+  @jf_container_name "jellyfish"
+
   @peer_opts %Peer.WebRTC{
     enable_simulcast: false
   }
@@ -52,6 +61,10 @@ defmodule Jellyfish.RoomTest do
   @invalid_component_id "invalid_component_id"
   defmodule InvalidComponentOpts do
     defstruct [:abc, :def]
+  end
+
+  setup_all do
+    if Mix.env() == :test, do: upload_file_to_jellyfish(@video_filename), else: :ok
   end
 
   setup do
@@ -161,21 +174,24 @@ defmodule Jellyfish.RoomTest do
 
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
       assert %Component{type: Component.RTSP, properties: %{}} = component
+
+      assert {:ok, component} = Room.add_component(client, room_id, @file_component_opts)
+      assert %Component{type: Component.File, properties: %{}} = component
     end
 
-    test "when request is valid with opts module", %{client: client, room_id: room_id} do
+    test "HLS when request is valid with opts module", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
       assert %Component{type: Component.HLS, properties: @hls_properties} = component
     end
 
-    test "when request is valid with s3 credentials", %{client: client, room_id: room_id} do
+    test "HLS when request is valid with s3 credentials", %{client: client, room_id: room_id} do
       assert {:ok, component} =
                Room.add_component(client, room_id, %{@hls_component_opts | s3: @s3})
 
       assert %Component{type: Component.HLS, properties: @hls_properties} = component
     end
 
-    test "when request is invalid - wrong s3 credentials", %{client: client, room_id: room_id} do
+    test "HLS when request is invalid - wrong s3 credentials", %{client: client, room_id: room_id} do
       assert_raise OptionsError, fn ->
         Room.add_component(client, room_id, %{
           @hls_component_opts
@@ -188,7 +204,10 @@ defmodule Jellyfish.RoomTest do
       end
     end
 
-    test "when request is valid with manual subscribe mode", %{client: client, room_id: room_id} do
+    test "HLS when request is valid with manual subscribe mode", %{
+      client: client,
+      room_id: room_id
+    } do
       assert {:ok, component} =
                Room.add_component(client, room_id, %{
                  @hls_component_opts
@@ -199,13 +218,13 @@ defmodule Jellyfish.RoomTest do
       assert %Component{type: Component.HLS, properties: ^hls_properties} = component
     end
 
-    test "when request is invalid - wrong subscribe mode", %{client: client, room_id: room_id} do
+    test "HLS when request is invalid - wrong subscribe mode", %{client: client, room_id: room_id} do
       assert_raise OptionsError, fn ->
         Room.add_component(client, room_id, %{@hls_component_opts | subscribe_mode: :wrong_mode})
       end
     end
 
-    test "when request is invalid", %{client: client} do
+    test "HLS when request is invalid", %{client: client} do
       assert_raise OptionsError, fn ->
         Room.add_component(client, @room_id, %InvalidComponentOpts{})
       end
@@ -213,6 +232,30 @@ defmodule Jellyfish.RoomTest do
       assert_raise OptionsError, fn ->
         Room.add_component(client, @room_id, InvalidComponentOpts)
       end
+    end
+
+    test "File when request - video", %{client: client, room_id: room_id} do
+      assert {:ok, component} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: @video_filename
+               })
+
+      assert %Component{type: Component.File, properties: %{}} = component
+    end
+
+    test "File when request is invalid - invalid path", %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Invalid request body structure"} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: "../video.h264"
+               })
+    end
+
+    test "File when request is invalid - file does not exist",
+         %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Invalid request body structure"} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: "no_such_video.h264"
+               })
     end
   end
 
@@ -319,5 +362,17 @@ defmodule Jellyfish.RoomTest do
              Room.add_component(state.client, state.room_id, @hls_component_opts)
 
     %{component_id: id}
+  end
+
+  defp upload_file_to_jellyfish(filename) do
+    source = Path.join(@fixtures_path, filename)
+
+    destination =
+      [@file_component_sources_path, filename]
+      |> Path.join()
+      |> then(&"#{@jf_container_name}:#{&1}")
+
+    {_collectable, 0} = System.cmd("docker", ["cp", source, destination])
+    :ok
   end
 end
