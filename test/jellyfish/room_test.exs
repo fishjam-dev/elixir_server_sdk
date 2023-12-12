@@ -8,7 +8,7 @@ defmodule Jellyfish.RoomTest do
 
   @hls_component_opts %Component.HLS{}
   @hls_component_opts_module Component.HLS
-  @hls_metadata %{
+  @hls_properties %{
     playable: false,
     low_latency: false,
     persistent: false,
@@ -26,6 +26,13 @@ defmodule Jellyfish.RoomTest do
   @rtsp_component_opts %Component.RTSP{
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter"
   }
+
+  @file_component_opts %Component.File{
+    file_path: "video.h264"
+  }
+
+  @fixtures_path "test/fixtures"
+  @video_filename "video.h264"
 
   @peer_opts %Peer.WebRTC{
     enable_simulcast: false
@@ -142,7 +149,7 @@ defmodule Jellyfish.RoomTest do
                 peers: []
               }} = Room.get(client, room_id)
 
-      assert %Component{id: ^component_id, type: Component.HLS, metadata: %{playable: false}} =
+      assert %Component{id: ^component_id, type: Component.HLS, properties: %{playable: false}} =
                component
     end
 
@@ -157,25 +164,28 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid with opts", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts)
-      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+      assert %Component{type: Component.HLS, properties: @hls_properties} = component
 
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
-      assert %Component{type: Component.RTSP, metadata: %{}} = component
+      assert %Component{type: Component.RTSP, properties: %{}} = component
+
+      assert {:ok, component} = Room.add_component(client, room_id, @file_component_opts)
+      assert %Component{type: Component.File, properties: %{}} = component
     end
 
-    test "when request is valid with opts module", %{client: client, room_id: room_id} do
+    test "HLS when request is valid with opts module", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts_module)
-      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+      assert %Component{type: Component.HLS, properties: @hls_properties} = component
     end
 
-    test "when request is valid with s3 credentials", %{client: client, room_id: room_id} do
+    test "HLS when request is valid with s3 credentials", %{client: client, room_id: room_id} do
       assert {:ok, component} =
                Room.add_component(client, room_id, %{@hls_component_opts | s3: @s3})
 
-      assert %Component{type: Component.HLS, metadata: @hls_metadata} = component
+      assert %Component{type: Component.HLS, properties: @hls_properties} = component
     end
 
-    test "when request is invalid - wrong s3 credentials", %{client: client, room_id: room_id} do
+    test "HLS when request is invalid - wrong s3 credentials", %{client: client, room_id: room_id} do
       assert_raise OptionsError, fn ->
         Room.add_component(client, room_id, %{
           @hls_component_opts
@@ -188,24 +198,27 @@ defmodule Jellyfish.RoomTest do
       end
     end
 
-    test "when request is valid with manual subscribe mode", %{client: client, room_id: room_id} do
+    test "HLS when request is valid with manual subscribe mode", %{
+      client: client,
+      room_id: room_id
+    } do
       assert {:ok, component} =
                Room.add_component(client, room_id, %{
                  @hls_component_opts
                  | subscribe_mode: :manual
                })
 
-      hls_metadata = %{@hls_metadata | subscribe_mode: "manual"}
-      assert %Component{type: Component.HLS, metadata: ^hls_metadata} = component
+      hls_properties = %{@hls_properties | subscribe_mode: "manual"}
+      assert %Component{type: Component.HLS, properties: ^hls_properties} = component
     end
 
-    test "when request is invalid - wrong subscribe mode", %{client: client, room_id: room_id} do
+    test "HLS when request is invalid - wrong subscribe mode", %{client: client, room_id: room_id} do
       assert_raise OptionsError, fn ->
         Room.add_component(client, room_id, %{@hls_component_opts | subscribe_mode: :wrong_mode})
       end
     end
 
-    test "when request is invalid", %{client: client} do
+    test "HLS when request is invalid", %{client: client} do
       assert_raise OptionsError, fn ->
         Room.add_component(client, @room_id, %InvalidComponentOpts{})
       end
@@ -213,6 +226,30 @@ defmodule Jellyfish.RoomTest do
       assert_raise OptionsError, fn ->
         Room.add_component(client, @room_id, InvalidComponentOpts)
       end
+    end
+
+    test "File when request - video", %{client: client, room_id: room_id} do
+      assert {:ok, component} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: @video_filename
+               })
+
+      assert %Component{type: Component.File, properties: %{}} = component
+    end
+
+    test "File when request is invalid - invalid path", %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Invalid request body structure"} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: "../video.h264"
+               })
+    end
+
+    test "File when request is invalid - file does not exist",
+         %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Invalid request body structure"} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: "no_such_video.h264"
+               })
     end
   end
 
@@ -268,7 +305,7 @@ defmodule Jellyfish.RoomTest do
     setup [:create_room]
 
     test "when request is valid", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{metadata: %{subscribe_mode: "manual"}}} =
+      assert {:ok, %Component{properties: %{subscribe_mode: "manual"}}} =
                Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
 
       assert :ok = Room.hls_subscribe(client, room_id, @tracks)
@@ -285,7 +322,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when hls component has subscribe mode :auto", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{metadata: %{subscribe_mode: "auto"}}} =
+      assert {:ok, %Component{properties: %{subscribe_mode: "auto"}}} =
                Room.add_component(client, room_id, %Jellyfish.Component.HLS{subscribe_mode: :auto})
 
       assert {:error, "Request failed: HLS component option `subscribe_mode` is set to :auto"} =
@@ -293,7 +330,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{metadata: %{subscribe_mode: "manual"}}} =
+      assert {:ok, %Component{properties: %{subscribe_mode: "manual"}}} =
                Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
 
       assert {:error, :tracks_validation} = Room.hls_subscribe(client, room_id, @invalid_tracks)

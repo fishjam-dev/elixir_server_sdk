@@ -18,3 +18,5 @@ services:
       service: jellyfish
     environment:
       - JF_HOST=jellyfish:5002
+    volumes:
+      - ./test/fixtures:/app/jellyfish_resources/file_component_sources

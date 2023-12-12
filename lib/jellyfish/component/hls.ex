@@ -34,7 +34,7 @@ defmodule Jellyfish.Component.HLS do
         }
 
   @impl true
-  def metadata_from_json(%{
+  def properties_from_json(%{
         "playable" => playable,
         "lowLatency" => low_latency,
         "persistent" => persistent,

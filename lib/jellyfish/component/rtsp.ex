@@ -26,5 +26,5 @@ defmodule Jellyfish.Component.RTSP do
         }
 
   @impl true
-  def metadata_from_json(_metadata), do: %{}
+  def properties_from_json(_properties), do: %{}
 end

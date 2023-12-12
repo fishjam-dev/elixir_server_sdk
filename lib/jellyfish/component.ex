@@ -6,13 +6,13 @@ defmodule Jellyfish.Component do
   For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
   """
 
-  alias Jellyfish.Component.{HLS, RTSP}
+  alias Jellyfish.Component.{File, HLS, RTSP}
   alias Jellyfish.Exception.StructureError
 
   @enforce_keys [
     :id,
     :type,
-    :metadata
+    :properties
   ]
   defstruct @enforce_keys
 
@@ -37,7 +37,7 @@ defmodule Jellyfish.Component do
   @type t :: %__MODULE__{
           id: id(),
           type: type(),
-          metadata: map()
+          properties: map()
         }
 
   @doc false
@@ -47,14 +47,14 @@ defmodule Jellyfish.Component do
       %{
         "id" => id,
         "type" => type_str,
-        "metadata" => metadata
+        "properties" => properties
       } ->
         type = type_from_string(type_str)
 
         %__MODULE__{
           id: id,
           type: type,
-          metadata: type.metadata_from_json(metadata)
+          properties: type.properties_from_json(properties)
         }
 
       _other ->
@@ -64,9 +64,11 @@ defmodule Jellyfish.Component do
 
   @doc false
   @spec string_from_options(struct()) :: String.t()
+  def string_from_options(%File{}), do: "file"
   def string_from_options(%HLS{}), do: "hls"
   def string_from_options(%RTSP{}), do: "rtsp"
 
+  defp type_from_string("file"), do: File
   defp type_from_string("hls"), do: HLS
   defp type_from_string("rtsp"), do: RTSP
 end

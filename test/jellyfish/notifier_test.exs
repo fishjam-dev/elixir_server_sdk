@@ -57,8 +57,7 @@ defmodule Jellyfish.NotifierTest do
     end
 
     test "when token is invalid", %{} do
-      assert {:error, :invalid_token} =
-               WSNotifier.start_link(server_api_token: "invalid_token")
+      assert {:error, :invalid_token} = WSNotifier.start_link(server_api_token: "invalid_token")
     end
   end
 
