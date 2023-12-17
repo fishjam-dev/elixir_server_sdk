@@ -62,15 +62,24 @@ defmodule Jellyfish.Room do
   @type peer_token :: String.t()
 
   @typedoc """
-  Type describing room options.
+  Options used for creating a room.
 
+    * `:room_id` - custom room id, which uniquely identifies room. If not provided
+      a random UUID is generated.
     * `:max_peers` - maximum number of peers present in a room simultaneously.
       If set to `nil` or unspecified, the number of peers is unlimited.
     * `:video_codec` - enforces specific video codec for each peer in the room.
       If set to `nil` or unspecified, any codec will be accepted.
       To use HLS component video codec has to be `:h264`.
+    * `:webhook_url` - an address of a server receiving webhook
+      notifications from the room.
   """
-  @type options :: [max_peers: non_neg_integer() | nil, video_codec: :h264 | :vp8 | nil]
+  @type options :: [
+          room_id: String.t() | nil,
+          max_peers: non_neg_integer() | nil,
+          video_codec: :h264 | :vp8 | nil,
+          webhook_url: String.t() | nil
+        ]
 
   @typedoc """
   Stores information about the room.
