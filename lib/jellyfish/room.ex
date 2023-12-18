@@ -138,7 +138,7 @@ defmodule Jellyfish.Room do
              client.http_client,
              "/room",
              %{
-               "roomID" => Keyword.get(opts, :room_id),
+               "roomId" => Keyword.get(opts, :room_id),
                "maxPeers" => Keyword.get(opts, :max_peers),
                "videoCodec" => Keyword.get(opts, :video_codec),
                "webhookUrl" => Keyword.get(opts, :webhook_url)
