@@ -31,7 +31,6 @@ defmodule Jellyfish.RoomTest do
     file_path: "video.h264"
   }
 
-  @fixtures_path "test/fixtures"
   @video_filename "video.h264"
 
   @peer_opts %Peer.WebRTC{
@@ -102,6 +101,30 @@ defmodule Jellyfish.RoomTest do
       server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
 
       assert ^server_address = jellyfish_address
+    end
+
+    test "when request is valid with room_id", %{client: client} do
+      room_id = UUID.uuid4()
+      assert {:ok, room, jellyfish_address} = Room.create(client, room_id: room_id)
+
+      assert %Jellyfish.Room{
+               components: [],
+               config: %{video_codec: nil, max_peers: nil},
+               id: ^room_id,
+               peers: []
+             } = room
+
+      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+
+      assert ^server_address = jellyfish_address
+    end
+
+    test "when request is invalid, room already exists", %{client: client} do
+      room_id = UUID.uuid4()
+      assert {:ok, _room, _jellyfish_address} = Room.create(client, room_id: room_id)
+
+      error_msg = "Request failed: Cannot add room with id \"#{room_id}\" - room already exists"
+      assert {:error, ^error_msg} = Room.create(client, room_id: room_id)
     end
 
     test "when request is invalid, max peers", %{client: client} do
@@ -285,6 +308,18 @@ defmodule Jellyfish.RoomTest do
       assert_raise FunctionClauseError, fn ->
         Room.add_peer(client, @room_id, InvalidPeerOpts)
       end
+    end
+
+    test "when request is invalid, too many peers", %{client: client} do
+      {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
+        Room.create(client, max_peers: 1, video_codec: @video_codec)
+
+      assert {:ok, _peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts)
+
+      error_msg = "Request failed: Reached peer limit in room #{room_id}"
+
+      assert {:error, ^error_msg} =
+               Room.add_peer(client, room_id, @peer_opts)
     end
   end
 
