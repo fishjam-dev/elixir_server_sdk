@@ -242,13 +242,19 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Adds tracks to hls component
+  Adds peers and components tracks to hls component
+
+  In order to subscribe to HLS peers/components, the HLS component should be initialized with the subscribe_mode set to :manual.
+  This mode proves beneficial when you do not wish to record or stream all the available streams within a room via HLS.
+  It allows for selective addition instead – you can manually select specific streams.
+  For instance, you could opt to record only the stream of an event's host.
   """
-  @spec hls_subscribe(Client.t(), id(), [track_id()]) :: :ok | {:error, atom() | String.t()}
-  def hls_subscribe(client, room_id, tracks) do
-    with :ok <- validate_tracks(tracks),
+  @spec hls_subscribe(Client.t(), id(), [Peer.id() | Component.id()]) ::
+          :ok | {:error, atom() | String.t()}
+  def hls_subscribe(client, room_id, origins) do
+    with :ok <- validate_origins(origins),
          {:ok, %Env{status: 201}} <-
-           Tesla.post(client.http_client, "/hls/#{room_id}/subscribe", %{tracks: tracks}) do
+           Tesla.post(client.http_client, "/hls/#{room_id}/subscribe", %{origins: origins}) do
       :ok
     else
       error -> Utils.handle_response_error(error)
@@ -306,8 +312,8 @@ defmodule Jellyfish.Room do
   defp validate_subscribe_mode(mode) when mode in @subscribe_modes, do: :ok
   defp validate_subscribe_mode(_mode), do: :error
 
-  defp validate_tracks(tracks) when is_list(tracks), do: :ok
-  defp validate_tracks(_tracks), do: {:error, :tracks_validation}
+  defp validate_origins(origins) when is_list(origins), do: :ok
+  defp validate_origins(_tracks), do: {:error, :origins_validation}
 
   defp map_snake_case_to_camel_case(%{} = map),
     do:

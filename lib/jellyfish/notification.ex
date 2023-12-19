@@ -96,6 +96,28 @@ defmodule Jellyfish.Notification do
           }
   end
 
+  defmodule HlsUploaded do
+    @moduledoc nil
+
+    @enforce_keys [:room_id]
+    defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            room_id: Room.id()
+          }
+  end
+
+  defmodule HlsUploadCrashed do
+    @moduledoc nil
+
+    @enforce_keys [:room_id]
+    defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            room_id: Room.id()
+          }
+  end
+
   @discarded_fields [:__unknown_fields__]
 
   @doc false
