@@ -242,6 +242,8 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
+  Adds peers and components tracks to hls component
+
   In order to subscribe to HLS peers/components, the HLS component should be initialized with the subscribe_mode set to :manual.
   This mode proves beneficial when you do not wish to record or stream all the available streams within a room via HLS.
   It allows for selective addition instead – you can manually select specific streams.
