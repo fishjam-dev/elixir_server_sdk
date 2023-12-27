@@ -185,13 +185,18 @@ defmodule Jellyfish.RoomTest do
   describe "Room.add_component/3" do
     setup [:create_room]
 
-    test "when request is valid with opts", %{client: client, room_id: room_id} do
+    test "when request is valid with opts - hls", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @hls_component_opts)
       assert %Component{type: Component.HLS, properties: @hls_properties} = component
+    end
 
+    test "when request is valid with opts - rtsp", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
       assert %Component{type: Component.RTSP, properties: %{}} = component
+    end
 
+    @tag :file_component_sources
+    test "when request is valid with opts - file", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @file_component_opts)
       assert %Component{type: Component.File, properties: %{}} = component
     end
@@ -251,6 +256,7 @@ defmodule Jellyfish.RoomTest do
       end
     end
 
+    @tag :file_component_sources
     test "File when request - video", %{client: client, room_id: room_id} do
       assert {:ok, component} =
                Room.add_component(client, room_id, %Component.File{
@@ -261,7 +267,7 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "File when request is invalid - invalid path", %{client: client, room_id: room_id} do
-      assert {:error, "Request failed: Invalid request body structure"} =
+      assert {:error, "Request failed: Invalid file path"} =
                Room.add_component(client, room_id, %Component.File{
                  file_path: "../video.h264"
                })
@@ -269,7 +275,7 @@ defmodule Jellyfish.RoomTest do
 
     test "File when request is invalid - file does not exist",
          %{client: client, room_id: room_id} do
-      assert {:error, "Request failed: Invalid request body structure"} =
+      assert {:error, "Request failed: File not found"} =
                Room.add_component(client, room_id, %Component.File{
                  file_path: "no_such_video.h264"
                })

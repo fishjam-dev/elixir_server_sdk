@@ -125,7 +125,7 @@ defmodule Membrane.Template.Mixfile do
       List.last(opts) == "--without_docker" ->
         IO.puts("Running tests locally (it requires setting up jellyfish without docker) ...")
 
-        Mix.Task.run("test")
+        Mix.Task.run("test", ["--exclude", "file_component_sources"])
 
       System.find_executable("docker") ->
         IO.puts("Running tests using Docker. To run tests without Docker call \"mix test.local\"")
