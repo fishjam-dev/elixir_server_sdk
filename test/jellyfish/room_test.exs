@@ -26,8 +26,18 @@ defmodule Jellyfish.RoomTest do
   @rtsp_component_opts %Component.RTSP{
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter"
   }
+  @rtsp_properties %{
+    source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter",
+    rtp_port: 20_000,
+    reconnect_delay: 15_000,
+    keep_alive_interval: 15_000,
+    pierce_nat: true
+  }
 
   @file_component_opts %Component.File{
+    file_path: "video.h264"
+  }
+  @file_properties %{
     file_path: "video.h264"
   }
 
@@ -192,13 +202,13 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid with opts - rtsp", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
-      assert %Component{type: Component.RTSP, properties: %{}} = component
+      assert %Component{type: Component.RTSP, properties: @rtsp_properties} = component
     end
 
     @tag :file_component_sources
     test "when request is valid with opts - file", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @file_component_opts)
-      assert %Component{type: Component.File, properties: %{}} = component
+      assert %Component{type: Component.File, properties: @file_properties} = component
     end
 
     test "HLS when request is valid with opts module", %{client: client, room_id: room_id} do
@@ -263,7 +273,7 @@ defmodule Jellyfish.RoomTest do
                  file_path: @video_filename
                })
 
-      assert %Component{type: Component.File, properties: %{}} = component
+      assert %Component{type: Component.File, properties: @file_properties} = component
     end
 
     test "File when request is invalid - invalid path", %{client: client, room_id: room_id} do

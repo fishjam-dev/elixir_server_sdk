@@ -17,7 +17,11 @@ defmodule Jellyfish.Component.File do
         }
 
   @impl true
-  def properties_from_json(%{}) do
-    %{}
+  def properties_from_json(%{
+        "filePath" => file_path
+      }) do
+    %{
+      file_path: file_path
+    }
   end
 end
