@@ -26,5 +26,18 @@ defmodule Jellyfish.Component.RTSP do
         }
 
   @impl true
-  def properties_from_json(_properties), do: %{}
+  def properties_from_json(%{
+        "sourceUri" => source_uri,
+        "rtpPort" => rtp_port,
+        "reconnectDelay" => reconnect_delay,
+        "keepAliveInterval" => keep_alive_interval,
+        "pierceNat" => pierce_nat
+      }),
+      do: %{
+        source_uri: source_uri,
+        rtp_port: rtp_port,
+        reconnect_delay: reconnect_delay,
+        keep_alive_interval: keep_alive_interval,
+        pierce_nat: pierce_nat
+      }
 end
