@@ -16,14 +16,16 @@ defmodule Jellyfish.Room do
   ...>    config: %{max_peers: 10, video_codec: nil},
   ...>    peers: []}
   true
-  iex> assert {:ok,%Jellyfish.Peer{
+  iex> assert {:ok, %Jellyfish.Peer{
   ...>    status: :disconnected,
-  ...>    type: Jellyfish.Peer.WebRTC
+  ...>    type: Jellyfish.Peer.WebRTC,
+  ...>    tracks: []
   ...> } = peer, _peer_token} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
   iex> %Jellyfish.Peer{
   ...>    id: peer.id,
   ...>    status: :disconnected,
-  ...>    type: Jellyfish.Peer.WebRTC} == peer
+  ...>    type: Jellyfish.Peer.WebRTC,
+  ...>    tracks: []} == peer
   true
   iex> :ok = Jellyfish.Room.delete(client, room.id)
   :ok
