@@ -38,7 +38,8 @@ defmodule Jellyfish.RoomTest do
     file_path: "video.h264"
   }
   @file_properties %{
-    file_path: "video.h264"
+    file_path: "video.h264",
+    framerate: 30
   }
 
   @video_filename "video.h264"
@@ -276,6 +277,19 @@ defmodule Jellyfish.RoomTest do
       assert %Component{type: Component.File, properties: @file_properties} = component
     end
 
+    @tag :file_component_sources
+    test "File when request - video with different framerate", %{client: client, room_id: room_id} do
+      assert {:ok, component} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: @video_filename,
+                 framerate: 20
+               })
+
+      new_properties = %{@file_properties | framerate: 20}
+
+      assert %Component{type: Component.File, properties: ^new_properties} = component
+    end
+
     test "File when request is invalid - invalid path", %{client: client, room_id: room_id} do
       assert {:error, "Request failed: Invalid file path"} =
                Room.add_component(client, room_id, %Component.File{
@@ -288,6 +302,15 @@ defmodule Jellyfish.RoomTest do
       assert {:error, "Request failed: File not found"} =
                Room.add_component(client, room_id, %Component.File{
                  file_path: "no_such_video.h264"
+               })
+    end
+
+    test "File when request is invalid - invalid framerate",
+         %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Invalid framerate passed"} =
+               Room.add_component(client, room_id, %Component.File{
+                 file_path: "video.h264",
+                 framerate: -20
                })
     end
   end
