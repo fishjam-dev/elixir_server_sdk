@@ -71,6 +71,18 @@ defmodule Jellyfish.RoomTest do
     defstruct [:abc, :def]
   end
 
+  setup_all do
+    client = Client.new()
+
+    on_exit(fn ->
+      {:ok, rooms} = Room.get_all(client)
+
+      Enum.each(rooms, fn room ->
+        :ok = Room.delete(client, room.id)
+      end)
+    end)
+  end
+
   setup do
     %{client: Client.new()}
   end
