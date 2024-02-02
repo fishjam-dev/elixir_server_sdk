@@ -10,9 +10,9 @@ defmodule Jellyfish.Track do
   @enforce_keys [
     :id,
     :type,
-    :encoding
+    :metadata
   ]
-  defstruct @enforce_keys ++ [metadata: %{}]
+  defstruct @enforce_keys
 
   @typedoc """
   Id of the track, unique within the room.
@@ -27,25 +27,12 @@ defmodule Jellyfish.Track do
   @valid_type_string ["audio", "video"]
 
   @typedoc """
-  Encoding of the track.
-  """
-  @type encoding :: :H264 | :VP8 | :OPUS
-
-  @valid_encoding_strings ["H264", "VP8", "OPUS"]
-
-  @typedoc """
-  Track metadata.
-  """
-  @type metadata :: String.t()
-
-  @typedoc """
   Stores information about the track.
   """
   @type t :: %__MODULE__{
           id: id(),
           type: type(),
-          encoding: encoding(),
-          metadata: metadata()
+          metadata: any()
         }
 
   @doc false
@@ -55,13 +42,11 @@ defmodule Jellyfish.Track do
       %{
         "id" => id,
         "type" => type_str,
-        "encoding" => encoding_str,
         "metadata" => metadata
       } ->
         %__MODULE__{
           id: id,
           type: type_from_string(type_str),
-          encoding: encoding_from_string(encoding_str),
           metadata: metadata
         }
 
@@ -72,7 +57,4 @@ defmodule Jellyfish.Track do
 
   defp type_from_string(type) when type in @valid_type_string,
     do: String.to_atom(type)
-
-  def encoding_from_string(encoding) when encoding in @valid_encoding_strings,
-    do: String.to_atom(encoding)
 end

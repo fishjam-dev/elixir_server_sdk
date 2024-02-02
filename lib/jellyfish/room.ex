@@ -25,7 +25,8 @@ defmodule Jellyfish.Room do
   ...>    id: peer.id,
   ...>    status: :disconnected,
   ...>    type: Jellyfish.Peer.WebRTC,
-  ...>    tracks: []} == peer
+  ...>    tracks: [],
+  ...>    metadata: nil} == peer
   true
   iex> :ok = Jellyfish.Room.delete(client, room.id)
   :ok

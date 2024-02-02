@@ -9,8 +9,7 @@ defmodule Jellyfish.Component.File do
   @behaviour Jellyfish.Component.Deserializer
 
   @enforce_keys [:file_path]
-  defstruct @enforce_keys ++
-              []
+  defstruct @enforce_keys
 
   @type t :: %__MODULE__{
           file_path: String.t()

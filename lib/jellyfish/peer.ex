@@ -15,7 +15,8 @@ defmodule Jellyfish.Peer do
     :id,
     :type,
     :status,
-    :tracks
+    :tracks,
+    :metadata
   ]
   defstruct @enforce_keys
 
@@ -48,7 +49,8 @@ defmodule Jellyfish.Peer do
           id: id(),
           type: type(),
           status: status(),
-          tracks: [Track.t()]
+          tracks: [Track.t()],
+          metadata: any()
         }
 
   @doc false
@@ -59,13 +61,15 @@ defmodule Jellyfish.Peer do
         "id" => id,
         "type" => type_str,
         "status" => status_str,
-        "tracks" => tracks
+        "tracks" => tracks,
+        "metadata" => metadata
       } ->
         %__MODULE__{
           id: id,
           type: type_from_string(type_str),
           status: status_from_string(status_str),
-          tracks: Enum.map(tracks, &Track.from_json/1)
+          tracks: Enum.map(tracks, &Track.from_json/1),
+          metadata: metadata
         }
 
       _other ->

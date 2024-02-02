@@ -26,12 +26,12 @@ defmodule Jellyfish.Component do
   @typedoc """
   Type of the component.
   """
-  @type type :: HLS | RTSP
+  @type type :: HLS | RTSP | File
 
   @typedoc """
   Component-specific options.
   """
-  @type options :: HLS.t() | RTSP.t()
+  @type options :: HLS.t() | RTSP.t() | File.t()
 
   @typedoc """
   Stores information about the component.
