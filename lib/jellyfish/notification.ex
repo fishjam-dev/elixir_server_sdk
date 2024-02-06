@@ -140,7 +140,7 @@ defmodule Jellyfish.Notification do
 
     @type t :: %__MODULE__{
             room_id: Room.id(),
-            component_id: Peer.id(),
+            component_id: Component.id(),
             track: Track.t()
           }
   end
@@ -217,19 +217,15 @@ defmodule Jellyfish.Notification do
       when module in [TrackAdded, TrackMetadataUpdated, TrackRemoved] do
     {endpoint_type, endpoint_id} = message.endpoint_info
 
-    endpoint_type_str =
-      endpoint_type
-      |> Atom.to_string()
-      |> String.split("_")
-      |> List.first()
-      |> String.capitalize()
-
     notification_module =
-      module
-      |> Module.split()
-      |> List.last()
-      |> then(&(endpoint_type_str <> &1))
-      |> then(&Module.concat(__MODULE__, &1))
+      case {endpoint_type, module} do
+        {:component, TrackAdded} -> ComponentTrackAdded
+        {:component, TrackMetadataUpdated} -> ComponentTrackMetadataUpdated
+        {:component, TrackRemoved} -> ComponentTrackRemoved
+        {:peer, TrackAdded} -> PeerTrackAdded
+        {:peer, TrackMetadataUpdated} -> PeerTrackMetadataUpdated
+        {:peer, TrackRemoved} -> PeerTrackRemoved
+      end
 
     discarded_fields = @discarded_fields ++ [:endpoint_info]
 
