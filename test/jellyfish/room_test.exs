@@ -102,8 +102,6 @@ defmodule Jellyfish.RoomTest do
       server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
 
       assert ^server_address = jellyfish_address
-
-      :ok = Room.delete(client, room.id)
     end
 
     test "invalid token" do
@@ -126,8 +124,6 @@ defmodule Jellyfish.RoomTest do
       server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
 
       assert ^server_address = jellyfish_address
-
-      :ok = Room.delete(client, room.id)
     end
 
     test "when request is valid with room_id", %{client: client} do
@@ -144,8 +140,6 @@ defmodule Jellyfish.RoomTest do
       server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
 
       assert ^server_address = jellyfish_address
-
-      :ok = Room.delete(client, room.id)
     end
 
     test "when request is invalid, room already exists", %{client: client} do
@@ -154,8 +148,6 @@ defmodule Jellyfish.RoomTest do
 
       error_msg = "Request failed: Cannot add room with id \"#{room_id}\" - room already exists"
       assert {:error, ^error_msg} = Room.create(client, room_id: room_id)
-
-      :ok = Room.delete(client, room_id)
     end
 
     test "when request is invalid, max peers", %{client: client} do
@@ -379,8 +371,6 @@ defmodule Jellyfish.RoomTest do
 
       assert {:error, ^error_msg} =
                Room.add_peer(client, room_id, @peer_opts)
-
-      :ok = Room.delete(client, room_id)
     end
   end
 
@@ -436,10 +426,6 @@ defmodule Jellyfish.RoomTest do
   defp create_room(state) do
     assert {:ok, %Jellyfish.Room{id: id}, _jellyfish_address} =
              Room.create(state.client, max_peers: @max_peers, video_codec: @video_codec)
-
-    on_exit(fn ->
-      Room.delete(state.client, id)
-    end)
 
     %{room_id: id}
   end
