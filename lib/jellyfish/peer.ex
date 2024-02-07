@@ -9,11 +9,14 @@ defmodule Jellyfish.Peer do
 
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Peer.WebRTC
+  alias Jellyfish.Track
 
   @enforce_keys [
     :id,
     :type,
-    :status
+    :status,
+    :tracks,
+    :metadata
   ]
   defstruct @enforce_keys
 
@@ -45,7 +48,9 @@ defmodule Jellyfish.Peer do
   @type t :: %__MODULE__{
           id: id(),
           type: type(),
-          status: status()
+          status: status(),
+          tracks: [Track.t()],
+          metadata: any()
         }
 
   @doc false
@@ -55,12 +60,16 @@ defmodule Jellyfish.Peer do
       %{
         "id" => id,
         "type" => type_str,
-        "status" => status_str
+        "status" => status_str,
+        "tracks" => tracks,
+        "metadata" => metadata
       } ->
         %__MODULE__{
           id: id,
           type: type_from_string(type_str),
-          status: status_from_string(status_str)
+          status: status_from_string(status_str),
+          tracks: Enum.map(tracks, &Track.from_json/1),
+          metadata: metadata
         }
 
       _other ->

@@ -8,11 +8,13 @@ defmodule Jellyfish.Component do
 
   alias Jellyfish.Component.{File, HLS, RTSP}
   alias Jellyfish.Exception.StructureError
+  alias Jellyfish.Track
 
   @enforce_keys [
     :id,
     :type,
-    :properties
+    :properties,
+    :tracks
   ]
   defstruct @enforce_keys
 
@@ -24,12 +26,12 @@ defmodule Jellyfish.Component do
   @typedoc """
   Type of the component.
   """
-  @type type :: HLS | RTSP
+  @type type :: HLS | RTSP | File
 
   @typedoc """
   Component-specific options.
   """
-  @type options :: HLS.t() | RTSP.t()
+  @type options :: HLS.t() | RTSP.t() | File.t()
 
   @typedoc """
   Stores information about the component.
@@ -37,7 +39,8 @@ defmodule Jellyfish.Component do
   @type t :: %__MODULE__{
           id: id(),
           type: type(),
-          properties: map()
+          properties: map(),
+          tracks: [Track.t()]
         }
 
   @doc false
@@ -47,14 +50,16 @@ defmodule Jellyfish.Component do
       %{
         "id" => id,
         "type" => type_str,
-        "properties" => properties
+        "properties" => properties,
+        "tracks" => tracks
       } ->
         type = type_from_string(type_str)
 
         %__MODULE__{
           id: id,
           type: type,
-          properties: type.properties_from_json(properties)
+          properties: type.properties_from_json(properties),
+          tracks: Enum.map(tracks, &Track.from_json/1)
         }
 
       _other ->
