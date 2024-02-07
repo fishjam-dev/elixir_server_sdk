@@ -219,12 +219,12 @@ defmodule Jellyfish.Notification do
 
     notification_module =
       case {endpoint_type, module} do
-        {:component, TrackAdded} -> ComponentTrackAdded
-        {:component, TrackMetadataUpdated} -> ComponentTrackMetadataUpdated
-        {:component, TrackRemoved} -> ComponentTrackRemoved
-        {:peer, TrackAdded} -> PeerTrackAdded
-        {:peer, TrackMetadataUpdated} -> PeerTrackMetadataUpdated
-        {:peer, TrackRemoved} -> PeerTrackRemoved
+        {:component_id, TrackAdded} -> ComponentTrackAdded
+        {:component_id, TrackMetadataUpdated} -> ComponentTrackMetadataUpdated
+        {:component_id, TrackRemoved} -> ComponentTrackRemoved
+        {:peer_id, TrackAdded} -> PeerTrackAdded
+        {:peer_id, TrackMetadataUpdated} -> PeerTrackMetadataUpdated
+        {:peer_id, TrackRemoved} -> PeerTrackRemoved
       end
 
     discarded_fields = @discarded_fields ++ [:endpoint_info]

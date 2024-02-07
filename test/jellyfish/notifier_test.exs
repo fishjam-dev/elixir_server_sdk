@@ -136,6 +136,8 @@ defmodule Jellyfish.NotifierTest do
                      1_000
 
       assert_receive {:webhook, ^peer_disconnected}, 2_500
+
+      :ok = Room.delete(client, room_id)
     end
 
     @tag :file_component_sources
@@ -168,6 +170,8 @@ defmodule Jellyfish.NotifierTest do
                      1000
 
       assert_receive {:webhook, ^component_track_removed}
+
+      :ok = Room.delete(client, room_id)
     end
   end
 
@@ -187,6 +191,8 @@ defmodule Jellyfish.NotifierTest do
       assert_receive {:webhook, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}, 2_500
 
       assert_receive {:jellyfish, %MetricsReport{metrics: metrics}} when metrics != %{}, 1500
+
+      :ok = Room.delete(client, room_id)
     end
   end
 
