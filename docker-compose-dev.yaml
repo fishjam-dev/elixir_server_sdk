@@ -19,6 +19,8 @@ services:
       JF_INTEGRATED_TURN_PORT_RANGE: "50000-50050"
       JF_INTEGRATED_TCP_TURN_PORT: "49999"
       JF_SERVER_API_TOKEN: "development"
+      JF_SIP_USED: "true"
+      JF_SIP_IP: "127.0.0.1"
       JF_PORT: 5002
     ports:
       - "5002:5002"
