@@ -34,7 +34,7 @@ defmodule Jellyfish.Room do
   """
 
   alias Tesla.Env
-  alias Jellyfish.Component.{File, HLS, RTSP}
+  alias Jellyfish.Component.{File, HLS, RTSP, SIP}
   alias Jellyfish.{Client, Component, Peer, Utils}
   alias Jellyfish.Exception.StructureError
 
@@ -301,7 +301,7 @@ defmodule Jellyfish.Room do
   @spec end_call(Client.t(), id(), Component.id()) ::
           :ok | {:error, atom() | String.t()}
   def end_call(client, room_id, component_id) do
-    with {:ok, %Env{status: 201}} <-
+    with {:ok, %Env{status: 204}} <-
            Tesla.delete(client.http_client, "/sip/#{room_id}/#{component_id}/call") do
       :ok
     else
@@ -335,6 +335,8 @@ defmodule Jellyfish.Room do
 
   defp validate_component(%File{}), do: :ok
 
+  defp validate_component(%SIP{}), do: :ok
+
   defp validate_component(%HLS{s3: s3, subscribe_mode: subscribe_mode}) do
     with :ok <- validate_s3_credentials(s3),
          :ok <- validate_subscribe_mode(subscribe_mode) do
@@ -364,7 +366,7 @@ defmodule Jellyfish.Room do
   defp validate_origins(_tracks), do: {:error, :origins_validation}
 
   defp validate_phone_number(phone_number) when is_binary(phone_number), do: :ok
-  defp validate_phone_number(_phone_number), do: {:error, :incorrect_phone_number}
+  defp validate_phone_number(_phone_number), do: {:error, :incorrect_phone_number_type}
 
   defp map_snake_case_to_camel_case(%{} = map),
     do:
