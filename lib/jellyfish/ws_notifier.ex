@@ -35,6 +35,8 @@ defmodule Jellyfish.WSNotifier do
 
   use WebSockex
 
+  require Logger
+
   alias Jellyfish.Utils
   alias Jellyfish.{Notification, ServerMessage}
 
@@ -138,9 +140,17 @@ defmodule Jellyfish.WSNotifier do
 
   @impl true
   def handle_frame({:binary, msg}, state) do
-    %ServerMessage{content: {_type, notification}} = ServerMessage.decode(msg)
+    case ServerMessage.decode(msg) do
+      %ServerMessage{content: {_type, notification}} ->
+        handle_notification(notification, state)
 
-    handle_notification(notification, state)
+      %ServerMessage{content: nil, __unknown_fields__: _binary} ->
+        Logger.warning(
+          "Can't decode received notification. This probably means that jellyfish is using a different version of protobuffs."
+        )
+
+        {:ok, state}
+    end
   end
 
   @impl true
