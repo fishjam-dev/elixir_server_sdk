@@ -21,9 +21,11 @@ defmodule Jellyfish.WebhookNotifier do
   room_id: "fbf4190c-5c76-415c-8939-52c6ed20868b",
   peer_id: "c7236587-5df8-4b41-b6e4-268e71133ee2"
   }
+  iex>  Jellyfish.WebhookNotifier.receive(<<>>)
+  {:error, :unknown_server_message}
   ```
   """
-  @spec receive(term()) :: struct() | nil
+  @spec receive(term()) :: struct() | {:error, :unknown_server_message}
   def receive(binary) do
     case ServerMessage.decode(binary) do
       %ServerMessage{content: {_type, notification}} ->
@@ -34,7 +36,7 @@ defmodule Jellyfish.WebhookNotifier do
           "Can't decode received notification. This probably means that jellyfish is using a different version of protobuffs."
         )
 
-        nil
+        {:error, :unknown_server_message}
     end
   end
 end
