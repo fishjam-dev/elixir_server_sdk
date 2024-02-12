@@ -274,6 +274,41 @@ defmodule Jellyfish.Room do
     end
   end
 
+  @doc """
+  Starts a phone call from a specified component to a provided phone number.
+
+  This is asynchronous operation. In case of providing incorrect phone number you will receive a notification `ComponentCrashed`.
+  """
+  @spec dial(Client.t(), id(), Component.id(), String.t()) ::
+          :ok | {:error, atom() | String.t()}
+  def dial(client, room_id, component_id, phone_number) do
+    with :ok <- validate_phone_number(phone_number),
+         {:ok, %Env{status: 201}} <-
+           Tesla.post(client.http_client, "/sip/#{room_id}/#{component_id}/call", %{
+             phoneNumber: phone_number
+           }) do
+      :ok
+    else
+      error -> Utils.handle_response_error(error)
+    end
+  end
+
+  @doc """
+  End a phone call on a specified SIP component.
+
+  This is asynchronous operation.
+  """
+  @spec end_call(Client.t(), id(), Component.id()) ::
+          :ok | {:error, atom() | String.t()}
+  def end_call(client, room_id, component_id) do
+    with {:ok, %Env{status: 201}} <-
+           Tesla.delete(client.http_client, "/sip/#{room_id}/#{component_id}/call") do
+      :ok
+    else
+      error -> Utils.handle_response_error(error)
+    end
+  end
+
   @doc false
   @spec from_json(map()) :: t()
   def from_json(response) do
@@ -327,6 +362,9 @@ defmodule Jellyfish.Room do
 
   defp validate_origins(origins) when is_list(origins), do: :ok
   defp validate_origins(_tracks), do: {:error, :origins_validation}
+
+  defp validate_phone_number(phone_number) when is_binary(phone_number), do: :ok
+  defp validate_phone_number(_phone_number), do: {:error, :incorrect_phone_number}
 
   defp map_snake_case_to_camel_case(%{} = map),
     do:
