@@ -34,6 +34,21 @@ defmodule Jellyfish.RoomTest do
     pierce_nat: true
   }
 
+  @sip_component_opts %Component.SIP{
+    registrar_credentials: %{
+      address: "my-sip-registrar.net",
+      username: "user-name",
+      password: "pass-word"
+    }
+  }
+  @sip_properties %{
+    registrar_credentials: %{
+      address: "my-sip-registrar.net",
+      username: "user-name",
+      password: "pass-word"
+    }
+  }
+
   @file_component_opts %Component.File{
     file_path: "video.h264"
   }
@@ -216,6 +231,11 @@ defmodule Jellyfish.RoomTest do
     test "when request is valid with opts - rtsp", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @rtsp_component_opts)
       assert %Component{type: Component.RTSP, properties: @rtsp_properties} = component
+    end
+
+    test "when request is valid with opts - sip", %{client: client, room_id: room_id} do
+      assert {:ok, component} = Room.add_component(client, room_id, @sip_component_opts)
+      assert %Component{type: Component.SIP, properties: @sip_properties} = component
     end
 
     @tag :file_component_sources
