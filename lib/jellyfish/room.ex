@@ -76,12 +76,15 @@ defmodule Jellyfish.Room do
       To use HLS component video codec has to be `:h264`.
     * `:webhook_url` - an address of a server receiving webhook
       notifications from the room.
+    * `:peerless_purge_timeout` - duration (in seconds) after which the room will be removed
+      if no peers are connected. If not provided, this feature is disabled.
   """
   @type options :: [
           room_id: String.t() | nil,
           max_peers: non_neg_integer() | nil,
           video_codec: :h264 | :vp8 | nil,
-          webhook_url: String.t() | nil
+          webhook_url: String.t() | nil,
+          peerless_purge_timeout: pos_integer() | nil
         ]
 
   @typedoc """
@@ -144,7 +147,8 @@ defmodule Jellyfish.Room do
                "roomId" => Keyword.get(opts, :room_id),
                "maxPeers" => Keyword.get(opts, :max_peers),
                "videoCodec" => Keyword.get(opts, :video_codec),
-               "webhookUrl" => Keyword.get(opts, :webhook_url)
+               "webhookUrl" => Keyword.get(opts, :webhook_url),
+               "peerlessPurgeTimeout" => Keyword.get(opts, :peerless_purge_timeout)
              }
            ),
          {:ok, data} <- Map.fetch(body, "data"),
