@@ -102,13 +102,9 @@ defmodule Jellyfish.Room do
   """
   @spec get_all(Client.t()) :: {:ok, [t()]} | {:error, atom() | String.t()}
   def get_all(client) do
-    with {:ok, %Env{status: 200, body: body}} <- Tesla.get(client.http_client, "/room"),
-         {:ok, data} <- Map.fetch(body, "data"),
+    with {:ok, data} <- Utils.make_get_request!(client, "/room"),
          result <- Enum.map(data, &from_json/1) do
       {:ok, result}
-    else
-      :error -> raise StructureError
-      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -117,14 +113,9 @@ defmodule Jellyfish.Room do
   """
   @spec get(Client.t(), id()) :: {:ok, t()} | {:error, atom() | String.t()}
   def get(client, room_id) do
-    with {:ok, %Env{status: 200, body: body}} <-
-           Tesla.get(client.http_client, "/room/#{room_id}"),
-         {:ok, data} <- Map.fetch(body, "data"),
+    with {:ok, data} <- Utils.make_get_request!(client, "/room/#{room_id}"),
          result <- from_json(data) do
       {:ok, result}
-    else
-      :error -> raise StructureError
-      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -139,26 +130,18 @@ defmodule Jellyfish.Room do
   """
   @spec create(Client.t(), options()) :: {:ok, t(), String.t()} | {:error, atom() | String.t()}
   def create(client, opts \\ []) do
-    with {:ok, %Env{status: 201, body: body}} <-
-           Tesla.post(
-             client.http_client,
-             "/room",
-             %{
-               "roomId" => Keyword.get(opts, :room_id),
-               "maxPeers" => Keyword.get(opts, :max_peers),
-               "videoCodec" => Keyword.get(opts, :video_codec),
-               "webhookUrl" => Keyword.get(opts, :webhook_url),
-               "peerlessPurgeTimeout" => Keyword.get(opts, :peerless_purge_timeout)
-             }
-           ),
-         {:ok, data} <- Map.fetch(body, "data"),
-         {:ok, room_json} <- Map.fetch(data, "room"),
-         {:ok, jellyfish_address} <- Map.fetch(data, "jellyfish_address"),
+    with {:ok, data} <-
+           Utils.make_post_request!(client, "/room", %{
+             "roomId" => Keyword.get(opts, :room_id),
+             "maxPeers" => Keyword.get(opts, :max_peers),
+             "videoCodec" => Keyword.get(opts, :video_codec),
+             "webhookUrl" => Keyword.get(opts, :webhook_url),
+             "peerlessPurgeTimeout" => Keyword.get(opts, :peerless_purge_timeout)
+           }),
+         room_json <- Map.fetch!(data, "room"),
+         jellyfish_address <- Map.fetch!(data, "jellyfish_address"),
          result <- from_json(room_json) do
       {:ok, result, jellyfish_address}
-    else
-      :error -> raise StructureError
-      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -181,23 +164,16 @@ defmodule Jellyfish.Room do
   def add_peer(client, room_id, peer) do
     peer = if is_atom(peer), do: struct!(peer), else: peer
 
-    with {:ok, %Env{status: 201, body: body}} <-
-           Tesla.post(
-             client.http_client,
-             "/room/#{room_id}/peer",
-             %{
-               "type" => Peer.string_from_options(peer),
-               "options" =>
-                 Map.from_struct(peer)
-                 |> Map.new(fn {k, v} -> {snake_case_to_camel_case(k), v} end)
-             }
-           ),
-         {:ok, %{"peer" => peer, "token" => token}} <- Map.fetch(body, "data"),
+    with {:ok, data} <-
+           Utils.make_post_request!(client, "/room/#{room_id}/peer", %{
+             "type" => Peer.string_from_options(peer),
+             "options" =>
+               Map.from_struct(peer)
+               |> Map.new(fn {k, v} -> {snake_case_to_camel_case(k), v} end)
+           }),
+         %{"peer" => peer, "token" => token} <- data,
          result <- Peer.from_json(peer) do
       {:ok, result, token}
-    else
-      :error -> raise StructureError
-      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -295,8 +271,8 @@ defmodule Jellyfish.Room do
           peers: Enum.map(peers, &Peer.from_json/1)
         }
 
-      _other ->
-        raise StructureError
+      unknown_structe ->
+        raise StructureError, unknown_structe
     end
   end
 

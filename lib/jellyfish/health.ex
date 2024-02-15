@@ -11,8 +11,6 @@ defmodule Jellyfish.Health do
   ```
   """
 
-  alias Tesla.Env
-
   alias Jellyfish.{Client, Utils}
   alias Jellyfish.Exception.StructureError
 
@@ -54,13 +52,9 @@ defmodule Jellyfish.Health do
   """
   @spec check(Client.t()) :: {:ok, t()} | {:error, atom() | String.t()}
   def check(client) do
-    with {:ok, %Env{status: 200, body: body}} <- Tesla.get(client.http_client, "/health"),
-         {:ok, data} <- Map.fetch(body, "data"),
+    with {:ok, data} <- Utils.make_get_request!(client, "/health"),
          result <- from_json(data) do
       {:ok, result}
-    else
-      :error -> raise StructureError
-      error -> Utils.handle_response_error(error)
     end
   end
 
@@ -87,8 +81,8 @@ defmodule Jellyfish.Health do
           }
         }
 
-      _other ->
-        raise StructureError
+      unknown_structure ->
+        raise StructureError, unknown_structure
     end
   end
 

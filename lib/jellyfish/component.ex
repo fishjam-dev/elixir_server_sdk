@@ -62,8 +62,8 @@ defmodule Jellyfish.Component do
           tracks: Enum.map(tracks, &Track.from_json/1)
         }
 
-      _other ->
-        raise StructureError
+      unknown_structure ->
+        raise StructureError, unknown_structure
     end
   end
 

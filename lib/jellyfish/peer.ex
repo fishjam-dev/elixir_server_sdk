@@ -74,10 +74,8 @@ defmodule Jellyfish.Peer do
           metadata: metadata
         }
 
-      other ->
-        Logger.warning("Unknown structure: #{other}")
-
-        raise StructureError
+      unknown_structure ->
+        raise StructureError, unknown_structure
     end
   end
 
