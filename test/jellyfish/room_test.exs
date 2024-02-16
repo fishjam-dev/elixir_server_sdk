@@ -235,7 +235,6 @@ defmodule Jellyfish.RoomTest do
       assert %Component{type: Component.RTSP, properties: @rtsp_properties} = component
     end
 
-    @tag :sip_component
     test "when request is valid with opts - sip", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @sip_component_opts)
       assert %Component{type: Component.SIP, properties: @sip_properties} = component
@@ -452,8 +451,6 @@ defmodule Jellyfish.RoomTest do
   describe "Room.dial/4" do
     setup [:create_room]
 
-    @describetag :sip_component
-
     test "when request is valid", %{client: client, room_id: room_id} do
       assert {:ok, %Component{id: component_id, properties: @sip_properties}} =
                Room.add_component(client, room_id, @sip_component_opts)
@@ -477,7 +474,7 @@ defmodule Jellyfish.RoomTest do
       assert {:ok, %{id: component_id}} =
                Room.add_component(client, room_id, @rtsp_component_opts)
 
-      text = "Request failed: Component #{component_id} is not SIP component"
+      text = "Request failed: Component #{component_id} is not a SIP component"
 
       assert {:error, ^text} =
                Room.dial(client, room_id, component_id, @sip_phone_number)
