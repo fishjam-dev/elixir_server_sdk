@@ -6,7 +6,7 @@ defmodule Jellyfish.Component do
   For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
   """
 
-  alias Jellyfish.Component.{File, HLS, RTSP}
+  alias Jellyfish.Component.{File, HLS, RTSP, SIP}
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Track
 
@@ -26,12 +26,12 @@ defmodule Jellyfish.Component do
   @typedoc """
   Type of the component.
   """
-  @type type :: HLS | RTSP | File
+  @type type :: HLS | RTSP | File | SIP
 
   @typedoc """
   Component-specific options.
   """
-  @type options :: HLS.t() | RTSP.t() | File.t()
+  @type options :: HLS.t() | RTSP.t() | File.t() | SIP.t()
 
   @typedoc """
   Stores information about the component.
@@ -72,8 +72,10 @@ defmodule Jellyfish.Component do
   def string_from_options(%File{}), do: "file"
   def string_from_options(%HLS{}), do: "hls"
   def string_from_options(%RTSP{}), do: "rtsp"
+  def string_from_options(%SIP{}), do: "sip"
 
   defp type_from_string("file"), do: File
   defp type_from_string("hls"), do: HLS
   defp type_from_string("rtsp"), do: RTSP
+  defp type_from_string("sip"), do: SIP
 end

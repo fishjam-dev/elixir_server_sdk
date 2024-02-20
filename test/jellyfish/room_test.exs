@@ -34,6 +34,23 @@ defmodule Jellyfish.RoomTest do
     pierce_nat: true
   }
 
+  @sip_component_opts %Component.SIP{
+    registrar_credentials: %{
+      address: "my-sip-registrar.net",
+      username: "user-name",
+      password: "pass-word"
+    }
+  }
+  @sip_properties %{
+    registrar_credentials: %{
+      address: "my-sip-registrar.net",
+      username: "user-name",
+      password: "pass-word"
+    }
+  }
+
+  @sip_phone_number "1234"
+
   @file_component_opts %Component.File{
     file_path: "video.h264"
   }
@@ -218,6 +235,11 @@ defmodule Jellyfish.RoomTest do
       assert %Component{type: Component.RTSP, properties: @rtsp_properties} = component
     end
 
+    test "when request is valid with opts - sip", %{client: client, room_id: room_id} do
+      assert {:ok, component} = Room.add_component(client, room_id, @sip_component_opts)
+      assert %Component{type: Component.SIP, properties: @sip_properties} = component
+    end
+
     @tag :file_component_sources
     test "when request is valid with opts - file", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @file_component_opts)
@@ -302,6 +324,7 @@ defmodule Jellyfish.RoomTest do
       assert %Component{type: Component.File, properties: ^new_properties} = component
     end
 
+    @tag :file_component_sources
     test "File when request is invalid - invalid path", %{client: client, room_id: room_id} do
       assert {:error, "Request failed: Invalid file path"} =
                Room.add_component(client, room_id, %Component.File{
@@ -309,6 +332,7 @@ defmodule Jellyfish.RoomTest do
                })
     end
 
+    @tag :file_component_sources
     test "File when request is invalid - file does not exist",
          %{client: client, room_id: room_id} do
       assert {:error, "Request failed: File not found"} =
@@ -317,6 +341,7 @@ defmodule Jellyfish.RoomTest do
                })
     end
 
+    @tag :file_component_sources
     test "File when request is invalid - invalid framerate",
          %{client: client, room_id: room_id} do
       assert {:error, "Request failed: Invalid framerate passed"} =
@@ -420,6 +445,62 @@ defmodule Jellyfish.RoomTest do
                Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
 
       assert {:error, :origins_validation} = Room.hls_subscribe(client, room_id, @invalid_origins)
+    end
+  end
+
+  describe "Room.dial/4" do
+    setup [:create_room]
+
+    test "when request is valid", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{id: component_id, properties: @sip_properties}} =
+               Room.add_component(client, room_id, @sip_component_opts)
+
+      assert :ok = Room.dial(client, room_id, component_id, @sip_phone_number)
+    end
+
+    test "when room doesn't exist", %{client: client} do
+      assert {:error, "Request failed: Room #{@invalid_room_id} does not exist"} =
+               Room.dial(client, @invalid_room_id, @invalid_component_id, @sip_phone_number)
+    end
+
+    test "when provided sip component doesn't exist", %{client: client, room_id: room_id} do
+      text = "Request failed: Component #{@invalid_component_id} does not exist"
+
+      assert {:error, ^text} =
+               Room.dial(client, room_id, @invalid_component_id, @sip_phone_number)
+    end
+
+    test "when provided component is different type than sip", %{client: client, room_id: room_id} do
+      assert {:ok, %{id: component_id}} =
+               Room.add_component(client, room_id, @rtsp_component_opts)
+
+      text = "Request failed: Component #{component_id} is not a SIP component"
+
+      assert {:error, ^text} =
+               Room.dial(client, room_id, component_id, @sip_phone_number)
+    end
+
+    test "when request is invalid", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{id: component_id, properties: @sip_properties}} =
+               Room.add_component(client, room_id, @sip_component_opts)
+
+      assert {:error, :incorrect_phone_number_type} =
+               Room.dial(client, room_id, component_id, 1234)
+    end
+  end
+
+  describe "Room.end_call/3" do
+    setup [:create_room]
+
+    @describetag :sip_component
+
+    test "when request is valid", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{id: component_id, properties: @sip_properties}} =
+               Room.add_component(client, room_id, @sip_component_opts)
+
+      assert :ok = Room.dial(client, room_id, component_id, @sip_phone_number)
+
+      assert :ok = Room.end_call(client, room_id, component_id)
     end
   end
 
