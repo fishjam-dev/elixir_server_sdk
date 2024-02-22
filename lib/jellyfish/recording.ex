@@ -10,7 +10,6 @@ defmodule Jellyfish.Recording do
   ```
   """
 
-  alias Jellyfish.Exception.StructureError
   alias Jellyfish.{Client, Utils}
   alias Tesla.Env
 
@@ -24,14 +23,7 @@ defmodule Jellyfish.Recording do
   """
   @spec get_list(Client.t()) :: {:ok, [id()]} | {:error, String.t()}
   def get_list(client) do
-    with {:ok, %Env{status: 200, body: body}} <-
-           Tesla.get(client.http_client, "/recording"),
-         {:ok, data} <- Map.fetch(body, "data") do
-      {:ok, data}
-    else
-      :error -> raise StructureError
-      error -> Utils.handle_response_error(error)
-    end
+    Utils.make_get_request!(client, "/recording")
   end
 
   @doc """

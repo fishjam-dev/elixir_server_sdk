@@ -123,7 +123,9 @@ defmodule Jellyfish.RoomTest do
 
     test "invalid token" do
       client = Client.new(server_api_token: "invalid" <> @server_api_token)
-      assert {:error, _reason} = Room.create(client, max_peers: @max_peers)
+
+      assert {:error, _reason} =
+               Room.create(client, max_peers: @max_peers)
     end
   end
 

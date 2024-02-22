@@ -72,8 +72,8 @@ defmodule Jellyfish.Peer do
           metadata: metadata
         }
 
-      _other ->
-        raise StructureError
+      unknown_structure ->
+        raise StructureError, unknown_structure
     end
   end
 
