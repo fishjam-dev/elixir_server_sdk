@@ -25,22 +25,16 @@ defmodule Jellyfish.Utils do
   end
 
   def make_get_request!(client, path) do
-    with {:ok, %Env{status: 200, body: body}} <- Tesla.get(client.http_client, path) do
-      data =
-        case Map.fetch(body, "data") do
-          {:ok, data} -> data
-          :error -> raise StructureError, body
-        end
-
-      {:ok, data}
-    else
-      error -> handle_response_error(error)
-    end
+    make_request!(200, :get, client.http_client, path)
   end
 
   def make_post_request!(client, path, request_body) do
-    with {:ok, %Env{status: 201, body: body}} <-
-           Tesla.post(client.http_client, path, request_body) do
+    make_request!(201, :post, client.http_client, path, request_body)
+  end
+
+  defp make_request!(status_code, method, client, path, request_body \\ nil) do
+    with {:ok, %Env{status: ^status_code, body: body}} <-
+           Tesla.request(client, url: path, method: method, body: request_body) do
       data =
         case Map.fetch(body, "data") do
           {:ok, data} -> data

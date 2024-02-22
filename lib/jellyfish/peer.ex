@@ -7,8 +7,6 @@ defmodule Jellyfish.Peer do
   For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
   """
 
-  require Logger
-
   alias Jellyfish.Exception.StructureError
   alias Jellyfish.Peer.WebRTC
   alias Jellyfish.Track
