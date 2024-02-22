@@ -271,8 +271,8 @@ defmodule Jellyfish.Room do
           peers: Enum.map(peers, &Peer.from_json/1)
         }
 
-      unknown_structe ->
-        raise StructureError, unknown_structe
+      unknown_structure ->
+        raise StructureError, unknown_structure
     end
   end
 
