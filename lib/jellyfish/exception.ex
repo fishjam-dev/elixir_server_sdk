@@ -9,7 +9,7 @@ defmodule Jellyfish.Exception do
       msg = """
       Received server response or notification with unexpected structure.
       Make sure you are using correct combination of Jellyfish and SDK versions.
-      Passed structure #{inspect(structure)}
+      Passed structure: #{inspect(structure)}
       """
 
       %__MODULE__{message: msg}
