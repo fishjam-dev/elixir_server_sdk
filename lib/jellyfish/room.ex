@@ -34,7 +34,7 @@ defmodule Jellyfish.Room do
   """
 
   alias Tesla.Env
-  alias Jellyfish.Component.{File, HLS, RTSP, SIP}
+  alias Jellyfish.Component.{File, HLS, Recording, RTSP, SIP}
   alias Jellyfish.{Client, Component, Peer, Utils}
   alias Jellyfish.Exception.StructureError
 
@@ -316,6 +316,13 @@ defmodule Jellyfish.Room do
   defp validate_component(%File{}), do: :ok
 
   defp validate_component(%SIP{}), do: :ok
+
+  defp validate_component(%Recording{credentials: credentials}) do
+    case validate_s3_credentials(credentials) do
+      :ok -> :ok
+      :error -> {:error, :component_validation}
+    end
+  end
 
   defp validate_component(%HLS{s3: s3, subscribe_mode: subscribe_mode}) do
     with :ok <- validate_s3_credentials(s3),
