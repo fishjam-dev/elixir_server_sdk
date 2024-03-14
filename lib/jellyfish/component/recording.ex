@@ -8,19 +8,14 @@ defmodule Jellyfish.Component.Recording do
 
   @behaviour Jellyfish.Component.Deserializer
 
+  alias Jellyfish.Component.HLS
+
   @enforce_keys []
   defstruct @enforce_keys ++ [credentials: nil, path_prefix: nil]
 
-  @type credentials :: %{
-          access_key_id: String.t(),
-          secret_access_key: String.t(),
-          region: String.t(),
-          bucket: String.t()
-        }
-
   @type t :: %__MODULE__{
-          credentials: credentials(),
-          path_prefix: Path.t()
+          credentials: HLS.credentials() | nil,
+          path_prefix: Path.t() | nil
         }
 
   @impl true
