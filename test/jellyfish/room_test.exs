@@ -26,6 +26,7 @@ defmodule Jellyfish.RoomTest do
   @rtsp_component_opts %Component.RTSP{
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter"
   }
+
   @rtsp_properties %{
     source_uri: "rtsp://ef36c6dff23ecc5bbe311cc880d95dc8.se:2137/does/not/matter",
     rtp_port: 20_000,
@@ -33,6 +34,13 @@ defmodule Jellyfish.RoomTest do
     keep_alive_interval: 15_000,
     pierce_nat: true
   }
+
+  @recording_component_opts %Component.Recording{
+    credentials: @s3,
+    path_prefix: "test"
+  }
+
+  @recording_properties %{path_prefix: "test"}
 
   @sip_component_opts %Component.SIP{
     registrar_credentials: %{
@@ -237,6 +245,11 @@ defmodule Jellyfish.RoomTest do
       assert %Component{type: Component.RTSP, properties: @rtsp_properties} = component
     end
 
+    test "when request is valid with opts - recording", %{client: client, room_id: room_id} do
+      assert {:ok, component} = Room.add_component(client, room_id, @recording_component_opts)
+      assert %Component{type: Component.Recording, properties: @recording_properties} = component
+    end
+
     @tag :sip_component
     test "when request is valid with opts - sip", %{client: client, room_id: room_id} do
       assert {:ok, component} = Room.add_component(client, room_id, @sip_component_opts)
@@ -302,6 +315,28 @@ defmodule Jellyfish.RoomTest do
       assert_raise OptionsError, fn ->
         Room.add_component(client, @room_id, InvalidComponentOpts)
       end
+    end
+
+    test "Recording when request is invalid - wrong s3 credentials", %{
+      client: client,
+      room_id: room_id
+    } do
+      assert_raise OptionsError, fn ->
+        Room.add_component(client, room_id, %{
+          @recording_component_opts
+          | credentials: Map.delete(@s3, :region)
+        })
+      end
+
+      assert_raise OptionsError, fn ->
+        Room.add_component(client, room_id, %{@recording_component_opts | credentials: []})
+      end
+    end
+
+    test "Recording when credentials are not provided", %{client: client, room_id: room_id} do
+      {:error,
+       "Request failed: S3 credentials has to be passed either by request or at application startup as envs"} =
+        Room.add_component(client, room_id, %{@recording_component_opts | credentials: nil})
     end
 
     @tag :file_component_sources
