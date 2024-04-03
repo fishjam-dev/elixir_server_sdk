@@ -139,7 +139,7 @@ defmodule Jellyfish.WSNotifier do
   end
 
   def handle_cast(:terminate, state) do
-    {:stop, :normal, state}
+    {:close, state}
   end
 
   @impl true
@@ -170,13 +170,13 @@ defmodule Jellyfish.WSNotifier do
 
   @impl true
   def terminate({:remote, 1000, "invalid token"}, state) do
-    IO.inspect("TERMINATE", label: :WTF)
+    IO.inspect("TERMINATE", label: :WTF_WS)
     send(state.caller_pid, {:jellyfish, :invalid_token})
   end
 
   @impl true
   def terminate(reason, _state) do
-    IO.inspect("TERMINATE #{inspect(reason)}", label: :WTF)
+    IO.inspect("TERMINATE #{inspect(reason)}", label: :WTF_WS)
     :ok
   end
 
