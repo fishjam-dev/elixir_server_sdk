@@ -11,15 +11,16 @@ defmodule Jellyfish.Component.Recording do
   alias Jellyfish.Component.HLS
 
   @enforce_keys []
-  defstruct @enforce_keys ++ [credentials: nil, path_prefix: nil]
+  defstruct @enforce_keys ++ [credentials: nil, path_prefix: nil, subscribe_mode: :auto]
 
   @type t :: %__MODULE__{
           credentials: HLS.credentials() | nil,
-          path_prefix: Path.t() | nil
+          path_prefix: Path.t() | nil,
+          subscribe_mode: :manual | :auto
         }
 
   @impl true
-  def properties_from_json(%{"pathPrefix" => path_prefix}) do
-    %{path_prefix: path_prefix}
+  def properties_from_json(%{"pathPrefix" => path_prefix, "subscribeMode" => subscribe_mode}) do
+    %{path_prefix: path_prefix, subscribe_mode: subscribe_mode}
   end
 end
