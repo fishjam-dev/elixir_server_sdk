@@ -40,7 +40,7 @@ defmodule Jellyfish.RoomTest do
     path_prefix: "test"
   }
 
-  @recording_properties %{path_prefix: "test"}
+  @recording_properties %{subscribe_mode: "auto"}
 
   @sip_component_opts %Component.SIP{
     registrar_credentials: %{
@@ -80,6 +80,7 @@ defmodule Jellyfish.RoomTest do
   @video_codec :h264
 
   @invalid_room_id "invalid_mock_room_id"
+  @invalid_component_id "invalid_mock_component_id"
   @invalid_max_peers "abc"
   @invalid_video_codec :opus
 
@@ -132,8 +133,7 @@ defmodule Jellyfish.RoomTest do
     test "invalid token" do
       client = Client.new(server_api_token: "invalid" <> @server_api_token)
 
-      assert {:error, _reason} =
-               Room.create(client, max_peers: @max_peers)
+      assert {:error, _reason} = Room.create(client, max_peers: @max_peers)
     end
   end
 
@@ -432,8 +432,7 @@ defmodule Jellyfish.RoomTest do
 
       error_msg = "Request failed: Reached peer limit in room #{room_id}"
 
-      assert {:error, ^error_msg} =
-               Room.add_peer(client, room_id, @peer_opts)
+      assert {:error, ^error_msg} = Room.add_peer(client, room_id, @peer_opts)
     end
   end
 
@@ -450,39 +449,59 @@ defmodule Jellyfish.RoomTest do
     end
   end
 
-  describe "Room.hls_subscribe/3" do
+  describe "Room.subscribe/4" do
     setup [:create_room]
 
-    test "when request is valid", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{properties: %{subscribe_mode: "manual"}}} =
+    test "when request is valid HLS", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{id: id, properties: %{subscribe_mode: "manual"}}} =
                Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
 
-      assert :ok = Room.hls_subscribe(client, room_id, @origins)
+      assert :ok = Room.subscribe(client, room_id, id, @origins)
+    end
+
+    test "when request is valid recording", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{id: id, properties: %{subscribe_mode: "manual"}}} =
+               Room.add_component(client, room_id, %{
+                 @recording_component_opts
+                 | subscribe_mode: :manual
+               })
+
+      assert :ok = Room.subscribe(client, room_id, id, @origins)
     end
 
     test "when room doesn't exist", %{client: client} do
       assert {:error, "Request failed: Room #{@invalid_room_id} does not exist"} =
-               Room.hls_subscribe(client, @invalid_room_id, @origins)
+               Room.subscribe(client, @invalid_room_id, @invalid_component_id, @origins)
     end
 
-    test "when hls component doesn't exist", %{client: client, room_id: room_id} do
-      assert {:error, "Request failed: HLS component does not exist"} =
-               Room.hls_subscribe(client, room_id, @origins)
+    test "when component doesn't exist", %{client: client, room_id: room_id} do
+      assert {:error, "Request failed: Component #{@invalid_component_id} does not exist"} =
+               Room.subscribe(client, room_id, @invalid_component_id, @origins)
     end
 
-    test "when hls component has subscribe mode :auto", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{properties: %{subscribe_mode: "auto"}}} =
+    test "when component has subscribe mode :auto", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{id: id, properties: %{subscribe_mode: "auto"}}} =
                Room.add_component(client, room_id, %Jellyfish.Component.HLS{subscribe_mode: :auto})
 
-      assert {:error, "Request failed: HLS component option `subscribe_mode` is set to :auto"} =
-               Room.hls_subscribe(client, room_id, @origins)
+      text = "Request failed: Component #{id} option `subscribe_mode` is set to :auto"
+
+      assert {:error, ^text} = Room.subscribe(client, room_id, id, @origins)
     end
 
     test "when request is invalid", %{client: client, room_id: room_id} do
-      assert {:ok, %Component{properties: %{subscribe_mode: "manual"}}} =
+      assert {:ok, %Component{id: id, properties: %{subscribe_mode: "manual"}}} =
                Room.add_component(client, room_id, %Component.HLS{subscribe_mode: :manual})
 
-      assert {:error, :origins_validation} = Room.hls_subscribe(client, room_id, @invalid_origins)
+      assert {:error, :origins_validation} = Room.subscribe(client, room_id, id, @invalid_origins)
+    end
+
+    test "when request subscribe for invalid component", %{client: client, room_id: room_id} do
+      assert {:ok, %Component{id: id, properties: _properties}} =
+               Room.add_component(client, room_id, @rtsp_component_opts)
+
+      assert {:error,
+              "Request failed: Subscribe mode is supported only for HLS and Recording components"} =
+               Room.subscribe(client, room_id, id, @origins)
     end
   end
 
@@ -516,8 +535,7 @@ defmodule Jellyfish.RoomTest do
 
       text = "Request failed: Component #{component_id} is not a SIP component"
 
-      assert {:error, ^text} =
-               Room.dial(client, room_id, component_id, @sip_phone_number)
+      assert {:error, ^text} = Room.dial(client, room_id, component_id, @sip_phone_number)
     end
 
     test "when request is invalid", %{client: client, room_id: room_id} do

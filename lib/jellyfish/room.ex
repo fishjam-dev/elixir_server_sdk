@@ -207,7 +207,8 @@ defmodule Jellyfish.Room do
              %{
                "type" => Component.string_from_options(component),
                "options" =>
-                 Map.from_struct(component)
+                 component
+                 |> Map.from_struct()
                  |> map_snake_case_to_camel_case()
              }
            ),
@@ -235,19 +236,25 @@ defmodule Jellyfish.Room do
   end
 
   @doc """
-  Adds peers and components tracks to hls component
+  Adds peers and components tracks to hls or recording component
 
-  In order to subscribe to HLS peers/components, the HLS component should be initialized with the subscribe_mode set to :manual.
-  This mode proves beneficial when you do not wish to record or stream all the available streams within a room via HLS.
+  In order to subscribe the component to peers/components, the component should be initialized with the subscribe_mode set to :manual.
+  This mode proves beneficial when you do not wish to record or stream all the available streams within a room.
   It allows for selective addition instead – you can manually select specific streams.
   For instance, you could opt to record only the stream of an event's host.
   """
-  @spec hls_subscribe(Client.t(), id(), [Peer.id() | Component.id()]) ::
+  @spec subscribe(Client.t(), id(), Component.id(), [Peer.id() | Component.id()]) ::
           :ok | {:error, atom() | String.t()}
-  def hls_subscribe(client, room_id, origins) do
+  def subscribe(client, room_id, component_id, origins) do
     with :ok <- validate_origins(origins),
          {:ok, %Env{status: 201}} <-
-           Tesla.post(client.http_client, "/hls/#{room_id}/subscribe", %{origins: origins}) do
+           Tesla.post(
+             client.http_client,
+             "/room/#{room_id}/component/#{component_id}/subscribe",
+             %{
+               origins: origins
+             }
+           ) do
       :ok
     else
       error -> Utils.handle_response_error(error)
