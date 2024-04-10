@@ -56,6 +56,9 @@ defmodule Jellyfish.Utils do
 
   @spec handle_response_error(error()) :: {:error, term()}
   @spec handle_response_error(error()) :: {:error, term()}
+  def handle_response_error({:ok, %Env{body: %{"errors" => error}}}) when is_binary(error),
+    do: {:error, "Request failed: #{error}"}
+
   def handle_response_error({:ok, %Env{body: %{"errors" => error}}}),
     do: {:error, "Request failed: #{inspect(error)}"}
 

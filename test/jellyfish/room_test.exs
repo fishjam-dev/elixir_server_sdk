@@ -40,7 +40,7 @@ defmodule Jellyfish.RoomTest do
     path_prefix: "test"
   }
 
-  @recording_properties %{path_prefix: "test"}
+  @recording_properties %{subscribe_mode: "auto"}
 
   @sip_component_opts %Component.SIP{
     registrar_credentials: %{

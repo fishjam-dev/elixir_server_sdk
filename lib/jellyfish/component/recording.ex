@@ -20,7 +20,7 @@ defmodule Jellyfish.Component.Recording do
         }
 
   @impl true
-  def properties_from_json(%{"pathPrefix" => path_prefix, "subscribeMode" => subscribe_mode}) do
-    %{path_prefix: path_prefix, subscribe_mode: subscribe_mode}
+  def properties_from_json(%{"subscribeMode" => subscribe_mode}) do
+    %{subscribe_mode: subscribe_mode}
   end
 end
