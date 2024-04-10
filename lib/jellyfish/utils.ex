@@ -58,6 +58,7 @@ defmodule Jellyfish.Utils do
   @spec handle_response_error(error()) :: {:error, term()}
   def handle_response_error({:ok, %Env{body: %{"errors" => error}}}),
     do: {:error, "Request failed: #{inspect(error)}"}
+
   def handle_response_error({:ok, %Env{body: body}}), do: raise(StructureError, body)
   def handle_response_error({:error, :component_validation}), do: raise(OptionsError)
   def handle_response_error({:error, reason}), do: {:error, reason}
