@@ -78,13 +78,16 @@ defmodule Jellyfish.Room do
       notifications from the room.
     * `:peerless_purge_timeout` - duration (in seconds) after which the room will be removed
       if no peers are connected. If not provided, this feature is disabled.
+    * `:peer_disconnected_timeout` - duration (in seconds) after which the peer will be removed
+      if it is disconnected. If not provided, this feature is disabled.
   """
   @type options :: [
           room_id: String.t() | nil,
           max_peers: non_neg_integer() | nil,
           video_codec: :h264 | :vp8 | nil,
           webhook_url: String.t() | nil,
-          peerless_purge_timeout: pos_integer() | nil
+          peerless_purge_timeout: pos_integer() | nil,
+          peer_disconnected_timeout: pos_integer() | nil
         ]
 
   @typedoc """
@@ -136,7 +139,8 @@ defmodule Jellyfish.Room do
              "maxPeers" => Keyword.get(opts, :max_peers),
              "videoCodec" => Keyword.get(opts, :video_codec),
              "webhookUrl" => Keyword.get(opts, :webhook_url),
-             "peerlessPurgeTimeout" => Keyword.get(opts, :peerless_purge_timeout)
+             "peerlessPurgeTimeout" => Keyword.get(opts, :peerless_purge_timeout),
+             "peerDisconnectedTimeout" => Keyword.get(opts, :peer_disconnected_timeout)
            }),
          room_json <- Map.fetch!(data, "room"),
          jellyfish_address <- Map.fetch!(data, "jellyfish_address"),

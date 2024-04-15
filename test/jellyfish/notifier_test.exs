@@ -30,6 +30,8 @@ defmodule Jellyfish.NotifierTest do
 
   @max_peers 10
   @video_codec :vp8
+  @peerless_purge_timeout_s 1
+  @peer_disconnected_timeout_s 1
   @webhook_port 4000
   @webhook_host Application.compile_env!(:jellyfish_server_sdk, :webhook_address)
   @webhook_address "http://#{@webhook_host}:#{@webhook_port}/"
@@ -138,6 +140,45 @@ defmodule Jellyfish.NotifierTest do
       assert_receive {:webhook, ^peer_disconnected}, 2_500
 
       :ok = Room.delete(client, room_id)
+    end
+
+    test "when peer connects and then disconnects peer is removed with timeout", %{
+      client: client
+    } do
+      {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
+        Room.create(client,
+          max_peers: @max_peers,
+          video_codec: @video_codec,
+          webhook_url: @webhook_address,
+          peerless_purge_timeout: @peerless_purge_timeout_s,
+          peer_disconnected_timeout_s: @peer_disconnected_timeout_s
+        )
+
+      {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
+
+      {:ok, peer_ws} = WS.start_link("ws://#{jellyfish_address}/socket/peer/websocket")
+
+      auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
+      :ok = WS.send_frame(peer_ws, auth_request)
+      {room_id, peer_id, peer_ws}
+
+      assert_receive {:jellyfish,
+                      %PeerConnected{peer_id: ^peer_id, room_id: ^room_id} = peer_connected}
+
+      assert_receive {:webhook, ^peer_connected}, 2_500
+
+      GenServer.stop(peer_ws)
+
+      assert_receive {:jellyfish,
+                      %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id} = peer_disconnected},
+                     1_000
+
+      assert_receive {:webhook, ^peer_disconnected}, 2_500
+
+      assert_receive {:jellyfish, %RoomDeleted{room_id: ^room_id} = room_deleted},
+                     2_500
+
+      assert_receive {:webhook, ^room_deleted}, 2_500
     end
 
     @tag :file_component_sources
