@@ -419,10 +419,10 @@ defmodule Jellyfish.RoomTest do
     setup [:create_room]
 
     test "when request is valid", %{client: client, room_id: room_id} do
-      assert {:ok, peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts)
+      assert {:ok, %{peer: peer}} = Room.add_peer(client, room_id, @peer_opts)
       assert %Jellyfish.Peer{type: Peer.WebRTC} = peer
 
-      assert {:ok, peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts_module)
+      assert {:ok, %{peer: peer}} = Room.add_peer(client, room_id, @peer_opts_module)
       assert %Jellyfish.Peer{type: Peer.WebRTC} = peer
     end
 
@@ -440,7 +440,7 @@ defmodule Jellyfish.RoomTest do
       {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
         Room.create(client, max_peers: 1, video_codec: @video_codec)
 
-      assert {:ok, _peer, _peer_token} = Room.add_peer(client, room_id, @peer_opts)
+      assert {:ok, _response} = Room.add_peer(client, room_id, @peer_opts)
 
       error_msg = "Request failed: Reached peer limit in room #{room_id}"
 
@@ -582,7 +582,7 @@ defmodule Jellyfish.RoomTest do
   end
 
   defp create_peer(state) do
-    assert {:ok, %Jellyfish.Peer{id: id}, _token} =
+    assert {:ok, %{peer: %Jellyfish.Peer{id: id}}} =
              Room.add_peer(state.client, state.room_id, @peer_opts)
 
     %{peer_id: id}

@@ -238,16 +238,17 @@ defmodule Jellyfish.NotifierTest do
   end
 
   defp create_room_and_auth_ws(client, room_opts \\ []) do
-    {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
+    {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
       Room.create(client,
         max_peers: Keyword.get(room_opts, :max_peers, @max_peers),
         video_codec: Keyword.get(room_opts, :video_codec, @video_codec),
         webhook_url: Keyword.get(room_opts, :webhook_url, @webhook_address)
       )
 
-    {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
+    {:ok, %{peer: %Jellyfish.Peer{id: peer_id}, token: peer_token, ws_url: peer_ws_url}} =
+      Room.add_peer(client, room_id, @peer_opts)
 
-    {:ok, peer_ws} = WS.start_link("ws://#{jellyfish_address}/socket/peer/websocket")
+    {:ok, peer_ws} = WS.start_link("ws://#{peer_ws_url}")
 
     auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
     :ok = WS.send_frame(peer_ws, auth_request)
