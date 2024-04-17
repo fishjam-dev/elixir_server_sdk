@@ -16,11 +16,11 @@ defmodule Jellyfish.Room do
   ...>    config: %{max_peers: 10, video_codec: nil},
   ...>    peers: []}
   true
-  iex> assert {:ok, %Jellyfish.Peer{
+  iex> assert {:ok, %{peer: %Jellyfish.Peer{
   ...>    status: :disconnected,
   ...>    type: Jellyfish.Peer.WebRTC,
   ...>    tracks: []
-  ...> } = peer, _peer_token} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
+  ...> } = peer}} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
   iex> %Jellyfish.Peer{
   ...>    id: peer.id,
   ...>    status: :disconnected,
@@ -63,6 +63,14 @@ defmodule Jellyfish.Room do
   Peer token, created by Jellyfish. Required by client application to open connection to Jellyfish.
   """
   @type peer_token :: String.t()
+
+  @typedoc """
+  Jellyfish response to adding a peer to room. It consists of:
+  * peer structure
+  * token used for authentication when connecting through websocket to jellyfish
+  * ws_url that is a websocket adress to which this specific peer have to connect
+  """
+  @type peer_create_response :: %{peer: Peer.t(), token: peer_token(), ws_url: String.t()}
 
   @typedoc """
   Options used for creating a room.
@@ -164,7 +172,8 @@ defmodule Jellyfish.Room do
   Adds a peer to the room with `room_id`.
   """
   @spec add_peer(Client.t(), id(), Peer.options() | Peer.type()) ::
-          {:ok, Peer.t(), peer_token()} | {:error, atom() | String.t()}
+          {:ok, peer_create_response()}
+          | {:error, atom() | String.t()}
   def add_peer(client, room_id, peer) do
     peer = if is_atom(peer), do: struct!(peer), else: peer
 
@@ -175,9 +184,9 @@ defmodule Jellyfish.Room do
                Map.from_struct(peer)
                |> Map.new(fn {k, v} -> {snake_case_to_camel_case(k), v} end)
            }),
-         %{"peer" => peer, "token" => token} <- data,
+         %{"peer" => peer, "token" => token, "peer_websocket_url" => peer_websocket_url} <- data,
          result <- Peer.from_json(peer) do
-      {:ok, result, token}
+      {:ok, %{peer: result, token: token, ws_url: peer_websocket_url}}
     end
   end
 
