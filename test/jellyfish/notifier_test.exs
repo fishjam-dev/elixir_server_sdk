@@ -154,7 +154,8 @@ defmodule Jellyfish.NotifierTest do
           peer_disconnected_timeout_s: @peer_disconnected_timeout_s
         )
 
-      {:ok, %Jellyfish.Peer{id: peer_id}, peer_token} = Room.add_peer(client, room_id, @peer_opts)
+      {:ok, %{peer: %Jellyfish.Peer{id: peer_id}, token: peer_token}} =
+        Room.add_peer(client, room_id, @peer_opts)
 
       {:ok, peer_ws} = WS.start_link("ws://#{jellyfish_address}/socket/peer/websocket")
 
