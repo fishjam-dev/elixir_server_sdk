@@ -186,6 +186,18 @@ defmodule Jellyfish.RoomTest do
       assert {:error, "Request failed: Expected videoCodec to be 'h264' or 'vp8', got: opus"} =
                Room.create(client, video_codec: @invalid_video_codec)
     end
+
+    test "when request is invalid, peerless purge timeout", %{client: client} do
+      assert {:error,
+              "Request failed: Expected peerlessPurgeTimeout to be a positive integer, got: -25"} =
+               Room.create(client, peerless_purge_timeout: -25)
+    end
+
+    test "when request is invalid, peer disconnected timeout", %{client: client} do
+      assert {:error,
+              "Request failed: Expected peerDisconnectedTimeout to be a positive integer, got: -25"} =
+               Room.create(client, peer_disconnected_timeout: -25)
+    end
   end
 
   describe "Room.delete/2" do
