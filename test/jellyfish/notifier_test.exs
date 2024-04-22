@@ -10,7 +10,9 @@ defmodule Jellyfish.NotifierTest do
   alias Jellyfish.Notification.{
     ComponentTrackAdded,
     ComponentTrackRemoved,
+    PeerAdded,
     PeerConnected,
+    PeerDeleted,
     PeerDisconnected,
     PeerMetadataUpdated,
     RoomCreated,
@@ -157,6 +159,11 @@ defmodule Jellyfish.NotifierTest do
       {:ok, %{peer: %Jellyfish.Peer{id: peer_id}, token: peer_token}} =
         Room.add_peer(client, room_id, @peer_opts)
 
+      assert_receive {:jellyfish, %PeerAdded{peer_id: ^peer_id, room_id: ^room_id} = peer_added},
+                     1_000
+
+      assert_receive {:webhook, ^peer_added}, 2_500
+
       {:ok, peer_ws} = WS.start_link("ws://#{jellyfish_address}/socket/peer/websocket")
 
       auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
@@ -175,6 +182,12 @@ defmodule Jellyfish.NotifierTest do
                      1_000
 
       assert_receive {:webhook, ^peer_disconnected}, 2_500
+
+      assert_receive {:jellyfish,
+                      %PeerDeleted{peer_id: ^peer_id, room_id: ^room_id} = peer_deleted},
+                     1_000
+
+      assert_receive {:webhook, ^peer_deleted}, 2_500
 
       assert_receive {:jellyfish, %RoomDeleted{room_id: ^room_id} = room_deleted},
                      2_500
@@ -248,6 +261,11 @@ defmodule Jellyfish.NotifierTest do
 
     {:ok, %{peer: %Jellyfish.Peer{id: peer_id}, token: peer_token, ws_url: peer_ws_url}} =
       Room.add_peer(client, room_id, @peer_opts)
+
+    assert_receive {:jellyfish, %PeerAdded{peer_id: ^peer_id, room_id: ^room_id} = peer_added},
+                   1_000
+
+    assert_receive {:webhook, ^peer_added}, 2_500
 
     {:ok, peer_ws} = WS.start_link("ws://#{peer_ws_url}")
 

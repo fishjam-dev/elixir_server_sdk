@@ -37,6 +37,30 @@ defmodule Jellyfish.Notification do
           }
   end
 
+  defmodule PeerAdded do
+    @moduledoc nil
+
+    @enforce_keys [:room_id, :peer_id]
+    defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            room_id: Room.id(),
+            peer_id: Peer.id()
+          }
+  end
+
+  defmodule PeerDeleted do
+    @moduledoc nil
+
+    @enforce_keys [:room_id, :peer_id]
+    defstruct @enforce_keys
+
+    @type t :: %__MODULE__{
+            room_id: Room.id(),
+            peer_id: Peer.id()
+          }
+  end
+
   defmodule PeerConnected do
     @moduledoc nil
 
