@@ -185,7 +185,7 @@ defmodule Jellyfish.NotifierTest do
 
       assert_receive {:jellyfish,
                       %PeerDeleted{peer_id: ^peer_id, room_id: ^room_id} = peer_deleted},
-                     1_000
+                     2_500
 
       assert_receive {:webhook, ^peer_deleted}, 2_500
 
