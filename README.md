@@ -1,11 +1,11 @@
 # Fishjam Elixir Server SDK
 
-[![Hex.pm](https://img.shields.io/hexpm/v/jellyfish_server_sdk.svg)](https://hex.pm/packages/jellyfish_server_sdk)
-[![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/jellyfish_server_sdk/)
-[![codecov](https://codecov.io/gh/jellyfish-dev/elixir_server_sdk/branch/master/graph/badge.svg?token=ByIko4o5U8)](https://codecov.io/gh/jellyfish-dev/elixir_server_sdk)
-[![CircleCI](https://circleci.com/gh/jellyfish-dev/elixir_server_sdk.svg?style=svg)](https://circleci.com/gh/jellyfish-dev/elixir_server_sdk)
+[![Hex.pm](https://img.shields.io/hexpm/v/fishjam_server_sdk.svg)](https://hex.pm/packages/fishjam_server_sdk)
+[![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/fishjam_server_sdk/)
+[![codecov](https://codecov.io/gh/fishjam-dev/elixir_server_sdk/branch/master/graph/badge.svg?token=ByIko4o5U8)](https://codecov.io/gh/fishjam-dev/elixir_server_sdk)
+[![CircleCI](https://circleci.com/gh/fishjam-dev/elixir_server_sdk.svg?style=svg)](https://circleci.com/gh/fishjam-dev/elixir_server_sdk)
 
-Elixir server SDK for [Fishjam](https://github.com/jellyfish-dev/jellyfish).
+Elixir server SDK for [Fishjam](https://github.com/fishjam-dev/fishjam).
 Currently it allows for:
 
 - making API calls to Fishjam server (QoL wrapper for HTTP requests)
@@ -27,7 +27,7 @@ end
 
 Define the connection configuration in the mix config,
 specifying server address and authentication token
-(for more information see [Fishjam docs](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/authentication))
+(for more information see [Fishjam docs](https://fishjam-dev.github.io/fishjam-docs/getting_started/authentication))
 ``` config.exs
 config :jellyfish_server_sdk,
   server_address: "localhost:5002",
@@ -79,7 +79,7 @@ end
 :ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)
 ```
 
-List of structs representing events can be found in the [docs](https://hexdocs.pm/jellyfish_server_sdk).
+List of structs representing events can be found in the [docs](https://hexdocs.pm/fishjam_server_sdk).
 
 ## Testing
 
@@ -88,8 +88,8 @@ Tests on CI are run with the use of docker-compose, to run it locally in the sam
 
 ## Copyright and License
 
-Copyright 2023, [Software Mansion](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=jellyfish)
+Copyright 2023, [Software Mansion](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=fishjam)
 
-[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=jellyfish)
+[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=fishjam)
 
 Licensed under the [Apache License, Version 2.0](LICENSE)
