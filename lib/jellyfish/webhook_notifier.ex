@@ -1,11 +1,11 @@
-defmodule Jellyfish.WebhookNotifier do
+defmodule Fishjam.WebhookNotifier do
   @moduledoc """
-  Module defining a function allowing decoding received webhook notification from jellyfish to notification structs.
+  Module defining a function allowing decoding received webhook notification from fishjam to notification structs.
   """
 
   require Logger
 
-  alias Jellyfish.{Notification, ServerMessage}
+  alias Fishjam.{Notification, ServerMessage}
 
   @doc """
   Decodes received webhook to notification structs.
@@ -16,12 +16,12 @@ defmodule Jellyfish.WebhookNotifier do
   ...>  56, 98, 18, 36, 99, 55, 50, 51, 54, 53, 56, 55, 45, 53, 100, 102, 56, 45, 52,
   ...>  98, 52, 49, 45, 98, 54, 101, 52, 45, 50, 54, 56, 101, 55, 49, 49, 51, 51, 101,
   ...>  101, 50>>
-  ...> |> Jellyfish.WebhookNotifier.receive()
-  %Jellyfish.Notification.PeerConnected{
+  ...> |> Fishjam.WebhookNotifier.receive()
+  %Fishjam.Notification.PeerConnected{
   room_id: "fbf4190c-5c76-415c-8939-52c6ed20868b",
   peer_id: "c7236587-5df8-4b41-b6e4-268e71133ee2"
   }
-  iex>  Jellyfish.WebhookNotifier.receive(<<>>)
+  iex>  Fishjam.WebhookNotifier.receive(<<>>)
   {:error, :unknown_server_message}
   ```
   """
@@ -33,7 +33,7 @@ defmodule Jellyfish.WebhookNotifier do
 
       %ServerMessage{content: nil, __unknown_fields__: _binary} ->
         Logger.warning(
-          "Can't decode received notification. This probably means that jellyfish is using a different version of protobuffs."
+          "Can't decode received notification. This probably means that fishjam is using a different version of protobuffs."
         )
 
         {:error, :unknown_server_message}

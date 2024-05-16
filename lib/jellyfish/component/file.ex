@@ -1,12 +1,12 @@
-defmodule Jellyfish.Component.File do
+defmodule Fishjam.Component.File do
   @moduledoc """
   Options for the File component.
 
-  For the description of these options refer to [Jellyfish
-  documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/file).
+  For the description of these options refer to [Fishjam
+  documentation](https://fishjam-dev.github.io/fishjam-docs/getting_started/components/file).
   """
 
-  @behaviour Jellyfish.Component.Deserializer
+  @behaviour Fishjam.Component.Deserializer
 
   @enforce_keys [:file_path]
   defstruct @enforce_keys ++ [framerate: nil]

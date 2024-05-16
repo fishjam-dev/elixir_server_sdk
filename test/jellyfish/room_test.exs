@@ -1,8 +1,8 @@
-defmodule Jellyfish.RoomTest do
+defmodule Fishjam.RoomTest do
   use ExUnit.Case
-  doctest Jellyfish.Room
-  alias Jellyfish.Exception.OptionsError
-  alias Jellyfish.{Client, Component, Peer, Room}
+  doctest Fishjam.Room
+  alias Fishjam.Exception.OptionsError
+  alias Fishjam.{Client, Component, Peer, Room}
 
   @server_api_token "development"
 
@@ -115,19 +115,19 @@ defmodule Jellyfish.RoomTest do
 
   describe "auth" do
     test "correct token", %{client: client} do
-      assert {:ok, room, jellyfish_address} =
+      assert {:ok, room, fishjam_address} =
                Room.create(client, max_peers: @max_peers, video_codec: @video_codec)
 
-      assert %Jellyfish.Room{
+      assert %Fishjam.Room{
                components: [],
                config: %{max_peers: 10, video_codec: @video_codec},
                id: _id,
                peers: []
              } = room
 
-      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      server_address = Application.fetch_env!(:fishjam_server_sdk, :server_address)
 
-      assert ^server_address = jellyfish_address
+      assert ^server_address = fishjam_address
     end
 
     test "invalid token" do
@@ -139,39 +139,39 @@ defmodule Jellyfish.RoomTest do
 
   describe "Room.create/2" do
     test "when request is valid", %{client: client} do
-      assert {:ok, room, jellyfish_address} = Room.create(client, max_peers: @max_peers)
+      assert {:ok, room, fishjam_address} = Room.create(client, max_peers: @max_peers)
 
-      assert %Jellyfish.Room{
+      assert %Fishjam.Room{
                components: [],
                config: %{max_peers: 10},
                id: _id,
                peers: []
              } = room
 
-      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      server_address = Application.fetch_env!(:fishjam_server_sdk, :server_address)
 
-      assert ^server_address = jellyfish_address
+      assert ^server_address = fishjam_address
     end
 
     test "when request is valid with room_id", %{client: client} do
       room_id = UUID.uuid4()
-      assert {:ok, room, jellyfish_address} = Room.create(client, room_id: room_id)
+      assert {:ok, room, fishjam_address} = Room.create(client, room_id: room_id)
 
-      assert %Jellyfish.Room{
+      assert %Fishjam.Room{
                components: [],
                config: %{video_codec: nil, max_peers: nil},
                id: ^room_id,
                peers: []
              } = room
 
-      server_address = Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      server_address = Application.fetch_env!(:fishjam_server_sdk, :server_address)
 
-      assert ^server_address = jellyfish_address
+      assert ^server_address = fishjam_address
     end
 
     test "when request is invalid, room already exists", %{client: client} do
       room_id = UUID.uuid4()
-      assert {:ok, _room, _jellyfish_address} = Room.create(client, room_id: room_id)
+      assert {:ok, _room, _fishjam_address} = Room.create(client, room_id: room_id)
 
       error_msg = "Request failed: Cannot add room with id \"#{room_id}\" - room already exists"
       assert {:error, ^error_msg} = Room.create(client, room_id: room_id)
@@ -227,7 +227,7 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid", %{client: client, room_id: room_id, component_id: component_id} do
       assert {:ok,
-              %Jellyfish.Room{
+              %Fishjam.Room{
                 components: [component],
                 config: %{max_peers: @max_peers, video_codec: @video_codec},
                 id: ^room_id,
@@ -420,10 +420,10 @@ defmodule Jellyfish.RoomTest do
 
     test "when request is valid", %{client: client, room_id: room_id} do
       assert {:ok, %{peer: peer}} = Room.add_peer(client, room_id, @peer_opts)
-      assert %Jellyfish.Peer{type: Peer.WebRTC} = peer
+      assert %Fishjam.Peer{type: Peer.WebRTC} = peer
 
       assert {:ok, %{peer: peer}} = Room.add_peer(client, room_id, @peer_opts_module)
-      assert %Jellyfish.Peer{type: Peer.WebRTC} = peer
+      assert %Fishjam.Peer{type: Peer.WebRTC} = peer
     end
 
     test "when request is invalid", %{client: client} do
@@ -437,12 +437,12 @@ defmodule Jellyfish.RoomTest do
     end
 
     test "when request is invalid, too many peers", %{client: client} do
-      {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
+      {:ok, %Fishjam.Room{id: room_id}, _fishjam_address} =
         Room.create(client, max_peers: 1, video_codec: @video_codec)
 
       assert {:ok, _response} = Room.add_peer(client, room_id, @peer_opts)
 
-      error_msg = "Request failed: Reached peer limit in room #{room_id}"
+      error_msg = "Request failed: Reached webrtc peers limit in room #{room_id}"
 
       assert {:error, ^error_msg} = Room.add_peer(client, room_id, @peer_opts)
     end
@@ -493,7 +493,7 @@ defmodule Jellyfish.RoomTest do
 
     test "when component has subscribe mode :auto", %{client: client, room_id: room_id} do
       assert {:ok, %Component{id: id, properties: %{subscribe_mode: "auto"}}} =
-               Room.add_component(client, room_id, %Jellyfish.Component.HLS{subscribe_mode: :auto})
+               Room.add_component(client, room_id, %Fishjam.Component.HLS{subscribe_mode: :auto})
 
       text = "Request failed: Component #{id} option `subscribe_mode` is set to :auto"
 
@@ -575,21 +575,21 @@ defmodule Jellyfish.RoomTest do
   end
 
   defp create_room(state) do
-    assert {:ok, %Jellyfish.Room{id: id}, _jellyfish_address} =
+    assert {:ok, %Fishjam.Room{id: id}, _fishjam_address} =
              Room.create(state.client, max_peers: @max_peers, video_codec: @video_codec)
 
     %{room_id: id}
   end
 
   defp create_peer(state) do
-    assert {:ok, %{peer: %Jellyfish.Peer{id: id}}} =
+    assert {:ok, %{peer: %Fishjam.Peer{id: id}}} =
              Room.add_peer(state.client, state.room_id, @peer_opts)
 
     %{peer_id: id}
   end
 
   defp create_component_hls(state) do
-    assert {:ok, %Jellyfish.Component{id: id}} =
+    assert {:ok, %Fishjam.Component{id: id}} =
              Room.add_component(state.client, state.room_id, @hls_component_opts)
 
     %{component_id: id}

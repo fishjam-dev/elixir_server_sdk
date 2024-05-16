@@ -1,14 +1,14 @@
-defmodule Jellyfish.Component.Recording do
+defmodule Fishjam.Component.Recording do
   @moduledoc """
   Options for the recording component.
 
-  For the description of these options refer to [Jellyfish
-  documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/recording).
+  For the description of these options refer to [Fishjam
+  documentation](https://fishjam-dev.github.io/fishjam-docs/getting_started/components/recording).
   """
 
-  @behaviour Jellyfish.Component.Deserializer
+  @behaviour Fishjam.Component.Deserializer
 
-  alias Jellyfish.Component.HLS
+  alias Fishjam.Component.HLS
 
   @enforce_keys []
   defstruct @enforce_keys ++ [credentials: nil, path_prefix: nil, subscribe_mode: :auto]

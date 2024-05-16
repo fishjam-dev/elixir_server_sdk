@@ -1,9 +1,9 @@
-defmodule Jellyfish.HealthTest do
+defmodule Fishjam.HealthTest do
   use ExUnit.Case
 
-  doctest Jellyfish.Health
+  doctest Fishjam.Health
 
-  alias Jellyfish.{Client, Health}
+  alias Fishjam.{Client, Health}
 
   setup do
     %{client: Client.new()}

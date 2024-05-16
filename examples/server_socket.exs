@@ -1,6 +1,6 @@
 Mix.install(
   [
-    {:jellyfish_server_sdk, path: __DIR__ |> Path.join("..") |> Path.expand()}
+    {:fishjam_server_sdk, path: __DIR__ |> Path.join("..") |> Path.expand()}
   ],
   force: true
 )
@@ -9,14 +9,14 @@ server_address = "localhost:5002"
 server_api_token = "development"
 
 {:ok, notifier} =
-  Jellyfish.WSNotifier.start(server_address: server_address, server_api_token: server_api_token)
+  Fishjam.WSNotifier.start(server_address: server_address, server_api_token: server_api_token)
 
-{:ok, _rooms} = Jellyfish.WSNotifier.subscribe_server_notifications(notifier, :all)
-:ok = Jellyfish.WSNotifier.subscribe_metrics(notifier)
+{:ok, _rooms} = Fishjam.WSNotifier.subscribe_server_notifications(notifier, :all)
+:ok = Fishjam.WSNotifier.subscribe_metrics(notifier)
 
 receive_notification = fn receive_notification ->
   receive do
-    {:jellyfish, event} ->
+    {:fishjam, event} ->
       IO.inspect(event, label: :event)
   after
     150_000 ->

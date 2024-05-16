@@ -1,8 +1,8 @@
-defmodule Jellyfish.RecordingTest do
+defmodule Fishjam.RecordingTest do
   use ExUnit.Case
-  doctest Jellyfish.Recording
+  doctest Fishjam.Recording
 
-  alias Jellyfish.{Client, Recording}
+  alias Fishjam.{Client, Recording}
 
   setup do
     %{client: Client.new()}

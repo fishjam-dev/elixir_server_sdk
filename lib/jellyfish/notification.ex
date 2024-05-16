@@ -1,8 +1,8 @@
-defmodule Jellyfish.Notification do
+defmodule Fishjam.Notification do
   @moduledoc false
 
-  alias Jellyfish.{Component, Peer, Room, Track}
-  alias Jellyfish.ServerMessage.{TrackAdded, TrackMetadataUpdated, TrackRemoved}
+  alias Fishjam.{Component, Peer, Room, Track}
+  alias Fishjam.ServerMessage.{TrackAdded, TrackMetadataUpdated, TrackRemoved}
 
   defmodule RoomCreated do
     @moduledoc nil

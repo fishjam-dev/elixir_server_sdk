@@ -1,12 +1,12 @@
-defmodule Jellyfish.Component.RTSP do
+defmodule Fishjam.Component.RTSP do
   @moduledoc """
   Options for the RTSP component.
 
-  For the description of these options refer to [Jellyfish
-  documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/rtsp).
+  For the description of these options refer to [Fishjam
+  documentation](https://fishjam-dev.github.io/fishjam-docs/getting_started/components/rtsp).
   """
 
-  @behaviour Jellyfish.Component.Deserializer
+  @behaviour Fishjam.Component.Deserializer
 
   @enforce_keys [:source_uri]
   defstruct @enforce_keys ++

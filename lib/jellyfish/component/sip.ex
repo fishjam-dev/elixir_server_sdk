@@ -1,12 +1,12 @@
-defmodule Jellyfish.Component.SIP do
+defmodule Fishjam.Component.SIP do
   @moduledoc """
   Options for the SIP component.
 
-  For the description of these options refer to [Jellyfish
-  documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/sip).
+  For the description of these options refer to [Fishjam
+  documentation](https://fishjam-dev.github.io/fishjam-docs/getting_started/components/sip).
   """
 
-  @behaviour Jellyfish.Component.Deserializer
+  @behaviour Fishjam.Component.Deserializer
 
   @enforce_keys [:registrar_credentials]
   defstruct @enforce_keys

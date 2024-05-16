@@ -13,12 +13,12 @@ Currently it allows for:
 
 ## Installation
 
-The package can be installed by adding `jellyfish_server_sdk` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `fishjam_server_sdk` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:jellyfish_server_sdk, "~> 0.5.0"}
+    {:fishjam_server_sdk, "~> 0.5.0"}
   ]
 end
 ```
@@ -29,22 +29,22 @@ Define the connection configuration in the mix config,
 specifying server address and authentication token
 (for more information see [Fishjam docs](https://fishjam-dev.github.io/fishjam-docs/getting_started/authentication))
 ``` config.exs
-config :jellyfish_server_sdk,
+config :fishjam_server_sdk,
   server_address: "localhost:5002",
-  server_api_token: "your-jellyfish-token",
+  server_api_token: "your-fishjam-token",
   secure?: true
 ```
 
-Alternatively, the connection options can be provided when creating a `Jellyfish.Client` or starting `Jellyfish.WSNotifier`:
+Alternatively, the connection options can be provided when creating a `Fishjam.Client` or starting `Fishjam.WSNotifier`:
 
 ```elixir
 client =
-    Jellyfish.Client.new(server_address: "localhost:5002", server_api_token: "your-jellyfish-token")
+    Fishjam.Client.new(server_address: "localhost:5002", server_api_token: "your-fishjam-token")
 
 {:ok, notifier} =
-    Jellyfish.WSNotifier.start(
+    Fishjam.WSNotifier.start(
       server_address: "localhost:5002",
-      server_api_token: "your-jellyfish-token"
+      server_api_token: "your-fishjam-token"
     )
 ```
 
@@ -54,29 +54,29 @@ Make API calls to Fishjam and receive server events:
 
 ```elixir
 # start process responsible for receiving events
-{:ok, notifier} = Jellyfish.WSNotifier.start()
-:ok = Jellyfish.WSNotifier.subscribe_server_notifications(notifier)
+{:ok, notifier} = Fishjam.WSNotifier.start()
+:ok = Fishjam.WSNotifier.subscribe_server_notifications(notifier)
 
 # create HTTP client instance
-client = Jellyfish.Client.new()
+client = Fishjam.Client.new()
 
 # Create room
-{:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} = Jellyfish.Room.create(client, max_peers: 10)
+{:ok, %Fishjam.Room{id: room_id}, fishjam_address} = Fishjam.Room.create(client, max_peers: 10)
 
 room_id
 # => "8878cd13-99a6-40d6-8d7e-8da23d803dab"
 
 # Add peer
-{:ok, %Jellyfish.Peer{id: peer_id}, peer_token} =
-    Jellyfish.Room.add_peer(client, room_id, Jellyfish.Peer.WebRTC)
+{:ok, %Fishjam.Peer{id: peer_id}, peer_token} =
+    Fishjam.Room.add_peer(client, room_id, Fishjam.Peer.WebRTC)
 
 receive do
-  {:jellyfish, %Jellyfish.Notification.PeerConnected{room_id: ^room_id, peer_id: ^peer_id}} ->
+  {:fishjam, %Fishjam.Notification.PeerConnected{room_id: ^room_id, peer_id: ^peer_id}} ->
     # handle the notification
 end
 
 # Delete peer
-:ok = Jellyfish.Room.delete_peer(client, room_id, peer_id)
+:ok = Fishjam.Room.delete_peer(client, room_id, peer_id)
 ```
 
 List of structs representing events can be found in the [docs](https://hexdocs.pm/fishjam_server_sdk).

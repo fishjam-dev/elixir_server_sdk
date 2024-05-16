@@ -1,15 +1,15 @@
-defmodule Jellyfish.Peer do
+defmodule Fishjam.Peer do
   @moduledoc """
-  Defines `t:Jellyfish.Peer.t/0`.
+  Defines `t:Fishjam.Peer.t/0`.
 
   Peer is an entity that connects to the server to publish, subscribe to or publish and subscribe
   to tracks published by components and other peers.
-  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
+  For more information refer to [Fishjam documentation](https://fishjam-dev.github.io/fishjam-docs/introduction/basic_concepts).
   """
 
-  alias Jellyfish.Exception.StructureError
-  alias Jellyfish.Peer.WebRTC
-  alias Jellyfish.Track
+  alias Fishjam.Exception.StructureError
+  alias Fishjam.Peer.WebRTC
+  alias Fishjam.Track
 
   @enforce_keys [
     :id,

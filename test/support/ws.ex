@@ -1,9 +1,9 @@
-defmodule Jellyfish.WS do
+defmodule Fishjam.WS do
   @moduledoc false
 
   use WebSockex
 
-  alias Jellyfish.PeerMessage
+  alias Fishjam.PeerMessage
 
   def start_link(url) do
     WebSockex.start_link(url, __MODULE__, %{caller: self()})

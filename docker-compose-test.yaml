@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   test:
     image: membraneframeworklabs/docker_membrane:v2.2.0
@@ -11,14 +9,15 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      jellyfish:
+      fishjam:
         condition: service_healthy
 
-  jellyfish:
+  fishjam:
     extends:
       file: docker-compose-dev.yaml
-      service: jellyfish
+      service: fishjam
     environment:
-      - JF_HOST=jellyfish:5002
+      - FJ_HOST=fishjam:5002
+      - FJ_COMPONENTS_USED=file hls rtsp sip recording
     volumes:
-      - ./test/fixtures:/app/jellyfish_resources/file_component_sources
+      - ./test/fixtures:/app/fishjam_resources/file_component_sources
