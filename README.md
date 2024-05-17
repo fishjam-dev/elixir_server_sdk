@@ -1,5 +1,7 @@
 # Jellyfish Elixir Server SDK
 
+## The package has been renamed to [fishjam_server_sdk](https://hex.pm/packages/fishjam_server_sdk)
+
 [![Hex.pm](https://img.shields.io/hexpm/v/jellyfish_server_sdk.svg)](https://hex.pm/packages/jellyfish_server_sdk)
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/jellyfish_server_sdk/)
 [![codecov](https://codecov.io/gh/jellyfish-dev/elixir_server_sdk/branch/master/graph/badge.svg?token=ByIko4o5U8)](https://codecov.io/gh/jellyfish-dev/elixir_server_sdk)

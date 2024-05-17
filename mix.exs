@@ -1,7 +1,7 @@
 defmodule Membrane.Template.Mixfile do
   use Mix.Project
 
-  @version "0.5.0"
+  @version "0.5.1"
   @github_url "https://github.com/jellyfish-dev/elixir_server_sdk"
   @homepage_url "https://membrane.stream"
 
