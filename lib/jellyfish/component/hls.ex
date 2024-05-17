@@ -1,12 +1,12 @@
-defmodule Jellyfish.Component.HLS do
+defmodule Fishjam.Component.HLS do
   @moduledoc """
   Options for the HLS component.
 
-  For the description of these options refer to [Jellyfish
-  documentation](https://jellyfish-dev.github.io/jellyfish-docs/getting_started/components/hls).
+  For the description of these options refer to [Fishjam
+  documentation](https://fishjam-dev.github.io/fishjam-docs/getting_started/components/hls).
   """
 
-  @behaviour Jellyfish.Component.Deserializer
+  @behaviour Fishjam.Component.Deserializer
 
   @type credentials :: %{
           access_key_id: String.t(),

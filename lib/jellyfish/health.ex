@@ -1,18 +1,18 @@
-defmodule Jellyfish.Health do
+defmodule Fishjam.Health do
   @moduledoc """
-  Utilities for managing the health of Jellyfish instances.
+  Utilities for managing the health of Fishjam instances.
 
   ## Examples
   ```
-  iex> client = Jellyfish.Client.new()
-  iex> assert {:ok, %Jellyfish.Health{
+  iex> client = Fishjam.Client.new()
+  iex> assert {:ok, %Fishjam.Health{
   ...>    status: :up,
-  ...> }} = Jellyfish.Health.check(client)
+  ...> }} = Fishjam.Health.check(client)
   ```
   """
 
-  alias Jellyfish.{Client, Utils}
-  alias Jellyfish.Exception.StructureError
+  alias Fishjam.{Client, Utils}
+  alias Fishjam.Exception.StructureError
 
   @enforce_keys [
     :status,
@@ -22,19 +22,19 @@ defmodule Jellyfish.Health do
   defstruct @enforce_keys
 
   @typedoc """
-  The status of Jellyfish or a specific service.
+  The status of Fishjam or a specific service.
   """
   @type status :: :up | :down
 
   @typedoc """
-  Stores a health report of Jellyfish.
+  Stores a health report of Fishjam.
 
     * `:status` - overall status
     * `:uptime` - uptime in seconds
     * `:distribution` - distribution health report:
       - `:enabled` - whether distribution is enabled
-      - `:node_status` - status of this Jellyfish's node
-      - `:nodes_in_cluster` - amount of nodes (including this Jellyfish's node)
+      - `:node_status` - status of this Fishjam's node
+      - `:nodes_in_cluster` - amount of nodes (including this Fishjam's node)
         in the distribution cluster
   """
   @type t :: %__MODULE__{
@@ -48,7 +48,7 @@ defmodule Jellyfish.Health do
         }
 
   @doc """
-  Perform a health check of Jellyfish.
+  Perform a health check of Fishjam.
   """
   @spec check(Client.t()) :: {:ok, t()} | {:error, atom() | String.t()}
   def check(client) do

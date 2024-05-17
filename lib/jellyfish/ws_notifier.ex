@@ -1,25 +1,25 @@
-defmodule Jellyfish.WSNotifier do
+defmodule Fishjam.WSNotifier do
   @moduledoc """
   Module defining a process responsible for establishing
-  WebSocket connection and receiving events from Jellyfish server.
+  WebSocket connection and receiving events from Fishjam server.
 
-  First, [configure the connection options](README.md#jellyfish-connection-configuration).
+  First, [configure the connection options](README.md#fishjam-connection-configuration).
 
   ```
   # Start the Notifier
-  iex> {:ok, notifier} = Jellyfish.WSNotifier.start()
+  iex> {:ok, notifier} = Fishjam.WSNotifier.start()
   {:ok, #PID<0.301.0>}
   ```
 
   ```
   # Subscribe current process to server notifications.
-  iex> :ok = Jellyfish.WSNotifier.subscribe_server_notifications(notifier)
+  iex> :ok = Fishjam.WSNotifier.subscribe_server_notifications(notifier)
 
-  # here add a room and a peer using functions from `Jellyfish.Room` module
+  # here add a room and a peer using functions from `Fishjam.Room` module
   # you should receive a notification after the peer established connection
 
   iex> flush()
-  {:jellyfish, %Jellyfish.Notification.PeerConnected{
+  {:fishjam, %Fishjam.Notification.PeerConnected{
     room_id: "21604fbe-8ac8-44e6-8474-98b5f50f1863",
     peer_id: "ae07f94e-0887-44c3-81d5-bfa9eac96252"
   }}
@@ -28,7 +28,7 @@ defmodule Jellyfish.WSNotifier do
 
   When starting the Notifier, you can provide the name under which the process will be registered.
   ```
-  iex> {:ok, notifier} = Jellyfish.WSNotifier.start_link(name: Jellyfish.WSNotifier)
+  iex> {:ok, notifier} = Fishjam.WSNotifier.start_link(name: Fishjam.WSNotifier)
   ```
 
   """
@@ -37,10 +37,10 @@ defmodule Jellyfish.WSNotifier do
 
   require Logger
 
-  alias Jellyfish.Utils
-  alias Jellyfish.{Notification, ServerMessage}
+  alias Fishjam.Utils
+  alias Fishjam.{Notification, ServerMessage}
 
-  alias Jellyfish.ServerMessage.{
+  alias Fishjam.ServerMessage.{
     Authenticated,
     AuthRequest,
     MetricsReport,
@@ -57,7 +57,7 @@ defmodule Jellyfish.WSNotifier do
   @type notifier() :: GenServer.server()
 
   @typedoc """
-  Connection options used to connect to Jellyfish server.
+  Connection options used to connect to Fishjam server.
   """
   @type options() :: [
           server_address: String.t(),
@@ -67,7 +67,7 @@ defmodule Jellyfish.WSNotifier do
         ]
 
   @doc """
-  Starts the Notifier process and connects to Jellyfish.
+  Starts the Notifier process and connects to Fishjam.
 
   Acts like `start/1` but links to the calling process.
 
@@ -79,11 +79,11 @@ defmodule Jellyfish.WSNotifier do
   end
 
   @doc """
-  Starts the Notifier process and connects to Jellyfish.
+  Starts the Notifier process and connects to Fishjam.
 
   To learn how to receive notifications, see `subscribe/3`.
 
-  For information about options, see `t:Jellyfish.Client.connection_options/0`.
+  For information about options, see `t:Fishjam.Client.connection_options/0`.
   """
   @spec start(options()) :: {:ok, pid()} | {:error, term()}
   def start(opts \\ []) do
@@ -93,16 +93,16 @@ defmodule Jellyfish.WSNotifier do
   @doc """
   Subscribes the process to receive server notifications from all the rooms.
 
-  Notifications are sent to the process in a form of `{:jellyfish, msg}`,
-  where `msg` is one of structs defined under "Jellyfish.Notification" section in the docs,
-  for example `{:jellyfish, %Jellyfish.Notification.RoomCrashed{room_id: "some_id"}}`.
+  Notifications are sent to the process in a form of `{:fishjam, msg}`,
+  where `msg` is one of structs defined under "Fishjam.Notification" section in the docs,
+  for example `{:fishjam, %Fishjam.Notification.RoomCrashed{room_id: "some_id"}}`.
   """
   @spec subscribe_server_notifications(notifier()) :: :ok | {:error, atom()}
   def subscribe_server_notifications(notifier) do
     WebSockex.cast(notifier, {:subscribe_server_notifications, self()})
 
     receive do
-      {:jellyfish, {:subscribe_answer, :ok}} -> :ok
+      {:fishjam, {:subscribe_answer, :ok}} -> :ok
       {:error, _reason} = error -> error
     after
       @subscribe_timeout -> {:error, :timeout}
@@ -112,8 +112,8 @@ defmodule Jellyfish.WSNotifier do
   @doc """
   Subscribes the process to the WebRTC metrics from all the rooms.
 
-  Metrics are periodically sent to the process in a form of `{:jellyfish, metrics_report}`,
-  where `metrics_report` is the `Jellyfish.MetricsReport` struct.
+  Metrics are periodically sent to the process in a form of `{:fishjam, metrics_report}`,
+  where `metrics_report` is the `Fishjam.MetricsReport` struct.
   """
 
   @spec subscribe_metrics(notifier()) :: :ok | {:error, :timeout}
@@ -121,7 +121,7 @@ defmodule Jellyfish.WSNotifier do
     WebSockex.cast(notifier, {:subscribe_metrics, self()})
 
     receive do
-      {:jellyfish, {:subscribe_answer, :ok}} -> :ok
+      {:fishjam, {:subscribe_answer, :ok}} -> :ok
     after
       @subscribe_timeout -> {:error, :timeout}
     end
@@ -146,7 +146,7 @@ defmodule Jellyfish.WSNotifier do
 
       %ServerMessage{content: nil, __unknown_fields__: _binary} ->
         Logger.warning(
-          "Can't decode received notification. This probably means that jellyfish is using a different version of protobuffs."
+          "Can't decode received notification. This probably means that fishjam is using a different version of protobuffs."
         )
 
         {:ok, state}
@@ -166,7 +166,7 @@ defmodule Jellyfish.WSNotifier do
 
   @impl true
   def terminate({:remote, 1000, "invalid token"}, state) do
-    send(state.caller_pid, {:jellyfish, :invalid_token})
+    send(state.caller_pid, {:fishjam, :invalid_token})
   end
 
   @impl true
@@ -201,10 +201,10 @@ defmodule Jellyfish.WSNotifier do
            ]),
          :ok <- WebSockex.send_frame(ws, {:binary, auth_msg}) do
       receive do
-        {:jellyfish, :authenticated} ->
+        {:fishjam, :authenticated} ->
           {:ok, ws}
 
-        {:jellyfish, :invalid_token} ->
+        {:fishjam, :invalid_token} ->
           {:error, :invalid_token}
       after
         @auth_timeout ->
@@ -218,7 +218,7 @@ defmodule Jellyfish.WSNotifier do
   end
 
   defp handle_notification(%Authenticated{}, state) do
-    send(state.caller_pid, {:jellyfish, :authenticated})
+    send(state.caller_pid, {:fishjam, :authenticated})
     {:ok, state}
   end
 
@@ -234,7 +234,7 @@ defmodule Jellyfish.WSNotifier do
         pending_subscriptions
         |> Enum.reduce(state, fn
           pid, state ->
-            send(pid, {:jellyfish, {:subscribe_answer, :ok}})
+            send(pid, {:fishjam, {:subscribe_answer, :ok}})
             update_in(state.subscriptions[event_type], &MapSet.put(&1, pid))
         end)
       end
@@ -243,11 +243,11 @@ defmodule Jellyfish.WSNotifier do
   end
 
   defp handle_notification(%MetricsReport{metrics: metrics}, state) do
-    notification = %Jellyfish.MetricsReport{metrics: Jason.decode!(metrics)}
+    notification = %Fishjam.MetricsReport{metrics: Jason.decode!(metrics)}
 
     state.subscriptions.metrics
     |> Enum.each(fn pid ->
-      send(pid, {:jellyfish, notification})
+      send(pid, {:fishjam, notification})
     end)
 
     {:ok, state}
@@ -255,7 +255,7 @@ defmodule Jellyfish.WSNotifier do
 
   defp handle_notification(%{room_id: _room_id} = message, state) do
     state.subscriptions.server_notification
-    |> Enum.each(&send(&1, {:jellyfish, Notification.to_notification(message)}))
+    |> Enum.each(&send(&1, {:fishjam, Notification.to_notification(message)}))
 
     {:ok, state}
   end

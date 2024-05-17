@@ -1,13 +1,13 @@
-defmodule Membrane.Template.Mixfile do
+defmodule Fishjam.Mixfile do
   use Mix.Project
 
-  @version "0.5.0"
-  @github_url "https://github.com/jellyfish-dev/elixir_server_sdk"
-  @homepage_url "https://membrane.stream"
+  @version "0.6.0"
+  @github_url "https://github.com/fishjam-dev/elixir_server_sdk"
+  @homepage_url "https://fishjam-dev.github.io/fishjam-docs/"
 
   def project do
     [
-      app: :jellyfish_server_sdk,
+      app: :fishjam_server_sdk,
       version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -17,11 +17,11 @@ defmodule Membrane.Template.Mixfile do
       dialyzer: dialyzer(),
 
       # hex
-      description: "Jellyfish Server SDK",
+      description: "Fishjam Server SDK",
       package: package(),
 
       # docs
-      name: "Jellyfish Server SDK",
+      name: "Fishjam Server SDK",
       source_url: @github_url,
       homepage_url: @homepage_url,
       docs: docs(),
@@ -88,11 +88,11 @@ defmodule Membrane.Template.Mixfile do
 
   defp package do
     [
-      maintainers: ["Membrane Team"],
+      maintainers: ["Fishjam Team"],
       licenses: ["Apache-2.0"],
       links: %{
         "GitHub" => @github_url,
-        "Membrane Framework Homepage" => @homepage_url
+        "Fishjam" => @homepage_url
       }
     ]
   end
@@ -104,12 +104,12 @@ defmodule Membrane.Template.Mixfile do
       formatters: ["html"],
       source_ref: "v#{@version}",
       nest_modules_by_prefix: [
-        Jellyfish,
-        Jellyfish.Exception,
-        Jellyfish.Notification
+        Fishjam,
+        Fishjam.Exception,
+        Fishjam.Notification
       ],
       groups_for_modules: [
-        Events: ~r/^Jellyfish\.((\bNotification\.[a-zA-Z]*$)|(\bMetricsReport))/
+        Events: ~r/^Fishjam\.((\bNotification\.[a-zA-Z]*$)|(\bMetricsReport))/
       ]
     ]
   end

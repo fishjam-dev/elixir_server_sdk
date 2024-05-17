@@ -1,42 +1,42 @@
-defmodule Jellyfish.Room do
+defmodule Fishjam.Room do
   @moduledoc """
   Utilities for manipulating the rooms.
 
   ## Examples
   ```
-  iex> client = Jellyfish.Client.new()
-  iex> assert {:ok, %Jellyfish.Room{
+  iex> client = Fishjam.Client.new()
+  iex> assert {:ok, %Fishjam.Room{
   ...>    components: [],
   ...>    config: %{max_peers: 10, video_codec: nil},
   ...>    peers: []
-  ...>  } = room, _jellyfish_address} = Jellyfish.Room.create(client, max_peers: 10)
-  iex> room == %Jellyfish.Room{
+  ...>  } = room, _fishjam_address} = Fishjam.Room.create(client, max_peers: 10)
+  iex> room == %Fishjam.Room{
   ...>    id: room.id,
   ...>    components: [],
   ...>    config: %{max_peers: 10, video_codec: nil},
   ...>    peers: []}
   true
-  iex> assert {:ok, %{peer: %Jellyfish.Peer{
+  iex> assert {:ok, %{peer: %Fishjam.Peer{
   ...>    status: :disconnected,
-  ...>    type: Jellyfish.Peer.WebRTC,
+  ...>    type: Fishjam.Peer.WebRTC,
   ...>    tracks: []
-  ...> } = peer}} = Jellyfish.Room.add_peer(client, room.id, Jellyfish.Peer.WebRTC)
-  iex> %Jellyfish.Peer{
+  ...> } = peer}} = Fishjam.Room.add_peer(client, room.id, Fishjam.Peer.WebRTC)
+  iex> %Fishjam.Peer{
   ...>    id: peer.id,
   ...>    status: :disconnected,
-  ...>    type: Jellyfish.Peer.WebRTC,
+  ...>    type: Fishjam.Peer.WebRTC,
   ...>    tracks: [],
   ...>    metadata: nil} == peer
   true
-  iex> :ok = Jellyfish.Room.delete(client, room.id)
+  iex> :ok = Fishjam.Room.delete(client, room.id)
   :ok
   ```
   """
 
   alias Tesla.Env
-  alias Jellyfish.Component.{File, HLS, Recording, RTSP, SIP}
-  alias Jellyfish.{Client, Component, Peer, Utils}
-  alias Jellyfish.Exception.StructureError
+  alias Fishjam.Component.{File, HLS, Recording, RTSP, SIP}
+  alias Fishjam.{Client, Component, Peer, Utils}
+  alias Fishjam.Exception.StructureError
 
   @s3_keys [:access_key_id, :secret_access_key, :region, :bucket]
   @subscribe_modes [:auto, :manual]
@@ -50,24 +50,24 @@ defmodule Jellyfish.Room do
   defstruct @enforce_keys
 
   @typedoc """
-  Id of the room, unique within Jellyfish instance.
+  Id of the room, unique within Fishjam instance.
   """
   @type id :: String.t()
 
   @typedoc """
-  Id of the track, unique within Jellyfish instance.
+  Id of the track, unique within Fishjam instance.
   """
   @type track_id :: String.t()
 
   @typedoc """
-  Peer token, created by Jellyfish. Required by client application to open connection to Jellyfish.
+  Peer token, created by Fishjam. Required by client application to open connection to Fishjam.
   """
   @type peer_token :: String.t()
 
   @typedoc """
-  Jellyfish response to adding a peer to room. It consists of:
+  Fishjam response to adding a peer to room. It consists of:
   * peer structure
-  * token used for authentication when connecting through websocket to jellyfish
+  * token used for authentication when connecting through websocket to fishjam
   * ws_url that is a websocket adress to which this specific peer have to connect
   """
   @type peer_create_response :: %{peer: Peer.t(), token: peer_token(), ws_url: String.t()}
@@ -133,10 +133,10 @@ defmodule Jellyfish.Room do
   @doc """
   Creates a new room.
 
-  Returns an address of Jellyfish where the room was created.
-  When running Jellyfish in a cluster, this address might be different
+  Returns an address of Fishjam where the room was created.
+  When running Fishjam in a cluster, this address might be different
   than the one used in the initial call.
-  Therefore, it is important to call `Jellyfish.Client.update_address/2`
+  Therefore, it is important to call `Fishjam.Client.update_address/2`
   before subsequent operations like adding peers or components.
   """
   @spec create(Client.t(), options()) :: {:ok, t(), String.t()} | {:error, atom() | String.t()}
@@ -151,9 +151,9 @@ defmodule Jellyfish.Room do
              "peerDisconnectedTimeout" => Keyword.get(opts, :peer_disconnected_timeout)
            }),
          room_json <- Map.fetch!(data, "room"),
-         jellyfish_address <- Map.fetch!(data, "jellyfish_address"),
+         fishjam_address <- Map.fetch!(data, "fishjam_address"),
          result <- from_json(room_json) do
-      {:ok, result, jellyfish_address}
+      {:ok, result, fishjam_address}
     end
   end
 

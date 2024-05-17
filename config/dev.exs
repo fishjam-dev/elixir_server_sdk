@@ -1,5 +1,5 @@
 import Config
 
-config :jellyfish_server_sdk,
+config :fishjam_server_sdk,
   server_address: "localhost:5002",
   server_api_token: "development"

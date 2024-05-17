@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.TestWithDocker do
   @moduledoc """
-  Test the SDK with Jellyfish running in Docker
+  Test the SDK with Fishjam running in Docker
   """
 
   use Mix.Task

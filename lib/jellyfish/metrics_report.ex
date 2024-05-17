@@ -1,4 +1,4 @@
-defmodule Jellyfish.MetricsReport do
+defmodule Fishjam.MetricsReport do
   @moduledoc nil
 
   @enforce_keys [:metrics]
@@ -11,7 +11,7 @@ defmodule Jellyfish.MetricsReport do
 
   Here is a sample report:
   ```
-  %Jellyfish.MetricsReport{
+  %Fishjam.MetricsReport{
   metrics: %{
    "inbound-rtp.frames" => 406,
    "inbound-rtp.keyframes" => 9,

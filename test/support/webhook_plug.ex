@@ -1,10 +1,10 @@
 defmodule WebHookPlug do
   @moduledoc false
   import Plug.Conn
-  alias Jellyfish.WebhookNotifier
+  alias Fishjam.WebhookNotifier
   alias Phoenix.PubSub
 
-  @pubsub Jellyfish.PubSub
+  @pubsub Fishjam.PubSub
 
   def init(opts) do
     opts

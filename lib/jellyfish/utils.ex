@@ -1,8 +1,8 @@
-defmodule Jellyfish.Utils do
+defmodule Fishjam.Utils do
   @moduledoc false
 
-  alias Jellyfish.Client
-  alias Jellyfish.Exception.{OptionsError, ProtocolPrefixError, StructureError}
+  alias Fishjam.Client
+  alias Fishjam.Exception.{OptionsError, ProtocolPrefixError, StructureError}
   alias Tesla.Env
 
   @protocol_prefixes ["http://", "https://", "ws://", "wss://"]
@@ -11,13 +11,13 @@ defmodule Jellyfish.Utils do
           {String.t(), String.t(), boolean()}
   def get_options_or_defaults(opts) do
     server_address =
-      opts[:server_address] || Application.fetch_env!(:jellyfish_server_sdk, :server_address)
+      opts[:server_address] || Application.fetch_env!(:fishjam_server_sdk, :server_address)
 
     server_api_token =
-      opts[:server_api_token] || Application.fetch_env!(:jellyfish_server_sdk, :server_api_token)
+      opts[:server_api_token] || Application.fetch_env!(:fishjam_server_sdk, :server_api_token)
 
     secure? =
-      Keyword.get(opts, :secure?, Application.get_env(:jellyfish_server_sdk, :secure?, false))
+      Keyword.get(opts, :secure?, Application.get_env(:fishjam_server_sdk, :secure?, false))
 
     check_prefixes(server_address)
 

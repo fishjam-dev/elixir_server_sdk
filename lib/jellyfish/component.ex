@@ -1,14 +1,14 @@
-defmodule Jellyfish.Component do
+defmodule Fishjam.Component do
   @moduledoc """
-  Defines `t:Jellyfish.Component.t/0`.
+  Defines `t:Fishjam.Component.t/0`.
 
   Component is a server-side entity that can publish, subscribe to and process tracks.
-  For more information refer to [Jellyfish documentation](https://jellyfish-dev.github.io/jellyfish-docs/introduction/basic_concepts).
+  For more information refer to [Fishjam documentation](https://fishjam-dev.github.io/fishjam-docs/introduction/basic_concepts).
   """
 
-  alias Jellyfish.Component.{File, HLS, Recording, RTSP, SIP}
-  alias Jellyfish.Exception.StructureError
-  alias Jellyfish.Track
+  alias Fishjam.Component.{File, HLS, Recording, RTSP, SIP}
+  alias Fishjam.Exception.StructureError
+  alias Fishjam.Track
 
   @enforce_keys [
     :id,

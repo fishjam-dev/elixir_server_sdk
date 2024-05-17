@@ -1,13 +1,13 @@
-defmodule Jellyfish.NotifierTest do
+defmodule Fishjam.NotifierTest do
   use ExUnit.Case
-  doctest Jellyfish.WebhookNotifier
-  alias Jellyfish.{Client, Component, Peer, Room, Track, WSNotifier}
-  alias Jellyfish.Component.File
+  doctest Fishjam.WebhookNotifier
+  alias Fishjam.{Client, Component, Peer, Room, Track, WSNotifier}
+  alias Fishjam.Component.File
 
-  alias Jellyfish.PeerMessage
-  alias Jellyfish.PeerMessage.AuthRequest
+  alias Fishjam.PeerMessage
+  alias Fishjam.PeerMessage.AuthRequest
 
-  alias Jellyfish.Notification.{
+  alias Fishjam.Notification.{
     ComponentTrackAdded,
     ComponentTrackRemoved,
     PeerAdded,
@@ -19,9 +19,9 @@ defmodule Jellyfish.NotifierTest do
     RoomDeleted
   }
 
-  alias Jellyfish.MetricsReport
+  alias Fishjam.MetricsReport
 
-  alias Jellyfish.WS
+  alias Fishjam.WS
   alias Phoenix.PubSub
 
   @peer_opts %Peer.WebRTC{}
@@ -35,15 +35,15 @@ defmodule Jellyfish.NotifierTest do
   @peerless_purge_timeout_s 1
   @peer_disconnected_timeout_s 1
   @webhook_port 4000
-  @webhook_host Application.compile_env!(:jellyfish_server_sdk, :webhook_address)
+  @webhook_host Application.compile_env!(:fishjam_server_sdk, :webhook_address)
   @webhook_address "http://#{@webhook_host}:#{@webhook_port}/"
-  @pubsub Jellyfish.PubSub
+  @pubsub Fishjam.PubSub
 
   setup_all do
     children = [
       {Plug.Cowboy,
        plug: WebHookPlug, scheme: :http, options: [port: @webhook_port, ip: {0, 0, 0, 0}]},
-      {Phoenix.PubSub, name: Jellyfish.PubSub}
+      {Phoenix.PubSub, name: Fishjam.PubSub}
     ]
 
     {:ok, _pid} =
@@ -84,19 +84,19 @@ defmodule Jellyfish.NotifierTest do
     test "when room gets created and then deleted", %{
       client: client
     } do
-      {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
+      {:ok, %Fishjam.Room{id: room_id}, _fishjam_address} =
         Room.create(client,
           max_peers: @max_peers,
           video_codec: @video_codec,
           webhook_url: @webhook_address
         )
 
-      assert_receive {:jellyfish, %RoomCreated{room_id: ^room_id}}
+      assert_receive {:fishjam, %RoomCreated{room_id: ^room_id}}
       assert_receive {:webhook, %RoomCreated{room_id: ^room_id}}, 2_500
 
       :ok = Room.delete(client, room_id)
 
-      assert_receive {:jellyfish, %RoomDeleted{room_id: ^room_id}}
+      assert_receive {:fishjam, %RoomDeleted{room_id: ^room_id}}
       assert_receive {:webhook, %RoomDeleted{room_id: ^room_id}}, 2_500
     end
 
@@ -105,7 +105,7 @@ defmodule Jellyfish.NotifierTest do
     } do
       {room_id, peer_id, peer_ws} = create_room_and_auth_ws(client)
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %PeerConnected{peer_id: ^peer_id, room_id: ^room_id} = peer_connected}
 
       assert_receive {:webhook, ^peer_connected}, 2_500
@@ -123,7 +123,7 @@ defmodule Jellyfish.NotifierTest do
 
       :ok = WS.send_frame(peer_ws, media_event)
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %PeerMetadataUpdated{
                         peer_id: ^peer_id,
                         room_id: ^room_id,
@@ -135,7 +135,7 @@ defmodule Jellyfish.NotifierTest do
 
       :ok = Room.delete_peer(client, room_id, peer_id)
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id} = peer_disconnected},
                      1_000
 
@@ -147,7 +147,7 @@ defmodule Jellyfish.NotifierTest do
     test "when peer connects and then disconnects peer is removed with timeout", %{
       client: client
     } do
-      {:ok, %Jellyfish.Room{id: room_id}, jellyfish_address} =
+      {:ok, %Fishjam.Room{id: room_id}, fishjam_address} =
         Room.create(client,
           max_peers: @max_peers,
           video_codec: @video_codec,
@@ -156,40 +156,40 @@ defmodule Jellyfish.NotifierTest do
           peer_disconnected_timeout_s: @peer_disconnected_timeout_s
         )
 
-      {:ok, %{peer: %Jellyfish.Peer{id: peer_id}, token: peer_token}} =
+      {:ok, %{peer: %Fishjam.Peer{id: peer_id}, token: peer_token}} =
         Room.add_peer(client, room_id, @peer_opts)
 
-      assert_receive {:jellyfish, %PeerAdded{peer_id: ^peer_id, room_id: ^room_id} = peer_added},
+      assert_receive {:fishjam, %PeerAdded{peer_id: ^peer_id, room_id: ^room_id} = peer_added},
                      1_000
 
       assert_receive {:webhook, ^peer_added}, 2_500
 
-      {:ok, peer_ws} = WS.start_link("ws://#{jellyfish_address}/socket/peer/websocket")
+      {:ok, peer_ws} = WS.start_link("ws://#{fishjam_address}/socket/peer/websocket")
 
       auth_request = %PeerMessage{content: {:auth_request, %AuthRequest{token: peer_token}}}
       :ok = WS.send_frame(peer_ws, auth_request)
       {room_id, peer_id, peer_ws}
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %PeerConnected{peer_id: ^peer_id, room_id: ^room_id} = peer_connected}
 
       assert_receive {:webhook, ^peer_connected}, 2_500
 
       GenServer.stop(peer_ws)
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %PeerDisconnected{peer_id: ^peer_id, room_id: ^room_id} = peer_disconnected},
                      1_000
 
       assert_receive {:webhook, ^peer_disconnected}, 2_500
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %PeerDeleted{peer_id: ^peer_id, room_id: ^room_id} = peer_deleted},
                      2_500
 
       assert_receive {:webhook, ^peer_deleted}, 2_500
 
-      assert_receive {:jellyfish, %RoomDeleted{room_id: ^room_id} = room_deleted},
+      assert_receive {:fishjam, %RoomDeleted{room_id: ^room_id} = room_deleted},
                      2_500
 
       assert_receive {:webhook, ^room_deleted}, 2_500
@@ -204,7 +204,7 @@ defmodule Jellyfish.NotifierTest do
       {:ok, %Component{id: component_id}} =
         Room.add_component(client, room_id, @file_component_opts)
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %ComponentTrackAdded{
                         room_id: ^room_id,
                         component_id: ^component_id,
@@ -216,7 +216,7 @@ defmodule Jellyfish.NotifierTest do
 
       :ok = Room.delete_component(client, room_id, component_id)
 
-      assert_receive {:jellyfish,
+      assert_receive {:fishjam,
                       %ComponentTrackRemoved{
                         room_id: ^room_id,
                         component_id: ^component_id,
@@ -242,27 +242,27 @@ defmodule Jellyfish.NotifierTest do
     test "with one peer", %{client: client} do
       {room_id, peer_id, _peer_ws} = create_room_and_auth_ws(client)
 
-      assert_receive {:jellyfish, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}
+      assert_receive {:fishjam, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}
       assert_receive {:webhook, %PeerConnected{peer_id: ^peer_id, room_id: ^room_id}}, 2_500
 
-      assert_receive {:jellyfish, %MetricsReport{metrics: metrics}} when metrics != %{}, 1500
+      assert_receive {:fishjam, %MetricsReport{metrics: metrics}} when metrics != %{}, 1500
 
       :ok = Room.delete(client, room_id)
     end
   end
 
   defp create_room_and_auth_ws(client, room_opts \\ []) do
-    {:ok, %Jellyfish.Room{id: room_id}, _jellyfish_address} =
+    {:ok, %Fishjam.Room{id: room_id}, _fishjam_address} =
       Room.create(client,
         max_peers: Keyword.get(room_opts, :max_peers, @max_peers),
         video_codec: Keyword.get(room_opts, :video_codec, @video_codec),
         webhook_url: Keyword.get(room_opts, :webhook_url, @webhook_address)
       )
 
-    {:ok, %{peer: %Jellyfish.Peer{id: peer_id}, token: peer_token, ws_url: peer_ws_url}} =
+    {:ok, %{peer: %Fishjam.Peer{id: peer_id}, token: peer_token, ws_url: peer_ws_url}} =
       Room.add_peer(client, room_id, @peer_opts)
 
-    assert_receive {:jellyfish, %PeerAdded{peer_id: ^peer_id, room_id: ^room_id} = peer_added},
+    assert_receive {:fishjam, %PeerAdded{peer_id: ^peer_id, room_id: ^room_id} = peer_added},
                    1_000
 
     assert_receive {:webhook, ^peer_added}, 2_500

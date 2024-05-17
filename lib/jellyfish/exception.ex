@@ -1,4 +1,4 @@
-defmodule Jellyfish.Exception do
+defmodule Fishjam.Exception do
   @moduledoc false
 
   defmodule StructureError do
@@ -8,7 +8,7 @@ defmodule Jellyfish.Exception do
     def exception(structure) do
       msg = """
       Received server response or notification with unexpected structure.
-      Make sure you are using correct combination of Jellyfish and SDK versions.
+      Make sure you are using correct combination of Fishjam and SDK versions.
       Passed structure: #{inspect(structure)}
       """
 
@@ -37,7 +37,7 @@ defmodule Jellyfish.Exception do
     def exception(_opts) do
       msg = """
       Passed component options that doesn't match function spec.
-      Look closely on `Jellyfish.Room.add_component/3` spec.
+      Look closely on `Fishjam.Room.add_component/3` spec.
       """
 
       %__MODULE__{message: msg}

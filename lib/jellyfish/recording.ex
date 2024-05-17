@@ -1,20 +1,20 @@
-defmodule Jellyfish.Recording do
+defmodule Fishjam.Recording do
   @moduledoc """
   Utilites for manipulating the recordings.
 
   ## Examples
   ```
-  iex> client = Jellyfish.Client.new()
-  iex> assert {:ok, []} = Jellyfish.Recording.get_list(client)
-  iex> assert {:error, "Request failed: Recording not found"} = Jellyfish.Recording.delete(client, "not_exisiting_recording")
+  iex> client = Fishjam.Client.new()
+  iex> assert {:ok, []} = Fishjam.Recording.get_list(client)
+  iex> assert {:error, "Request failed: Recording not found"} = Fishjam.Recording.delete(client, "not_exisiting_recording")
   ```
   """
 
-  alias Jellyfish.{Client, Utils}
+  alias Fishjam.{Client, Utils}
   alias Tesla.Env
 
   @typedoc """
-  Id for the recording, unique within Jellyfish instance.
+  Id for the recording, unique within Fishjam instance.
   """
   @type id :: String.t()
 

@@ -1,11 +1,11 @@
-defmodule Jellyfish.Track do
+defmodule Fishjam.Track do
   @moduledoc """
-  Defines `t:Jellyfish.Track.t/0`.
+  Defines `t:Fishjam.Track.t/0`.
 
   It represents a single media track, either audio or video.
   """
 
-  alias Jellyfish.Exception.StructureError
+  alias Fishjam.Exception.StructureError
 
   @enforce_keys [
     :id,
