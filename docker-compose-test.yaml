@@ -18,6 +18,5 @@ services:
       service: fishjam
     environment:
       - FJ_HOST=fishjam:5002
-      - FJ_COMPONENTS_USED=file hls rtsp sip recording
     volumes:
       - ./test/fixtures:/app/fishjam_resources/file_component_sources
