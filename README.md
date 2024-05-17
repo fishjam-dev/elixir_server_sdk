@@ -18,7 +18,7 @@ The package can be installed by adding `fishjam_server_sdk` to your list of depe
 ```elixir
 def deps do
   [
-    {:fishjam_server_sdk, "~> 0.6.0"}
+    {:fishjam_server_sdk, "~> 0.5.0"}
   ]
 end
 ```

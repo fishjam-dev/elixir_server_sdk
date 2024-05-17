@@ -1,7 +1,7 @@
 defmodule Fishjam.Mixfile do
   use Mix.Project
 
-  @version "0.6.0"
+  @version "0.5.0"
   @github_url "https://github.com/fishjam-dev/elixir_server_sdk"
   @homepage_url "https://fishjam-dev.github.io/fishjam-docs/"
 
