@@ -1,9 +1,9 @@
 defmodule Fishjam.Mixfile do
   use Mix.Project
 
-  @version "0.5.0"
+  @version "0.6.0"
   @github_url "https://github.com/fishjam-dev/elixir_server_sdk"
-  @homepage_url "https://membrane.stream"
+  @homepage_url "https://fishjam-dev.github.io/fishjam-docs/"
 
   def project do
     [
@@ -88,11 +88,11 @@ defmodule Fishjam.Mixfile do
 
   defp package do
     [
-      maintainers: ["Membrane Team"],
+      maintainers: ["Fishjam Team"],
       licenses: ["Apache-2.0"],
       links: %{
         "GitHub" => @github_url,
-        "Membrane Framework Homepage" => @homepage_url
+        "Fishjam" => @homepage_url
       }
     ]
   end
