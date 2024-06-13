@@ -70,7 +70,7 @@ defmodule Fishjam.Health do
   def from_json(response) do
     %__MODULE__{
       local_status: node_status(response["localStatus"]),
-      nodes_status: Enum.map(response["nodesStatus"], &node_status/1),
+      nodes_status: Enum.map(Map.get(response, "nodesStatus", []), &node_status/1),
       distribution_enabled: response["distributionEnabled"],
       nodes_in_cluster: response["nodesInCluster"]
     }
