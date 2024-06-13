@@ -6,45 +6,52 @@ defmodule Fishjam.Health do
   ```
   iex> client = Fishjam.Client.new()
   iex> assert {:ok, %Fishjam.Health{
-  ...>    status: :up,
+  ...>    local_status: %{status: "UP"},
   ...> }} = Fishjam.Health.check(client)
   ```
   """
 
-  alias Fishjam.{Client, Utils}
-  alias Fishjam.Exception.StructureError
+  alias Fishjam.Client
+  alias Fishjam.Utils
 
   @enforce_keys [
-    :status,
-    :uptime,
-    :distribution
+    :local_status,
+    :nodes_status,
+    :distribution_enabled,
+    :nodes_in_cluster
   ]
   defstruct @enforce_keys
 
   @typedoc """
-  The status of Fishjam or a specific service.
+  The status of Fishjam or a specific node.
+
+    * `:git_commit` - git commit hash on node
+    * `:node_name` - node name
+    * `:status` - can be "UP" or "DOWN"
+    * `:uptime` - uptime in seconds
+    * `:version` - version running on node
   """
-  @type status :: :up | :down
+  @type node_status :: %{
+          git_commit: String.t(),
+          node_name: node(),
+          status: String.t(),
+          uptime: non_neg_integer(),
+          version: String.t()
+        }
 
   @typedoc """
   Stores a health report of Fishjam.
 
-    * `:status` - overall status
-    * `:uptime` - uptime in seconds
-    * `:distribution` - distribution health report:
-      - `:enabled` - whether distribution is enabled
-      - `:node_status` - status of this Fishjam's node
-      - `:nodes_in_cluster` - amount of nodes (including this Fishjam's node)
-        in the distribution cluster
+    * `:local_status` - overall status for local node
+    * `:local_status` - overall status for all nodes in cluster
+    * `:distribution_enabled` - whether distribution is enabled
+    * `:nodes_in_cluster` - amount of nodes (including this Fishjam's node)
   """
   @type t :: %__MODULE__{
-          status: status(),
-          uptime: non_neg_integer(),
-          distribution: %{
-            enabled: boolean(),
-            node_status: status(),
-            nodes_in_cluster: non_neg_integer()
-          }
+          local_status: node_status(),
+          nodes_status: list(node_status()),
+          distribution_enabled: boolean(),
+          nodes_in_cluster: non_neg_integer()
         }
 
   @doc """
@@ -61,31 +68,21 @@ defmodule Fishjam.Health do
   @doc false
   @spec from_json(map()) :: t()
   def from_json(response) do
-    case response do
-      %{
-        "status" => status,
-        "uptime" => uptime,
-        "distribution" => %{
-          "enabled" => dist_enabled?,
-          "nodeStatus" => node_status,
-          "nodesInCluster" => nodes_in_cluster
-        }
-      } ->
-        %__MODULE__{
-          status: status_atom(status),
-          uptime: uptime,
-          distribution: %{
-            enabled: dist_enabled?,
-            node_status: status_atom(node_status),
-            nodes_in_cluster: nodes_in_cluster
-          }
-        }
-
-      unknown_structure ->
-        raise StructureError, unknown_structure
-    end
+    %__MODULE__{
+      local_status: node_status(response["localStatus"]),
+      nodes_status: Enum.map(response["nodesStatus"], &node_status/1),
+      distribution_enabled: response["distributionEnabled"],
+      nodes_in_cluster: response["nodesInCluster"]
+    }
   end
 
-  defp status_atom("UP"), do: :up
-  defp status_atom("DOWN"), do: :down
+  defp node_status(node_status) do
+    %{
+      git_commit: node_status["gitCommit"],
+      node_name: node_status["nodeName"],
+      status: node_status["status"],
+      uptime: node_status["uptime"],
+      version: node_status["version"]
+    }
+  end
 end

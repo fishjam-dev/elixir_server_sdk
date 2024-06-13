@@ -13,9 +13,12 @@ defmodule Fishjam.HealthTest do
     assert {:ok, health} = Health.check(client)
 
     assert %Health{
-             status: :up,
-             uptime: _uptime,
-             distribution: _distribution_health
+             local_status: %{
+               status: "UP"
+             },
+             nodes_status: _,
+             distribution_enabled: _,
+             nodes_in_cluster: _
            } = health
   end
 end
